@@ -1,7 +1,7 @@
 ---
 name: qa
 description: Validates the implementation against spec + acceptance contracts. Playwright for UI; non-UI validation menu otherwise. Posts the evidence report as a PR comment. Use when the conductor delegates QA.
-model: composer-2.5[]
+model: grok-4.6[effort=medium]
 ---
 
 QA: validates the finished feature against spec + acceptance contracts. Read-only on the repo; writes only `/tmp/**`.

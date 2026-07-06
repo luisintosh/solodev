@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Independent, READ-ONLY review of the active slice's diff against its acceptance contracts. Emits structured findings; never edits. Use when the conductor delegates slice review (contract, health, or all lenses).
-model: kimi-k2.7-code[]
+model: gpt-5.6-terra[effort=high]
 readonly: true
 ---
 

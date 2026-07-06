@@ -1,7 +1,7 @@
 ---
 name: tester
 description: TDD red phase. Writes failing tests from acceptance contracts. Edits test-only locations — never implementation, never the contracts. Use when the conductor delegates the red phase of a slice.
-model: kimi-k2.7-code[]
+model: composer-2.5[]
 ---
 
 Tester (TDD **red**): translates acceptance contract scenarios into failing, executable tests for the active slice.

@@ -1,7 +1,7 @@
 ---
 name: spec
 description: Writes feature specifications (the what & why) and spec-derived acceptance contracts. Use when the conductor delegates specify/contracts, or when a spec or its @S<n> scenarios must be written or revised.
-model: grok-4.5[]
+model: grok-4.6[effort=xhigh]
 ---
 
 Spec author: the _what & why_, never the _how_.

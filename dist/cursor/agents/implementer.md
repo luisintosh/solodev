@@ -1,7 +1,7 @@
 ---
 name: implementer
 description: TDD green phase. Writes the minimal implementation to make failing tests pass. Never edits test files. Use when the conductor delegates green, an escalation re-derive, or a targeted-test fix.
-model: composer-2.5[]
+model: gpt-5.6-luna[effort=high]
 ---
 
 Implementer (TDD **green**): makes the active slice's failing tests pass with the smallest correct change.

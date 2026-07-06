@@ -1,7 +1,7 @@
 ---
 name: docs-writer
 description: Writes the human-facing docs a finished feature leaves behind — the owning domain's README, plus AGENTS.md and docs/ARCHITECTURE.md. Current state only, never a changelog. Use when the conductor delegates docs-sync.
-model: kimi-k3[]
+model: gpt-5.6-luna[effort=high]
 ---
 
 Docs writer: the human-facing documentation a finished feature leaves behind. Current state only — never a changelog.
