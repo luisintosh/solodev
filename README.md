@@ -44,11 +44,11 @@ docs/feats/<feature>/
   contracts/*.feature
   plan.md
 docs/product/<slug>/
-  roadmap.md             optional, written by sddkit-plan
+  roadmap.md             optional, written by sddkit-epic
 src/<domain>/README.md   domain doc, written by sddkit-docs-writer at docs-sync
 docs/domains/<domain>.md same, for a domain too cross-cutting to own a directory
 .agents/bin/sddkit-state.mjs    installed by npx/bunx sddkit
-.agents/skills/          sddkit, sddkit-plan + sddkit-setup-docs
+.agents/skills/          sddkit, sddkit-epic + sddkit-setup-docs
 .opencode/               OpenCode agents + opencode.jsonc
 .cursor/agents/          Cursor specialists
 .claude/agents/          Claude Code specialists
@@ -59,7 +59,7 @@ docs/domains/<domain>.md same, for a domain too cross-cutting to own a directory
 ## Models
 
 Models live in `src/catalog.yaml` as a host × profile matrix. Agents declare a `profile`; emitters format the host's
-entry. Skills (`sddkit`, `sddkit-plan`) inherit the session model — run `/sddkit` on Grok 4.6 Extra High, Claude sonnet,
+entry. Skills (`sddkit`, `sddkit-epic`) inherit the session model — run `/sddkit` on Grok 4.6 Extra High, Claude sonnet,
 or Codex terra.
 
 | profile    | OpenCode                      | Cursor                         | Claude                  | Codex                  |
@@ -81,7 +81,7 @@ or Codex terra.
 | `sddkit-code-reviewer`   | `critique` |
 | `sddkit-qa`              | `validate` |
 | `sddkit-docs-writer`     | `write`    |
-| `sddkit-plan`            | `think`    |
+| `sddkit-epic`            | `think`    |
 
 Checked in CI against `src/catalog.yaml` and emitted frontmatter / Codex TOML.
 
@@ -170,22 +170,24 @@ rename. A fresh run flags these and asks before scaffolding state; an unattended
 always runs the full pipeline regardless.
 
 Name a GitHub issue (`gh issue view` number or URL), or another tracker's work item if a substitute is connected, and
-`sddkit` links to it: scope comes from its Definition of Done, the slug is derived from the issue title, and completion
+`sddkit` links to it: scope comes from its Acceptance criteria, the slug is derived from the issue title, and completion
 prints a **handoff** when the tracker is GitHub — a paste-ready invocation for the roadmap's next feature, plus anything
 this run learned that the next one needs.
 
 ### Plan a Product (optional)
 
-**OpenCode:** Tab-switch to the `sddkit-plan` agent and describe the idea.
+**OpenCode:** Tab-switch to the `sddkit-epic` agent and describe the idea.
 
-**Cursor:** run the `/sddkit-plan` skill (it inherits your session model — use your most capable one for this).
+**Cursor:** run the `/sddkit-epic` skill (it inherits your session model — use your most capable one for this).
 
 Explores the codebase to answer what it can before asking anything, refines the idea into a measurable goal, explores
-candidate approaches, then writes a feature roadmap — each feature with a Definition of Done and dependency-derived
-parallel/sequential waves — to `docs/product/<slug>/roadmap.md`. Offers to commit it and to create GitHub issues (one
-epic + one per feature, wired with `Blocked by #N`). Standalone — doesn't touch the SDD pipeline; each resulting feature
-is meant to be run through `sddkit` on its own. Ends by printing a paste-ready invocation for the roadmap's first
-feature.
+candidate approaches, then writes an epic-level feature roadmap with dependency-derived parallel/sequential waves to
+`docs/product/<slug>/roadmap.md`, and one work item per feature to `docs/product/<slug>/items/F<n>.md` — outcome title,
+user story, context, optional proposed solution (mermaid), Given/When/Then acceptance criteria, out of scope, and
+dependencies/risks/open questions — each reviewed by an adversarial product-owner subagent before you approve it. Offers
+to commit it and to create GitHub issues (one epic + one per feature, wired with `Blocked by #N`). Standalone — doesn't
+touch the SDD pipeline; each resulting feature is meant to be run through `sddkit` on its own. Ends by printing a
+paste-ready invocation for the roadmap's first feature.
 
 ### Run a Roadmap
 
@@ -266,4 +268,4 @@ The conductor applies subagent reply YAML through `patch`. OpenCode also denies 
   permission config: `gh pr merge` is allowed at the config level, so branch protection is your hard backstop.
 - No permission is `ask`. An unattended `opencode run` has no responder for a bash/edit permission request, so a
   reachable `ask` would stall it indefinitely. Dangerous commands are hard denies instead — refused, so the agent
-  adapts. `pnpm run check` enforces this; only `sddkit-plan`, which is interactive-only, is exempt.
+  adapts. `pnpm run check` enforces this; only `sddkit-epic`, which is interactive-only, is exempt.

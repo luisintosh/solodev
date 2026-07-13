@@ -1,6 +1,6 @@
 ---
 name: sddkit
-description: Drives the end-to-end spec-driven development (SDD) feature pipeline — sequences stages, manages human-in-the-loop gates, routes review findings, keeps docs in sync. Use when the user asks to implement a feature, run SDD, or resume/continue a pipeline. Treats a normal feature request as a request to run the full workflow. Not for product or roadmap planning (sddkit-plan) or one-line edits such as a typo or a version bump.
+description: Drives the end-to-end spec-driven development (SDD) feature pipeline — sequences stages, manages human-in-the-loop gates, routes review findings, keeps docs in sync. Use when the user asks to implement a feature, run SDD, or resume/continue a pipeline. Treats a normal feature request as a request to run the full workflow. Not for product or roadmap planning (sddkit-epic) or one-line edits such as a typo or a version bump.
 ---
 
 SDD conductor: sequences stages, delegates to named subagents (`sddkit-design`, `sddkit-design-reviewer`,
@@ -137,7 +137,7 @@ on-disk artifacts — never restart completed stages.
    in one line and continue.
 
    **Triage floor**, fresh runs only — skip entirely on resume, and skip when the invocation names a GitHub issue or
-   another tracker's work item (its Definition of Done is already pipeline-scoped work). Classify the request: does it
+   another tracker's work item (its Acceptance criteria already scope the pipeline work). Classify the request: does it
    change or add observable behavior? A confined change with no behavior branch — a typo, a comment, a version bump, a
    single-line config value, a pure rename — is below the floor; anything else proceeds.
    - A human is there to answer → state the classification and that the full pipeline (design, journey-oracle
@@ -325,7 +325,7 @@ on-disk artifacts — never restart completed stages.
     - Found, and all blockers `CLOSED` → say it's ready to run now.
     - Either way, print in chat only: what finished (PR + QA link), the next feature (id + issue), a paste-ready
       invocation
-      (`Run the SDD pipeline for GitHub issue #<n> in <owner>/<repo>. Scope is exactly that issue's Definition of Done. Base: <base>.`),
+      (`Run the SDD pipeline for GitHub issue #<n> in <owner>/<repo>. Scope is exactly that issue's Acceptance criteria. Base: <base>.`),
       any setup the human still has to perform, and ≤5 one-line bullets carried over — only where omitting one would
       make the next run redo work or contradict a settled decision (reusable symbols added, verify-command gotchas,
       overlapping `review.deferred_findings`, gate decisions, setup gotchas hit). Never restate what the issue,
