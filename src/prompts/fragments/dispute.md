@@ -1,6 +1,6 @@
 ## Review dispute (step 6.5)
 
-Only when step 6.4 or `sddkit-state next` sends you here.
+Only when step 6.4 or `quest-state next` sends you here.
 
 1. Patch `pending_gate: dispute` and, per remaining `blocker|major` finding, append the blocker
    `dispute (review) <id>: <summary> — <fix>` (`--append '{blockers: [...]}'`; a re-raised `fix` carries both
@@ -12,7 +12,7 @@ Only when step 6.4 or `sddkit-state next` sends you here.
      check `show`). A design finding gets the tech-debt `fix`
      `Tech debt: <Pattern> — migrate <sites> to <symbol>; reason: deferred at dispute` (pattern, sites, and symbol from
      its `fix`); any other keeps its `fix` without the `Tech debt:` prefix.
-   - **apply** → all applied findings in one round: continue `sddkit-implementer` (no live handle → a new one with the
+   - **apply** → all applied findings in one round: continue `shadow-implementer` (no live handle → a new one with the
      journey briefs) with those findings and the human's ruling as authority — rebuttals are not accepted under a
      ruling. Handle its reply as in a fix round (step 6.4): opinion gate, `blocked`, and `files_changed: []` (continue
      it once stating that, then blocker). Run typecheck, lint, and every journey command (second failure → blockers,
