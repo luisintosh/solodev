@@ -8,9 +8,9 @@ invoked — never which specialist, the brief's content, the stage order, gates,
 | Specialist | Profile | Launch command | Agent file |
 | --- | --- | --- | --- |
 | `sddkit-design` | think | `claude --model opus --effort medium --permission-mode auto` | `.claude/agents/sddkit-design.md` |
-| `sddkit-design-reviewer` | review | `claude --model sonnet --effort high --permission-mode auto` | `.claude/agents/sddkit-design-reviewer.md` |
+| `sddkit-design-reviewer` | design-review | `claude --model sonnet --effort high --permission-mode auto` | `.claude/agents/sddkit-design-reviewer.md` |
 | `sddkit-implementer` | execute | `cursor-agent --model grok-4.7-low --yolo` | `.cursor/agents/sddkit-implementer.md` |
-| `sddkit-code-reviewer` | critique | `claude --model sonnet --effort high --permission-mode auto` | `.claude/agents/sddkit-code-reviewer.md` |
+| `sddkit-code-reviewer` | code-review | `claude --model sonnet --effort high --permission-mode auto` | `.claude/agents/sddkit-code-reviewer.md` |
 | `sddkit-qa` | validate | `cursor-agent --model grok-4.7-high --yolo` | `.cursor/agents/sddkit-qa.md` |
 | `sddkit-docs-writer` | write | `cursor-agent --model grok-4.7-high --yolo` | `.cursor/agents/sddkit-docs-writer.md` |
 
@@ -44,7 +44,7 @@ Never use `worker-start --agent`: Orca would launch with its own settings instea
 2. Open the worker's terminal → `handle`:
    - `orca.pane` non-empty (you run in an Orca terminal; the human watches the specialist beside you):
      `ORCA terminal split --terminal <orca.pane> --direction vertical --command "<launch command>" --json`.
-   - `orca.pane` empty, or escalation (step 8):
+   - `orca.pane` empty, or a clean-tree escalation (step 5):
      `ORCA terminal create --worktree <current | path:<worktree>> --command "<launch command>" --json` (a tab).
 3. `ORCA terminal rename --terminal <handle> --title "<specialist> · <stage>" --json`.
 4. `ORCA terminal wait --terminal <handle> --for tui-idle --timeout-ms 60000 --json`.
