@@ -3,8 +3,8 @@
 # Solodev
 
 **Spec-driven development for coding agents.** Describe a feature, approve one design, and get back a reviewed, tested,
-documented pull request, on [OpenCode](https://opencode.ai), [Cursor](https://cursor.com),
-[Claude Code](https://code.claude.com), or [Codex](https://developers.openai.com/codex).
+documented pull request, on [Claude Code](https://code.claude.com), [Codex](https://developers.openai.com/codex), or
+[Cursor](https://cursor.com).
 
 solodev installs a team of specialist agents (the shadows) and a small state CLI into your repo. A conductor agent,
 `arise`, runs them through a fixed pipeline: design, critique, implement against failing tests, parallel review, QA,
@@ -51,12 +51,12 @@ From the root of the repository you want to work on:
 npx -y github:luisintosh/solodev
 ```
 
-The installer asks for a **scope** (this repo or `$HOME`) and the **hosts** to install for (Cursor, Claude Code, Codex,
-OpenCode). It shows the file plan before applying it. Pin a release with `#v1.3.0`. Re-running is idempotent, and files
-removed upstream are cleaned up.
+The installer asks for a **scope** (this repo or `$HOME`) and the **hosts** to install for (Claude Code, Codex, Cursor).
+It shows the file plan before applying it. Pin a release with `#v1.3.0`. Re-running is idempotent, and files removed
+upstream are cleaned up.
 
 Flags: `--dry-run`, `--doctor`, `--yes`. For CI or scripts, use `INSTALL_SCOPE=project|global` and
-`INSTALL_TARGET=all|cursor,claude,codex,opencode`.
+`INSTALL_TARGET=all|cursor,claude,codex`.
 
 **Requirements:** Node 20+ and the [`gh`](https://cli.github.com/) CLI (or another forge or tracker connected through an
 MCP, skill, or CLI). [rtk](https://github.com/rtk-ai/rtk) is optional.
@@ -72,10 +72,9 @@ This creates `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/CONSTITUTION.md`, and `d
 
 ### 3. Plan a whole product (optional)
 
-Run `/arise-plan` (on OpenCode, Tab-switch to the `arise-plan` agent) and describe the idea. It explores the codebase,
-turns the idea into a measurable goal, and writes `docs/product/<slug>/roadmap.md` with dependency-ordered waves and one
-work item per feature, each reviewed by an adversarial product-owner subagent. It can also open the GitHub issues, wired
-with `Blocked by #N`.
+Run `/arise-plan` and describe the idea. It explores the codebase, turns the idea into a measurable goal, and writes
+`docs/product/<slug>/roadmap.md` with dependency-ordered waves and one work item per feature, each reviewed by an
+adversarial product-owner subagent. It can also open the GitHub issues, wired with `Blocked by #N`.
 
 Then build the roadmap one feature at a time with `/arise`, below.
 
@@ -93,8 +92,7 @@ Or name a GitHub issue to scope the run from its acceptance criteria:
 /arise #42
 ```
 
-- **OpenCode:** `arise` is the default agent, so skip the slash and just describe the feature.
-- **Cursor, Claude Code, Codex:** run `/arise` on your most capable session model, then describe the feature.
+Run `/arise` on your most capable session model, then describe the feature.
 
 `arise` creates `feat/<slug>`, runs the pipeline (see [How it works](#how-it-works)), stops at the design gate, and
 finishes with a ready PR. To resume an interrupted run, ask it to continue.
@@ -185,18 +183,17 @@ human acts, and grey is state written only through `quest-state`. Dotted edges a
 ## Models
 
 Every agent declares a profile, and `src/catalog.yaml` maps each profile to a model per host. `commander` and
-`shadow-product-owner` are what you invoke as `arise` and `arise-plan` (skills, or OpenCode agents), and they inherit
-your session model on the other hosts.
+`shadow-product-owner` are what you invoke as the `arise` and `arise-plan` skills, and they inherit your session model.
 
-| profile         | OpenCode                               | Cursor                           | Claude                  | Codex                |
-| --------------- | -------------------------------------- | -------------------------------- | ----------------------- | -------------------- |
-| `conduct`       | `opencode-go/qwen3.7-plus`             | `inherit`                        | `inherit`               | `inherit`            |
-| `think`         | `opencode-go/glm-5.3-flash`            | `grok-4.7[effort=xhigh]`         | `opus[effort=medium]`   | `gpt-6.1-sol[xhigh]` |
-| `execute`       | `opencode-go/deepseek-v4.1-flash[max]` | `grok-4.7[effort=high]`          | `sonnet[effort=high]`   | `gpt-6.1-sol[high]`  |
-| `design-review` | `opencode-go/kimi-k3`                  | `grok-4.7[effort=high]`          | `sonnet[effort=high]`   | `gpt-6.1-sol[high]`  |
-| `code-review`   | `opencode-go/kimi-k2.7-code`           | `claude-sonnet-5-5[effort=high]` | `opus[effort=high]`     | `gpt-6.1-sol[high]`  |
-| `validate`      | `opencode-go/deepseek-v4-pro[max]`     | `grok-4.7[effort=medium]`        | `sonnet[effort=medium]` | `gpt-6.1-sol[high]`  |
-| `write`         | `opencode-go/kimi-k3`                  | `grok-4.7[effort=medium]`        | `sonnet[effort=medium]` | `gpt-6-luna[medium]` |
+| profile         | Cursor                           | Claude                  | Codex                |
+| --------------- | -------------------------------- | ----------------------- | -------------------- |
+| `conduct`       | `inherit`                        | `inherit`               | `inherit`            |
+| `think`         | `grok-4.7[effort=xhigh]`         | `opus[effort=medium]`   | `gpt-6.1-sol[xhigh]` |
+| `execute`       | `grok-4.7[effort=high]`          | `sonnet[effort=high]`   | `gpt-6.1-sol[high]`  |
+| `design-review` | `grok-4.7[effort=high]`          | `sonnet[effort=high]`   | `gpt-6.1-sol[high]`  |
+| `code-review`   | `claude-sonnet-5-5[effort=high]` | `opus[effort=high]`     | `gpt-6.1-sol[high]`  |
+| `validate`      | `grok-4.7[effort=medium]`        | `sonnet[effort=medium]` | `gpt-6.1-sol[high]`  |
+| `write`         | `grok-4.7[effort=medium]`        | `sonnet[effort=medium]` | `gpt-6-luna[medium]` |
 
 | agent                       | profile         |
 | --------------------------- | --------------- |
@@ -247,7 +244,7 @@ src/<domain>/README.md          domain docs, kept current by shadow-docs-writer
 .agents/bin/quest-state.mjs    state CLI
 .agents/skills/                 arise, arise-plan, arise-setup-docs
 .agents/solodev/checklists/      per-area review checklists
-.claude/  .cursor/agents/  .codex/agents/  .opencode/    host-specific agents
+.claude/  .cursor/agents/  .codex/agents/               host-specific agents
 ```
 
 The conductor writes all state through the CLI. You can use it to inspect a run:
@@ -279,8 +276,10 @@ Prompts are written once and transpiled into each host's format by `pnpm run bui
 ## Safety notes
 
 - solodev never merges its own PR. That rule lives in the prompts, so use branch protection as your hard backstop.
-- Only the CLI writes `state.yaml` and `journal.ndjson`. OpenCode also denies direct edits to them in its permission
-  config.
-- Project installs for OpenCode deny destructive commands (`rm -rf`, force push, `git reset --hard`, `sudo`, piping to a
-  shell). Global installs leave your own `opencode.json` alone.
-- No permission is set to `ask`, so unattended runs never stall on a prompt. Dangerous commands are hard denies instead.
+- Only the CLI writes `state.yaml` and `journal.ndjson`.
+
+## OpenCode
+
+OpenCode and open-weight models are no longer supported. Pin the last release that ships them,
+`npx -y github:luisintosh/solodev#v1.x`. Re-running a current installer over an old install removes the OpenCode files
+it wrote (only those listed in `.opencode/.harness-manifest`).

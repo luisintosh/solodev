@@ -98,10 +98,10 @@ tracker-mirror step.
    when a flow or state change is easier to see than to read. Show nothing to the user yet.
 9. **Review work items** — mandatory, at least once, before the user sees them. Hand the drafts to a fresh-context
    general-purpose subagent (Claude Code: Agent tool, `general-purpose`; Cursor: Task; Codex: `spawn_agent`, default
-   role; OpenCode: the `general` subagent) briefed as an **adversarial product owner teammate** who wants these tickets
-   to fail review before engineers ever see them. Nothing is on disk yet, so pass inline: the approved roadmap (goal,
-   success criteria, non-goals, assumptions, approach, features, sequencing), every drafted work item, and the repo path
-   for read-only checks of `file:line` claims. It attacks:
+   role) briefed as an **adversarial product owner teammate** who wants these tickets to fail review before engineers
+   ever see them. Nothing is on disk yet, so pass inline: the approved roadmap (goal, success criteria, non-goals,
+   assumptions, approach, features, sequencing), every drafted work item, and the repo path for read-only checks of
+   `file:line` claims. It attacks:
    - **Vision fit** — every item serves a success criterion; none contradicts a non-goal, an assumption, or the chosen
      approach; each matches its roadmap feature's outcome and `Depends on`.
    - **Coverage** — together the items deliver the MVP line and every success criterion: no gaps, no overlaps.
@@ -120,21 +120,20 @@ tracker-mirror step.
 12. **Offer commit** — ask; if yes: `git add docs/product/<slug> && git commit -m "docs(product): add <slug> roadmap"`.
 13. **Offer GitHub issues** — ask; if yes, preflight `gh auth status` and `gh repo view --json nameWithOwner` (failure →
     try a connected tracker tool for the same shapes below; none authenticates → report the exact missing piece and skip
-    only this step). OpenCode may `ask` on a non-`gh` CLI — prefer MCP/Skill there. Create feature issues in
-    wave/topological order so referenced issue numbers already exist: copy `items/F<n>.md` to a temp file, drop its
-    `# F<n>: …` heading (it becomes the title), and rewrite each `Blocked by F<m>` line to `Blocked by #<issue>` — the
-    same relation, restated as issue numbers because that is the form `arise` reads. Then
-    `gh issue create --title "F<n>: <title>" --body-file <path>` (or the substitute), capturing the issue number from
-    the printed URL. Keep titles in the exact `F<n>: <title>` shape — `arise` derives the feature ID and branch slug
-    from it. Create the epic last: goal + a task list (`- [ ] #<n> F<n>: <name>` per feature) + the wave table, via
-    `gh issue create --title "Epic: <goal>" --body-file <path>` (or the substitute). That task list is how `arise`'s
-    handoff finds the next feature on GitHub, and GitHub auto-checks a `- [ ] #<n>` entry when issue `#<n>` closes — so
-    each box ticks itself as that feature's PR merges. Entries in any other form leave handoff unable to read the epic.
-    Handoff is GitHub-only; other trackers still get the same title/checklist/`Blocked by` shapes so a later GitHub
-    import or a human can follow them. Report every issue URL.
-14. **Hand off** — tell the user each feature can now be run through `arise` (OpenCode's default agent, or the `/arise`
-    skill on Cursor, Claude Code, or Codex), one at a time, respecting the waves. If `gh` created issues, also print a
-    paste-ready invocation for wave 1's first feature:
+    only this step). Create feature issues in wave/topological order so referenced issue numbers already exist: copy
+    `items/F<n>.md` to a temp file, drop its `# F<n>: …` heading (it becomes the title), and rewrite each
+    `Blocked by F<m>` line to `Blocked by #<issue>` — the same relation, restated as issue numbers because that is the
+    form `arise` reads. Then `gh issue create --title "F<n>: <title>" --body-file <path>` (or the substitute), capturing
+    the issue number from the printed URL. Keep titles in the exact `F<n>: <title>` shape — `arise` derives the feature
+    ID and branch slug from it. Create the epic last: goal + a task list (`- [ ] #<n> F<n>: <name>` per feature) + the
+    wave table, via `gh issue create --title "Epic: <goal>" --body-file <path>` (or the substitute). That task list is
+    how `arise`'s handoff finds the next feature on GitHub, and GitHub auto-checks a `- [ ] #<n>` entry when issue
+    `#<n>` closes — so each box ticks itself as that feature's PR merges. Entries in any other form leave handoff unable
+    to read the epic. Handoff is GitHub-only; other trackers still get the same title/checklist/`Blocked by` shapes so a
+    later GitHub import or a human can follow them. Report every issue URL.
+14. **Hand off** — tell the user each feature can now be run through the `/arise` skill (Cursor, Claude Code, or Codex),
+    one at a time, respecting the waves. If `gh` created issues, also print a paste-ready invocation for wave 1's first
+    feature:
     `Run the SDD pipeline for GitHub issue #<n> in <owner>/<repo>. Scope is exactly that issue's Acceptance criteria. Base: <base>.`
     Another tracker → the same sentence naming that tracker and id instead.
 

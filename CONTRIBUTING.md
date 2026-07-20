@@ -15,8 +15,8 @@ once; tests use Vitest and bundles use esbuild.
 any `src/` change run `pnpm run build` before commit; CI fails if they drift.
 
 New catalog agents must be named `shadow-<role>` so they cannot collide with host built-ins (Cursor's `code-reviewer`,
-and similarly generic IDs on Codex/Claude/OpenCode). The only exceptions are the conductor (`arise`) and planner
-(`arise-plan`), whose names are their slash commands.
+and similarly generic IDs on Codex/Claude). The only exceptions are the conductor (`arise`) and planner (`arise-plan`),
+whose names are their slash commands.
 
 ## Hygiene (`pnpm run check`)
 
@@ -27,7 +27,7 @@ Requires a prior `pnpm run build`. Validates:
 - Emitted dist frontmatter / Codex TOML matches catalog profiles
 - README profile × host matrix and agent → profile table match catalog
 - Prompt contracts, read from the built prompts: required phrases, and every reference a conductor pointer names is
-  emitted (skill `references/` and `dist/agents/solodev/references/` for OpenCode) with no unresolved `{{…}}`
+  emitted beside the skill (`references/`) with no unresolved `{{…}}`
 - `manifest.txt` hashes match `dist/`
 - `dist/install.js` is present and matches a rebuild of `tools/install.ts`
 
@@ -55,7 +55,7 @@ skill-creator skill.
 
 | Script                        | Purpose                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------- |
-| `node tools/transpile.ts`     | `src/` → `dist/{opencode,cursor,claude,codex}` + `dist/agents/skills`   |
+| `node tools/transpile.ts`     | `src/` → `dist/{cursor,claude,codex}` + `dist/agents/skills`            |
 | `node tools/install.ts`       | installer source (Clack + copy); emitted as `dist/install.js`           |
 | `node tools/build-cli.ts`     | portable Node ESM `dist/bin/quest-state.mjs`                            |
 | `node tools/build-install.ts` | `tools/install.ts` → `dist/install.js` (esbuild, Node ESM for npx/bunx) |

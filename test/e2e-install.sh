@@ -55,10 +55,7 @@ LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all \
 LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all \
   node "$INSTALL_JS" >/dev/null
 
-assert_file_exists "${TARGET}/.opencode/agents/arise.md" "opencode arise agent installed"
-assert_file_exists "${TARGET}/.opencode/agents/arise-plan.md" "opencode arise-plan agent installed"
-assert_file_exists "${TARGET}/.opencode/opencode.jsonc" "opencode.jsonc installed"
-assert_file_absent "${TARGET}/.opencode/plugins/sdd-guard.ts" "plugin not installed"
+if [[ ! -e "${TARGET}/.opencode" ]]; then ok "no .opencode directory installed"; else bad ".opencode installed"; fi
 assert_file_exists "${TARGET}/.cursor/agents/shadow-implementer.md" "cursor implementer installed"
 assert_file_exists "${TARGET}/.claude/agents/shadow-architect.md" "claude design agent installed"
 assert_file_exists "${TARGET}/.claude/skills/arise/SKILL.md" "claude skills copy installed"
@@ -77,20 +74,12 @@ assert_file_exists "${TARGET}/.agents/skills/arise/references/handoff.md" "arise
 for ref in escalation dispute design-delta; do
   assert_file_exists "${TARGET}/.agents/skills/arise/references/${ref}.md" "arise ${ref} reference installed"
 done
-for ref in orca handoff escalation dispute design-delta; do
-  assert_file_exists "${TARGET}/.agents/solodev/references/${ref}.md" "opencode ${ref} reference beside quest-state"
-done
-if grep -q '<root>/.agents/solodev/references/orca.md' "${TARGET}/.opencode/agents/arise.md"; then
-  ok "opencode conductor points at the installed orca reference"
-else
-  bad "opencode conductor does not point at <root>/.agents/solodev/references/orca.md"
-fi
+if [[ ! -e "${TARGET}/.agents/solodev/references" ]]; then ok "no OpenCode references tree"; else bad ".agents/solodev/references installed"; fi
 assert_file_absent "${TARGET}/.cursor/skills/sddkit/SKILL.md" "legacy .cursor/skills/sddkit not installed"
 assert_file_exists "${TARGET}/.agents/bin/quest-state.mjs" "quest-state installed under .agents/bin"
 for area in contract health design; do
   assert_file_exists "${TARGET}/.agents/solodev/checklists/review-${area}.md" "review-${area} checklist beside quest-state"
 done
-assert_file_exists "${TARGET}/.opencode/.harness-manifest" "opencode harness-manifest recorded"
 assert_file_exists "${TARGET}/.cursor/agents/.harness-manifest" "cursor harness-manifest recorded under agents leaf"
 assert_file_exists "${TARGET}/.claude/agents/.harness-manifest" "claude agents harness-manifest recorded"
 assert_file_exists "${TARGET}/.claude/skills/.harness-manifest" "claude skills harness-manifest recorded"
@@ -111,33 +100,33 @@ else
 fi
 
 # 3. local modify + overwrite (no backup)
-before_hash="$(shasum -a 256 "${TARGET}/.opencode/agents/arise.md" | awk '{print $1}')"
-echo "LOCAL EDIT" >> "${TARGET}/.opencode/agents/arise.md"
+before_hash="$(shasum -a 256 "${TARGET}/.claude/agents/shadow-architect.md" | awk '{print $1}')"
+echo "LOCAL EDIT" >> "${TARGET}/.claude/agents/shadow-architect.md"
 
 modify_output="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all node "$INSTALL_JS" 2>&1)"
-if grep -q "overwrite opencode/agents/arise.md" <<<"$modify_output"; then
-  ok "reports locally-modified opencode agent"
+if grep -q "overwrite claude/agents/shadow-architect.md" <<<"$modify_output"; then
+  ok "reports locally-modified claude agent"
 else
   bad "should report locally-modified file: $modify_output"
 fi
 
-backup_copy="$(find "${TARGET}/.opencode" -path '*/.backup-*' | head -1)"
+backup_copy="$(find "${TARGET}/.claude" -path '*/.backup-*' | head -1)"
 if [[ -z "$backup_copy" ]]; then ok "did not create a .backup-* directory"; else bad "unexpected backup: $backup_copy"; fi
 
-after_hash="$(shasum -a 256 "${TARGET}/.opencode/agents/arise.md" | awk '{print $1}')"
+after_hash="$(shasum -a 256 "${TARGET}/.claude/agents/shadow-architect.md" | awk '{print $1}')"
 assert_eq "$after_hash" "$before_hash" "locally-modified file restored to upstream"
 
 # 4. prune upstream file
-rm "${UPSTREAM}/dist/opencode/agents/shadow-qa.md"
+rm "${UPSTREAM}/dist/claude/agents/shadow-qa.md"
 HARNESS_ROOT="$UPSTREAM" node "${REPO_ROOT}/tools/gen-manifest.ts" >/dev/null
 
 prune_output="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all node "$INSTALL_JS" 2>&1)"
-if grep -q "delete    opencode/agents/shadow-qa.md" <<<"$prune_output"; then
-  ok "reports delete of opencode/agents/shadow-qa.md"
+if grep -q "delete    claude/agents/shadow-qa.md" <<<"$prune_output"; then
+  ok "reports delete of claude/agents/shadow-qa.md"
 else
   bad "should report delete: $prune_output"
 fi
-assert_file_absent "${TARGET}/.opencode/agents/shadow-qa.md" "shadow-qa.md removed after upstream deletion"
+assert_file_absent "${TARGET}/.claude/agents/shadow-qa.md" "shadow-qa.md removed after upstream deletion"
 
 # 4a. update from the split reviewers removes their agent files
 printf 'old\n' > "${TARGET}/.claude/agents/shadow-code-reviewer-contract.md"
@@ -167,15 +156,15 @@ fi
 # 6. checksum mismatch aborts
 TAMPERED="${WORK}/tampered-upstream"
 cp -R "$UPSTREAM" "$TAMPERED"
-echo "TAMPERED" >> "${TAMPERED}/dist/opencode/agents/shadow-architect.md"
+echo "TAMPERED" >> "${TAMPERED}/dist/claude/agents/shadow-architect.md"
 
-before_hash="$(shasum -a 256 "${TARGET}/.opencode/agents/shadow-architect.md" | awk '{print $1}')"
+before_hash="$(shasum -a 256 "${TARGET}/.claude/agents/shadow-architect.md" | awk '{print $1}')"
 set +e
-LOCAL_SOURCE="$TAMPERED" TARGET_DIR="$TARGET" INSTALL_TARGET=opencode node "$INSTALL_JS" >/dev/null 2>&1
+LOCAL_SOURCE="$TAMPERED" TARGET_DIR="$TARGET" INSTALL_TARGET=claude node "$INSTALL_JS" >/dev/null 2>&1
 rc=$?
 set -e
 if [[ $rc -ne 0 ]]; then ok "checksum mismatch exits non-zero"; else bad "checksum mismatch should abort"; fi
-after_hash="$(shasum -a 256 "${TARGET}/.opencode/agents/shadow-architect.md" | awk '{print $1}')"
+after_hash="$(shasum -a 256 "${TARGET}/.claude/agents/shadow-architect.md" | awk '{print $1}')"
 assert_eq "$after_hash" "$before_hash" "no partial write after checksum mismatch"
 
 # 7. doctor mentions quest-state
@@ -197,7 +186,6 @@ cp -R "${REPO_ROOT}/dist" "${UPSTREAM}/dist"
 cp "${REPO_ROOT}/manifest.txt" "$UPSTREAM/"
 LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET2" INSTALL_TARGET=cursor node "$INSTALL_JS" >/dev/null
 assert_file_exists "${TARGET2}/.cursor/agents/shadow-architect.md" "cursor-only installs .cursor"
-assert_file_absent "${TARGET2}/.opencode/agents/arise.md" "cursor-only skips .opencode"
 assert_file_absent "${TARGET2}/.claude/agents/shadow-architect.md" "cursor-only skips .claude"
 assert_file_absent "${TARGET2}/.codex/agents/shadow-architect.toml" "cursor-only skips .codex"
 assert_file_exists "${TARGET2}/.agents/bin/quest-state.mjs" "cursor-only still installs quest-state"
@@ -256,7 +244,7 @@ else
 fi
 
 # 10. post-install next-step hints
-hints="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=opencode node "$INSTALL_JS" 2>&1)"
+hints="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=claude node "$INSTALL_JS" 2>&1)"
 if grep -q '/arise-setup-docs' <<<"$hints"; then ok "suggests /arise-setup-docs"; else bad "missing /arise-setup-docs hint"; fi
 if grep -qE 'brew install gh|gh is on PATH|cli.github.com' <<<"$hints"; then
   ok "suggests gh CLI"
@@ -284,32 +272,28 @@ cp -R "${REPO_ROOT}/dist" "${UPSTREAM}/dist"
 cp "${REPO_ROOT}/manifest.txt" "$UPSTREAM/"
 
 FAKE_HOME="${WORK}/fake-home"
-mkdir -p "${FAKE_HOME}/.cursor/agents" "${FAKE_HOME}/.config/opencode" "${FAKE_HOME}/.claude" "${FAKE_HOME}/.codex"
+mkdir -p "${FAKE_HOME}/.cursor/agents" "${FAKE_HOME}/.claude" "${FAKE_HOME}/.codex"
 printf '%s' "user-agent" > "${FAKE_HOME}/.cursor/agents/user-agent.md"
-printf '%s' '{"keep":"opencode"}' > "${FAKE_HOME}/.config/opencode/opencode.jsonc"
 printf '%s' '{"keep":true}' > "${FAKE_HOME}/.claude/settings.json"
 printf '%s' "# user config" > "${FAKE_HOME}/.codex/config.toml"
 
 GLOBAL_TARGET="${WORK}/global-consumer"
 mkdir -p "$GLOBAL_TARGET"
-HOME="$FAKE_HOME" INSTALL_SCOPE=global INSTALL_TARGET=all \
+# CODEX_HOME may point elsewhere in the caller's shell (Orca sets it); the global codex leaf follows it.
+HOME="$FAKE_HOME" CODEX_HOME="${FAKE_HOME}/.codex" INSTALL_SCOPE=global INSTALL_TARGET=all \
   LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$GLOBAL_TARGET" node "$INSTALL_JS" >/dev/null
 
 assert_file_exists "${FAKE_HOME}/.agents/skills/arise/SKILL.md" "global skills land in ~/.agents"
 assert_file_exists "${FAKE_HOME}/.agents/bin/quest-state.mjs" "global quest-state lands in ~/.agents/bin"
 assert_file_exists "${FAKE_HOME}/.agents/solodev/checklists/review-contract.md" "global checklists land beside ~/.agents/bin"
-assert_file_exists "${FAKE_HOME}/.agents/solodev/references/escalation.md" "global references land beside ~/.agents/bin"
 assert_file_absent "${GLOBAL_TARGET}/.agents/solodev/checklists/review-contract.md" "global install does not write checklists into TARGET_DIR"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/shadow-implementer.md" "global cursor agents leaf"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/user-agent.md" "global install keeps planted cursor agent"
 assert_file_exists "${FAKE_HOME}/.claude/agents/shadow-architect.md" "global claude agents leaf"
 assert_file_exists "${FAKE_HOME}/.claude/skills/arise/SKILL.md" "global claude skills copy"
 assert_file_exists "${FAKE_HOME}/.codex/agents/shadow-architect.toml" "global codex agents leaf"
-assert_file_exists "${FAKE_HOME}/.config/opencode/agents/arise.md" "global opencode agents only"
 assert_file_absent "${GLOBAL_TARGET}/.claude/agents/shadow-architect.md" "global install does not write claude into TARGET_DIR"
 assert_file_absent "${GLOBAL_TARGET}/.agents/skills/arise/SKILL.md" "global install does not write skills into TARGET_DIR"
-assert_eq "$(cat "${FAKE_HOME}/.config/opencode/opencode.jsonc")" '{"keep":"opencode"}' \
-  "global install does not clobber opencode.jsonc"
 assert_eq "$(cat "${FAKE_HOME}/.claude/settings.json")" '{"keep":true}' \
   "global install does not clobber claude settings.json"
 assert_eq "$(cat "${FAKE_HOME}/.codex/config.toml")" "# user config" \
@@ -326,6 +310,24 @@ HOME="$FAKE_HOME" INSTALL_SCOPE=global INSTALL_TARGET=cursor \
   LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$GLOBAL_TARGET" node "$INSTALL_JS" >/dev/null
 assert_file_absent "${FAKE_HOME}/.cursor/agents/shadow-qa.md" "global prune removes upstream-deleted cursor agent"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/user-agent.md" "global prune keeps planted non-solodev agent"
+
+# 13. a v1 OpenCode install is removed, file by file, from its own manifest
+TARGET3="${WORK}/legacy-opencode"
+mkdir -p "${TARGET3}/.opencode/agents"
+(cd "$TARGET3" && git init -q)
+echo "v1 conductor" > "${TARGET3}/.opencode/agents/arise.md"
+echo "user agent" > "${TARGET3}/.opencode/agents/mine.md"
+printf '%s  agents/arise.md\n' "$(shasum -a 256 "${TARGET3}/.opencode/agents/arise.md" | awk '{print $1}')" \
+  > "${TARGET3}/.opencode/.harness-manifest"
+legacy_out="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET3" INSTALL_TARGET=claude node "$INSTALL_JS" 2>&1)"
+if grep -q "delete    .opencode/agents/arise.md" <<<"$legacy_out"; then
+  ok "reports removal of the v1 OpenCode agent"
+else
+  bad "should report v1 OpenCode removal: $legacy_out"
+fi
+assert_file_absent "${TARGET3}/.opencode/agents/arise.md" "v1 OpenCode agent removed"
+assert_file_absent "${TARGET3}/.opencode/.harness-manifest" "v1 OpenCode manifest removed"
+assert_file_exists "${TARGET3}/.opencode/agents/mine.md" "user's own OpenCode file kept"
 
 # bunx-equivalent: same dist/install.js under bun (consumers may still use bunx)
 if ! command -v bun >/dev/null 2>&1; then

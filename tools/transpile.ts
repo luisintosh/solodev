@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Emit dist/opencode, dist/cursor, dist/claude, dist/codex, and dist/agents/skills.
+ * Emit dist/cursor, dist/claude, dist/codex, and dist/agents/skills.
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
@@ -10,7 +10,6 @@ import {
   formatClaudeModel,
   formatCodexModel,
   formatCursorModel,
-  formatOpenCodeModel,
   type Host,
   type ModelRef,
 } from "./models.ts"
@@ -21,16 +20,12 @@ const srcDir = path.join(root, "src")
 const distDir = path.join(root, "dist")
 
 type AgentCatalog = {
-  /** User-facing name of a skill / OpenCode agent; the catalog key when absent. */
+  /** User-facing name of a skill; the catalog key when absent. */
   command?: string
   profile: string
   description: string
-  opencode: {
-    mode: "primary" | "subagent"
-    temperature?: number
-    steps?: number
-    permission?: unknown
-  }
+  /** Hard denies only: `edit` and `bash` maps of pattern → "deny", or a bare "deny" for the whole tool. */
+  permission?: { edit?: unknown; bash?: unknown }
   cursor?: {
     readonly?: boolean
     skill?: boolean
@@ -46,12 +41,6 @@ type Catalog = {
   orchestrators?: { orca?: { profiles?: OrcaRoutes } }
   agents: Record<string, AgentCatalog>
   commands: Record<string, { description: string }>
-  opencode_config: {
-    model: string
-    small_model: string
-    default_agent: string
-    instructions: string[]
-  }
 }
 
 function resolveModel(catalog: Catalog, host: Host, agent: AgentCatalog): ModelRef {
@@ -64,12 +53,11 @@ function resolveModel(catalog: Catalog, host: Host, agent: AgentCatalog): ModelR
 
 function isReadonly(agent: AgentCatalog): boolean {
   if (agent.cursor?.readonly) return true
-  const edit = (agent.opencode.permission as { edit?: unknown } | undefined)?.edit
-  return edit === "deny"
+  return agent.permission?.edit === "deny"
 }
 
 function bashDenied(agent: AgentCatalog): boolean {
-  return (agent.opencode.permission as { bash?: unknown } | undefined)?.bash === "deny"
+  return agent.permission?.bash === "deny"
 }
 
 function claudeTools(agent: AgentCatalog): string {
@@ -96,15 +84,14 @@ function orcaRoutesTable(catalog: Catalog): string {
 }
 
 /**
- * Where a prompt body is emitted. `skill` and `opencode` render the conductor's on-demand references as pointers;
- * `plain` (subagents, checklists, reference files themselves) must not use those placeholders at all.
+ * Where a prompt body is emitted. `skill` renders the conductor's on-demand references as pointers; `plain`
+ * (subagents, checklists, reference files themselves) must not use those placeholders at all.
  */
-type Target = "skill" | "opencode" | "plain"
+type Target = "skill" | "plain"
 
-const HOSTS = ["claude", "cursor", "codex", "opencode"] as const
+const HOSTS = ["claude", "cursor", "codex"] as const
 
-// Conductor fragments loaded on demand. Skills link a sibling references/<file>; the OpenCode agent points at the copy
-// installed under <root>/.agents/solodev/references/, beside the checklists.
+// Conductor fragments loaded on demand. Skills link a sibling references/<file>.
 const REFERENCES = ["reply-mapping.md", "handoff.md", "orca.md", "escalation.md", "dispute.md", "design-delta.md"]
 
 // Reference fragments pulled in with a plain {{include:}}: the include becomes this pointer. The others are named at
@@ -125,16 +112,9 @@ const INCLUDE_POINTERS: Record<string, string[]> = {
   ],
 }
 
-// Read on every run, so the OpenCode agent keeps it inline rather than paying a file read (and, on a global install,
-// an external_directory lookup) each time.
-const OPENCODE_INLINE = new Set(["reply-mapping.md"])
-
 function refLocation(file: string, target: Target): string {
   if (!REFERENCES.includes(file)) throw new Error(`transpile: ${file} is not a conductor reference`)
   if (target === "skill") return `[references/${file}](references/${file})`
-  if (target === "opencode") {
-    return `\`<root>/.agents/solodev/references/${file}\` (\`<root>\`: the \`.agents/\` root that holds your \`quest-state\`)`
-  }
   throw new Error(`transpile: {{ref:${file}}} used in a plain prompt`)
 }
 
@@ -154,11 +134,10 @@ async function inlineIncludes(body: string, depth: number): Promise<string> {
 
 async function hostDelegation(target: Target): Promise<string> {
   if (target === "plain") throw new Error("transpile: {{hosts:delegation}} used in a plain prompt")
-  // The OpenCode agent only ever runs on OpenCode. Skills keep every host: Cursor and OpenCode can also load
-  // .claude/skills or .agents/skills, so a stripped copy could leave a host with no delegation instructions.
-  const hosts = target === "opencode" ? ["opencode"] : HOSTS
+  // Skills keep every host: Cursor can also load .claude/skills or .agents/skills, so a stripped copy could leave a host
+  // with no delegation instructions.
   const parts = await Promise.all(
-    hosts.map((h) => fs.readFile(path.join(srcDir, "prompts", "fragments", "hosts", `${h}.md`), "utf8")),
+    HOSTS.map((h) => fs.readFile(path.join(srcDir, "prompts", "fragments", "hosts", `${h}.md`), "utf8")),
   )
   return parts.map((p) => p.trim()).join("\n")
 }
@@ -191,7 +170,6 @@ async function renderPrompt(rel: string, catalog: Catalog, target: Target, refs:
   let raw = await fs.readFile(path.join(srcDir, "prompts", rel), "utf8")
   if (target !== "plain") {
     for (const [file, pointer] of Object.entries(INCLUDE_POINTERS)) {
-      if (target === "opencode" && OPENCODE_INLINE.has(file)) continue
       raw = raw.replace(`{{include:fragments/${file}}}`, `${pointer.join("\n")}\n`)
     }
   }
@@ -214,7 +192,7 @@ function yamlFrontmatter(obj: Record<string, unknown>): string {
 }
 
 function cursorRestrictions(agent: AgentCatalog): string {
-  const perm = agent.opencode.permission
+  const perm = agent.permission
   if (!perm || typeof perm !== "object") return ""
   const edit = (perm as { edit?: unknown }).edit
   const lines: string[] = []
@@ -250,87 +228,6 @@ async function rmrf(dir: string) {
 async function writeFile(filePath: string, content: string) {
   await fs.mkdir(path.dirname(filePath), { recursive: true })
   await fs.writeFile(filePath, content, "utf8")
-}
-
-async function emitOpencode(catalog: Catalog) {
-  const outRoot = path.join(distDir, "opencode")
-  await rmrf(outRoot)
-
-  const commands: Record<string, { description: string; template: string }> = {}
-  for (const [name, meta] of Object.entries(catalog.commands)) {
-    const template = (await readPrompt(`commands/${name}.md`, catalog)).trimEnd()
-    commands[name] = { description: meta.description, template }
-  }
-
-  const cfg = {
-    $schema: "https://opencode.ai/config.json",
-    model: catalog.opencode_config.model,
-    small_model: catalog.opencode_config.small_model,
-    default_agent: catalog.opencode_config.default_agent,
-    instructions: catalog.opencode_config.instructions,
-    command: commands,
-    lsp: true,
-    formatter: true,
-    permission: {
-      edit: {
-        "*": "allow",
-        "docs/feats/**/state.yaml": "deny",
-        "**/journal.ndjson": "deny",
-        ".opencode/**": "deny",
-      },
-      read: "allow",
-      webfetch: "allow",
-      // No entry may be "ask": `opencode run` has no responder for a bash/edit
-      // permission request, so an unattended run would stall mid-turn with
-      // nobody to answer. Dangerous commands are hard denies instead — a denial
-      // is refused and the model adapts. Enforced by tools/check.ts. Merge
-      // authority is governed by prompts, not this map.
-      bash: {
-        "*": "allow",
-        "rm -rf *": "deny",
-        "rm -fr *": "deny",
-        "rm -r *": "deny",
-        "git clean *": "deny",
-        "git reset --hard*": "deny",
-        "git checkout -- *": "deny",
-        "git restore *": "deny",
-        "git push --force*": "deny",
-        "git push -f *": "deny",
-        "git push* main*": "deny",
-        "git push* master*": "deny",
-        "sudo *": "deny",
-        "chmod -R *": "deny",
-        "chown -R *": "deny",
-        "* | sh": "deny",
-        "* | bash": "deny",
-        "curl * | *": "deny",
-        "wget * | *": "deny",
-      },
-    },
-  }
-
-  // JSONC-ish: pretty JSON is fine for OpenCode
-  await writeFile(path.join(outRoot, "opencode.jsonc"), `${JSON.stringify(cfg, null, 2)}\n`)
-
-  const refs = new Set<string>()
-  for (const [name, agent] of Object.entries(catalog.agents)) {
-    const body = await renderPrompt(`agents/${name}.md`, catalog, "opencode", refs)
-    const ref = resolveModel(catalog, "opencode", agent)
-    const fm: Record<string, unknown> = {
-      description: agent.description,
-      mode: agent.opencode.mode,
-      model: formatOpenCodeModel(ref),
-    }
-    if (ref.effort) fm.variant = ref.effort
-    if (agent.opencode.temperature !== undefined) fm.temperature = agent.opencode.temperature
-    if (agent.opencode.steps !== undefined) fm.steps = agent.opencode.steps
-    if (agent.opencode.permission !== undefined) fm.permission = agent.opencode.permission
-    await writeFile(path.join(outRoot, "agents", `${agent.command ?? name}.md`), yamlFrontmatter(fm) + body)
-  }
-  // Installed through the always-on .agents tree, so global and project installs both resolve them from <root>.
-  const refDir = path.join(distDir, "agents", "solodev", "references")
-  await rmrf(refDir)
-  await writeReferences(catalog, refs, refDir)
 }
 
 // Per-area review checklists, installed to <agentsRoot>/solodev/checklists/. The conductor passes the absolute path of
@@ -453,14 +350,13 @@ async function emitCodex(catalog: Catalog) {
 async function main() {
   const catalog = await loadCatalog()
   await fs.mkdir(distDir, { recursive: true })
-  await emitOpencode(catalog)
   await emitSharedSkills(catalog)
   await emitReviewChecklists(catalog)
   await emitCursor(catalog)
   await emitClaude(catalog)
   await emitCodex(catalog)
   console.log(
-    "transpile: wrote dist/opencode, dist/cursor, dist/claude, dist/codex, dist/agents/skills, and dist/agents/solodev/{checklists,references}",
+    "transpile: wrote dist/cursor, dist/claude, dist/codex, dist/agents/skills, and dist/agents/solodev/checklists",
   )
 }
 

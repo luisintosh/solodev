@@ -1,4 +1,4 @@
-# Runtime artifacts produced inside a consuming repo's .opencode/ — never commit these
+# Runtime logs — never commit these
 usage.log
 *.log
 

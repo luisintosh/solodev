@@ -1,4 +1,4 @@
-export type Host = "opencode" | "cursor" | "claude" | "codex"
+export type Host = "cursor" | "claude" | "codex"
 
 export type ModelRef = {
   id: string
@@ -30,15 +30,6 @@ export function formatClaudeModel(ref: ModelRef): string {
 export function formatClaudeDisplay(ref: ModelRef): string {
   if (ref.id === "inherit") return "inherit"
   return ref.effort ? `${ref.id}[effort=${ref.effort}]` : ref.id
-}
-
-export function formatOpenCodeModel(ref: ModelRef): string {
-  return ref.id
-}
-
-// OpenCode takes effort as the agent's `variant` (a key of the model's variants map, e.g. "max" on deepseek-v4*).
-export function formatOpenCodeDisplay(ref: ModelRef): string {
-  return ref.effort ? `${ref.id}[${ref.effort}]` : ref.id
 }
 
 export function formatCodexModel(ref: ModelRef): { model: string; reasoning?: string } {
