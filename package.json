@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "vitest run src/state/",
+    "test": "vitest run src/",
     "transpile": "node tools/transpile.ts",
     "build:cli": "node tools/build-cli.ts",
     "build:install": "node tools/build-install.ts",

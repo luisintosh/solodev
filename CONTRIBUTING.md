@@ -8,7 +8,7 @@ once; tests use Vitest and bundles use esbuild.
 | Edit                                 | Then run                       |
 | ------------------------------------ | ------------------------------ |
 | `src/prompts/**`, `src/catalog.yaml` | `pnpm run build`               |
-| `src/state/**`                       | `pnpm run build` + `pnpm test` |
+| `src/state/**`, `src/cli/**`         | `pnpm run build` + `pnpm test` |
 | `tools/install.ts`                   | `pnpm run build`               |
 
 `dist/` and `manifest.txt` are **generated and tracked** so clients install without a build. Never hand-edit them. After
@@ -57,7 +57,7 @@ skill-creator skill.
 | ----------------------------- | ----------------------------------------------------------------------- |
 | `node tools/transpile.ts`     | `src/` → `dist/{cursor,claude,codex}` + `dist/agents/skills`            |
 | `node tools/install.ts`       | installer source (Clack + copy); emitted as `dist/install.js`           |
-| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/quest-state.mjs`                            |
+| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/quest-state.mjs` and `dist/bin/solodev.mjs` |
 | `node tools/build-install.ts` | `tools/install.ts` → `dist/install.js` (esbuild, Node ESM for npx/bunx) |
 | `node tools/gen-manifest.ts`  | `manifest.txt` from `dist/`                                             |
 | `node tools/check.ts`         | hygiene                                                                 |

@@ -1245,6 +1245,8 @@ function parseManifest(raw) {
   return map;
 }
 var STATE_BIN = "quest-state.mjs";
+var WORKFLOW_BIN = "solodev.mjs";
+var BINS = [STATE_BIN, WORKFLOW_BIN];
 function findPackageRoot() {
   let dir = path.dirname(fileURLToPath(import.meta.url));
   for (let i2 = 0; i2 < 8; i2++) {
@@ -1513,17 +1515,16 @@ async function planTree(opts) {
 }
 async function planBin(opts) {
   const destDir = opts.scope === "global" ? path.join(opts.home, ".agents", "bin") : path.join(opts.targetDir, ".agents", "bin");
-  const dest = path.join(destDir, STATE_BIN);
-  const src = path.join(opts.stageDir, "bin", STATE_BIN);
-  const wantHash = opts.newManifest.get(`bin/${STATE_BIN}`);
-  if (!wantHash) die(`manifest missing bin/${STATE_BIN}`);
   const ops = [];
-  const label = `.agents/bin/${STATE_BIN}`;
-  if (!(fsSync.existsSync(dest) && await sha256File(dest) === wantHash)) {
-    if (fsSync.existsSync(dest)) {
-      ops.push({ kind: "update", label, dest, src, chmod: 493, localEdit: false });
-    } else {
-      ops.push({ kind: "create", label, dest, src, chmod: 493, localEdit: false });
+  for (const bin of BINS) {
+    const dest = path.join(destDir, bin);
+    const src = path.join(opts.stageDir, "bin", bin);
+    const wantHash = opts.newManifest.get(`bin/${bin}`);
+    if (!wantHash) die(`manifest missing bin/${bin}`);
+    const label = `.agents/bin/${bin}`;
+    if (!(fsSync.existsSync(dest) && await sha256File(dest) === wantHash)) {
+      const kind = fsSync.existsSync(dest) ? "update" : "create";
+      ops.push({ kind, label, dest, src, chmod: 493, localEdit: false });
     }
   }
   const leftovers = [
@@ -1593,7 +1594,7 @@ function doctor(targetDir, home) {
   if (isGitRepo(targetDir)) log(`  [ok]   ${targetDir} is a git repository`);
   else log(`  [warn] ${targetDir} is not a git repository`);
   if (fsSync.existsSync(path.join(targetDir, "AGENTS.md"))) log("  [ok]   AGENTS.md present");
-  else log("  [warn] AGENTS.md missing \u2014 run /arise-setup-docs first");
+  else log("  [warn] AGENTS.md missing \u2014 run /arise-scout first");
   log("  paths:");
   log(`    skills          ${targetDir}/.agents/skills/  or  ${home}/.agents/skills/`);
   log(`    quest-state    ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`);
@@ -1622,7 +1623,7 @@ function doctor(targetDir, home) {
 }
 function suggestNextSteps() {
   log("Next steps:");
-  log("  1. /arise-setup-docs \u2014 scaffold AGENTS.md + docs/ARCHITECTURE.md + CONSTITUTION");
+  log("  1. /arise-scout \u2014 write AGENTS.md (the commands list) + docs/ARCHITECTURE.md");
   if (!onPath("gh")) {
     log("  2. Install gh (required by the pipeline):");
     log("       brew install gh && gh auth login");
@@ -1673,8 +1674,17 @@ async function stagePayload(payloadDir) {
   }
   return { stageDir, manifest, fileCount };
 }
+var WORKFLOW_COMMANDS = /* @__PURE__ */ new Set(["probe", "status", "approve", "check", "help", "--help", "-h"]);
+function runWorkflow(argv) {
+  const bin = path.join(findPackageRoot(), "dist", "bin", WORKFLOW_BIN);
+  const r2 = spawnSync(process.execPath, [bin, ...argv], { stdio: "inherit" });
+  process.exit(r2.status ?? 1);
+}
 async function main() {
-  const { dryRun, doctorOnly, yes } = parseArgs(process.argv.slice(2));
+  let argv = process.argv.slice(2);
+  if (argv[0] && WORKFLOW_COMMANDS.has(argv[0])) runWorkflow(argv);
+  if (argv[0] === "install") argv = argv.slice(1);
+  const { dryRun, doctorOnly, yes } = parseArgs(argv);
   const targetDir = path.resolve(process.env.TARGET_DIR || process.cwd());
   const home = process.env.HOME || os.homedir();
   if (doctorOnly) {
@@ -1766,7 +1776,10 @@ async function main() {
     const extraOps = [
       ...await planBin({ scope, targetDir, home, stageDir, newManifest: manifest }),
       ...planLegacyCursorSkills(scope, targetDir, home),
-      ...await planLegacyOpencode(dests.legacyOpencode, scope === "global" ? "~/.config/opencode/agents" : ".opencode")
+      ...await planLegacyOpencode(
+        dests.legacyOpencode,
+        scope === "global" ? "~/.config/opencode/agents" : ".opencode"
+      )
     ];
     for (const tree of trees) printTreePlan(tree);
     for (const op of extraOps) log(opLine(op));
@@ -1782,9 +1795,7 @@ async function main() {
     for (const tree of trees) await applyTree(tree);
     for (const op of extraOps) await applyOp(op);
     log("");
-    log(
-      "Done. Invoke .agents/bin/quest-state.mjs (or $HOME/.agents/bin/quest-state.mjs) so the conductor can checkpoint state."
-    );
+    log("Done. .agents/bin/solodev.mjs runs the workflow checks; `solodev.mjs help` lists its commands.");
     log("");
     suggestNextSteps();
     doctor(targetDir, home);

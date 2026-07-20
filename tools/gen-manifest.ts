@@ -35,17 +35,17 @@ async function sha256(filePath: string): Promise<string> {
 }
 
 const distRoots = ["cursor", "claude", "codex", "agents"].map((d) => path.join(root, "dist", d))
-const bin = path.join(root, "dist", "bin", "quest-state.mjs")
+const bins = ["quest-state.mjs", "solodev.mjs"].map((b) => path.join(root, "dist", "bin", b))
 
 try {
   for (const d of distRoots) await fs.stat(d)
-  await fs.stat(bin)
+  for (const b of bins) await fs.stat(b)
 } catch {
   console.error("ERROR: dist/ incomplete — run: pnpm run build")
   process.exit(1)
 }
 
-const files = [...(await Promise.all(distRoots.map(walkFiles))).flat(), bin]
+const files = [...(await Promise.all(distRoots.map(walkFiles))).flat(), ...bins]
 const lines: string[] = []
 for (const abs of files) {
   const rel = path.relative(path.join(root, "dist"), abs).split(path.sep).join("/")

@@ -175,7 +175,7 @@ agents:
       skill: true
 
 commands:
-  arise-setup-docs:
+  arise-scout:
     description: >-
-      Scaffolds AGENTS.md, docs/ARCHITECTURE.md, docs/CONSTITUTION.md, and docs/feats/. Run by the user as
-      /arise-setup-docs.
+      Maps the repo once before the first /arise run: writes a minimal AGENTS.md (the commands list solodev reads, plus
+      constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as /arise-scout.

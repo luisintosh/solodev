@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build portable Node ESM bundle into dist/bin/quest-state.mjs.
+ * Build portable Node ESM bundles into dist/bin/: quest-state.mjs (v1 state CLI) and solodev.mjs (workflow CLI).
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
@@ -10,8 +10,10 @@ import { parse as parseYaml } from "yaml"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const outDir = path.join(root, "dist", "bin")
-const entry = path.join(root, "src", "state", "cli.ts")
-const outJs = path.join(outDir, "quest-state.mjs")
+const BUNDLES = [
+  { entry: path.join(root, "src", "state", "cli.ts"), out: path.join(outDir, "quest-state.mjs") },
+  { entry: path.join(root, "src", "cli", "main.ts"), out: path.join(outDir, "solodev.mjs") },
+]
 
 /** Inline `import x from "*.yaml"` as parsed JSON. */
 const yamlPlugin: Plugin = {
@@ -26,24 +28,28 @@ const yamlPlugin: Plugin = {
 
 await fs.mkdir(outDir, { recursive: true })
 
-await build({
-  entryPoints: [entry],
-  outfile: outJs,
-  bundle: true,
-  platform: "node",
-  format: "esm",
-  target: "node20",
-  // Bundled CJS deps (yaml) call require() for node builtins; ESM output needs a real require.
-  banner: { js: 'import { createRequire } from "node:module";const require=createRequire(import.meta.url);' },
-  minify: true,
-  plugins: [yamlPlugin],
-  logLevel: "warning",
-})
-const js = await fs.readFile(outJs, "utf8")
-const body = js.replace(/^#!.*\n/, "")
-await fs.writeFile(outJs, `#!/usr/bin/env node\n${body}`, { mode: 0o755 })
-await fs.chmod(outJs, 0o755)
+for (const { entry, out } of BUNDLES) await bundle(entry, out)
+
+async function bundle(entry: string, outJs: string) {
+  await build({
+    entryPoints: [entry],
+    outfile: outJs,
+    bundle: true,
+    platform: "node",
+    format: "esm",
+    target: "node20",
+    // Bundled CJS deps (yaml) call require() for node builtins; ESM output needs a real require.
+    banner: { js: 'import { createRequire } from "node:module";const require=createRequire(import.meta.url);' },
+    minify: true,
+    plugins: [yamlPlugin],
+    logLevel: "warning",
+  })
+  const js = await fs.readFile(outJs, "utf8")
+  const body = js.replace(/^#!.*\n/, "")
+  await fs.writeFile(outJs, `#!/usr/bin/env node\n${body}`, { mode: 0o755 })
+  await fs.chmod(outJs, 0o755)
+}
 await fs.rm(path.join(outDir, "quest-state"), { force: true })
 await fs.rm(path.join(outDir, "quest-state.js"), { force: true })
 
-console.log("build-cli: wrote portable dist/bin/quest-state.mjs")
+console.log("build-cli: wrote portable dist/bin/quest-state.mjs and dist/bin/solodev.mjs")

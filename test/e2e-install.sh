@@ -67,7 +67,7 @@ else
 fi
 assert_file_exists "${TARGET}/.agents/skills/arise/SKILL.md" "arise skill installed under .agents"
 assert_file_exists "${TARGET}/.agents/skills/arise-plan/SKILL.md" "arise-plan skill installed under .agents"
-assert_file_exists "${TARGET}/.agents/skills/arise-setup-docs/SKILL.md" "arise-setup-docs skill installed under .agents"
+assert_file_exists "${TARGET}/.agents/skills/arise-scout/SKILL.md" "arise-scout skill installed under .agents"
 assert_file_exists "${TARGET}/.agents/skills/arise/references/reply-mapping.md" "arise reply-mapping reference installed"
 assert_file_exists "${TARGET}/.agents/skills/arise/references/orca.md" "arise orca reference installed"
 assert_file_exists "${TARGET}/.agents/skills/arise/references/handoff.md" "arise handoff reference installed"
@@ -243,9 +243,23 @@ else
   bad "node required for quest-state smoke test"
 fi
 
+# 9b. solodev workflow CLI, installed and through the package bin
+assert_file_exists "${TARGET}/.agents/bin/solodev.mjs" "solodev CLI installed under .agents/bin"
+help_out="$(cd "$TARGET" && .agents/bin/solodev.mjs help)"
+if grep -q 'approve' <<<"$help_out" && grep -q 'check' <<<"$help_out"; then ok "solodev help lists the commands"; else bad "solodev help: $help_out"; fi
+status_out="$(cd "$TARGET" && .agents/bin/solodev.mjs status)"
+if grep -q 'smoke-feat: v1' <<<"$status_out"; then ok "solodev status recognizes a v1 run"; else bad "solodev status: $status_out"; fi
+bin_help="$(node "$INSTALL_JS" help check)"
+if grep -q 'solodev check <slug>' <<<"$bin_help"; then ok "package bin hands workflow commands to solodev"; else bad "package bin help: $bin_help"; fi
+set +e
+(cd "$TARGET" && .agents/bin/solodev.mjs check no-such-feature >/dev/null 2>&1)
+usage_rc=$?
+set -e
+assert_eq "$usage_rc" "2" "solodev exits 2 on a usage error"
+
 # 10. post-install next-step hints
 hints="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=claude node "$INSTALL_JS" 2>&1)"
-if grep -q '/arise-setup-docs' <<<"$hints"; then ok "suggests /arise-setup-docs"; else bad "missing /arise-setup-docs hint"; fi
+if grep -q '/arise-scout' <<<"$hints"; then ok "suggests /arise-scout"; else bad "missing /arise-scout hint"; fi
 if grep -qE 'brew install gh|gh is on PATH|cli.github.com' <<<"$hints"; then
   ok "suggests gh CLI"
 else
