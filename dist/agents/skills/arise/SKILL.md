@@ -30,7 +30,7 @@ YAML, and a missing or malformed key fails closed. Events:
 
 ## Delegation
 
-Invoke specialists by catalog name (`shadow-design`, `shadow-design-reviewer`, `shadow-implementer`,
+Invoke specialists by catalog name (`shadow-architect`, `shadow-architect-reviewer`, `shadow-implementer`,
 `shadow-code-reviewer`, `shadow-qa`, `shadow-docs-writer`). Do not do their work yourself. Wait for each reply before
 the next stage — except the parallel steps: step 6 runs `shadow-code-reviewer` three times, one per `area`; step 9 runs
 `shadow-docs-writer` and `shadow-qa`; a clean-tree escalation runs its two worktree implementers.
@@ -58,7 +58,7 @@ cache. Continue only these:
 - `shadow-implementer` — a counted targeted-test failure, the opinion-gate answer, the empty-diff or no-test correction,
   a verify-fix retry, the step 6 fix round, and the step 6.5 dispute apply round. Continue the implementer that wrote
   the code being fixed.
-- `shadow-design` — the critique re-delegation (step 3) and design-gate edits (step 4).
+- `shadow-architect` — the critique re-delegation (step 3) and design-gate edits (step 4).
 
 Everything else gets a **new** specialist: the first delegation of every stage and slice, the escalation re-derive (it
 must not trust the prior attempt), review iteration 2 (an independent pass), the design delta, and every reviewer, QA,
@@ -167,19 +167,19 @@ next feature on completion. Other trackers skip handoff.
 
 ## Core loop
 
-| Step              | `stage`           | Who                                              | Leaves when                                | Next           |
-| ----------------- | ----------------- | ------------------------------------------------ | ------------------------------------------ | -------------- |
-| 1 initialize      | `initialized`     | you                                              | branch + state scaffolded, or resume found | 2              |
-| 2 design          | `design`          | `shadow-design`                                  | spec, contracts, plan on disk              | 3              |
-| 3 design critique | `design`          | `shadow-design-reviewer`, or skipped by `decide` | `design_critique` in `completed`           | 4              |
-| 4 ⏸ design gate   | `design_gate`     | the human                                        | approved → `transition design-approved`    | 5              |
-| 5 implementation  | `implementation`  | `shadow-implementer`, one delegation per slice   | every slice committed                      | 6              |
-| 6 review          | `review`          | three `shadow-code-reviewer` runs, one per area  | no `blocker\|major` left                   | 7              |
-| 7 verify          | `verify`          | you (+ `shadow-implementer` for a verify-fix)    | `AGENTS.md` commands green                 | `after_verify` |
-| 8 pr              | `pr`              | you                                              | draft PR open                              | 9              |
-| 9 docs-sync ∥ qa  | `qa`              | `shadow-docs-writer` ∥ `shadow-qa`               | `docs_sync` and `qa` in `completed`        | 10             |
-| 10 finalize PR    | `qa` → `complete` | you                                              | PR marked ready                            | 11             |
-| 11 handoff        | `complete`        | you                                              | next feature named (GitHub only)           | stop           |
+| Step              | `stage`           | Who                                                 | Leaves when                                | Next           |
+| ----------------- | ----------------- | --------------------------------------------------- | ------------------------------------------ | -------------- |
+| 1 initialize      | `initialized`     | you                                                 | branch + state scaffolded, or resume found | 2              |
+| 2 design          | `design`          | `shadow-architect`                                  | spec, contracts, plan on disk              | 3              |
+| 3 design critique | `design`          | `shadow-architect-reviewer`, or skipped by `decide` | `design_critique` in `completed`           | 4              |
+| 4 ⏸ design gate   | `design_gate`     | the human                                           | approved → `transition design-approved`    | 5              |
+| 5 implementation  | `implementation`  | `shadow-implementer`, one delegation per slice      | every slice committed                      | 6              |
+| 6 review          | `review`          | three `shadow-code-reviewer` runs, one per area     | no `blocker\|major` left                   | 7              |
+| 7 verify          | `verify`          | you (+ `shadow-implementer` for a verify-fix)       | `AGENTS.md` commands green                 | `after_verify` |
+| 8 pr              | `pr`              | you                                                 | draft PR open                              | 9              |
+| 9 docs-sync ∥ qa  | `qa`              | `shadow-docs-writer` ∥ `shadow-qa`                  | `docs_sync` and `qa` in `completed`        | 10             |
+| 10 finalize PR    | `qa` → `complete` | you                                                 | PR marked ready                            | 11             |
+| 11 handoff        | `complete`        | you                                                 | next feature named (GitHub only)           | stop           |
 
 `after_verify` is 8, or 9 when the PR already exists (after a QA design delta) — `quest-state next` prints it. Rare
 branches live in references you read only when they trigger: clean-tree escalation (step 5), review dispute (step 6.5),
@@ -281,17 +281,17 @@ that blocker, and continue at `resume_step` with the decision. `step: 9-delta` �
    converts feature IDs to issue numbers when it files them.) Other tracker: patch `feature_id` and `path` only; leave
    `issue`/`epic` at `0`. No issue named → `roadmap` stays zeroed.
 
-2. **design** — `stage: design`. Delegate `shadow-design` with the **original request verbatim** (the issue title + body
-   for issue-linked runs, otherwise the invocation's own words — nothing on disk carries it). Patch `artifacts.spec`,
-   `artifacts.contracts`, `artifacts.plan` from its reply, with `--append '{completed: [design]}'`.
+2. **design** — `stage: design`. Delegate `shadow-architect` with the **original request verbatim** (the issue title +
+   body for issue-linked runs, otherwise the invocation's own words — nothing on disk carries it). Patch
+   `artifacts.spec`, `artifacts.contracts`, `artifacts.plan` from its reply, with `--append '{completed: [design]}'`.
 
 3. **design critique** — `stage: design`. Run `quest-state decide <slug> --event skip-design-critique --yaml` with
    values from the design **reply**: `onlyViableApproach` (`recommended` is `only viable approach` or a single
    candidate), `playwrightFallback`, `constitutionBlocker` (true if `blockers` names a constitution conflict),
    `humanDecisions`, `openQuestions`, and `oracles` (every journey's `oracle`). Omit no key. Follow stdout:
    - `skip: true` → journal the skip.
-   - `skip: false` → delegate `shadow-design-reviewer` with the original request verbatim. It fixes what it can in
-     place. Unresolved `blocker|major` findings → continue `shadow-design` once with those findings verbatim.
+   - `skip: false` → delegate `shadow-architect-reviewer` with the original request verbatim. It fixes what it can in
+     place. Unresolved `blocker|major` findings → continue `shadow-architect` once with those findings verbatim.
 
    Append `design_critique` to `completed`.
 
@@ -304,7 +304,7 @@ that blocker, and continue at `resume_step` with the decision. `step: 9-delta` �
      `quest-state transition <slug> --event design-approved --yaml '{commit: <sha>}'`. It clears `pending_gate` and
      `review.findings` and sets `review.base`; after a design delta it also runs the delta reset. Continue to step 5.
      Approving the design approves a named Playwright add — no second ask.
-   - Edits requested, or a different listed approach picked → continue `shadow-design` naming the change, then
+   - Edits requested, or a different listed approach picked → continue `shadow-architect` naming the change, then
      re-present.
 
 5. **implementation** — `stage: implementation`. Read `plan.md`'s Test strategy: parse the fenced `journeys:` YAML block
@@ -453,9 +453,9 @@ that blocker, and continue at `resume_step` with the decision. `step: 9-delta` �
 ## Findings routing
 
 Findings arrive as structured records `{id, file, line, severity, category, summary, fix}` and go verbatim to the fixing
-agent: design-reviewer findings to `shadow-design` (step 3), code-review findings to `shadow-implementer` (step 6.4),
-spec or plan gaps through the design delta, QA findings through `decide --event qa-route` (step 9). Never fix anything
-yourself.
+agent: architect-reviewer findings to `shadow-architect` (step 3), code-review findings to `shadow-implementer` (step
+6.4), spec or plan gaps through the design delta, QA findings through `decide --event qa-route` (step 9). Never fix
+anything yourself.
 
 `file` and `line` are **required** by the state schema — a record missing either makes the whole patch fail validation.
 Findings with no natural source location (a failed QA e2e path, a missing deployment step) anchor to the `@S<n>`
