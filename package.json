@@ -2,7 +2,7 @@
   "name": "solodev",
   "private": true,
   "type": "module",
-  "description": "Spec-driven development harness for Claude Code, Codex, and Cursor — prompts, transpile, quest-state CLI.",
+  "description": "Spec-driven development harness for Claude Code, Codex, and Cursor — role skills, transpile, solodev CLI.",
   "bin": {
     "solodev": "./dist/install.js"
   },
@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "vitest run src/",
+    "test": "vitest run src/cli/",
     "transpile": "node tools/transpile.ts",
     "build:cli": "node tools/build-cli.ts",
     "build:install": "node tools/build-install.ts",

@@ -92,16 +92,15 @@ type TreePlan = {
   manifestBody: string
 }
 
-const STATE_BIN = "quest-state.mjs"
 const WORKFLOW_BIN = "solodev.mjs"
 // Installed to <root>/.agents/bin/.
-const BINS = [STATE_BIN, WORKFLOW_BIN]
+const BINS = [WORKFLOW_BIN]
 
 function findPackageRoot(): string {
   let dir = path.dirname(fileURLToPath(import.meta.url))
   for (let i = 0; i < 8; i++) {
     const manifest = path.join(dir, "manifest.txt")
-    const distBin = path.join(dir, "dist", "bin", STATE_BIN)
+    const distBin = path.join(dir, "dist", "bin", WORKFLOW_BIN)
     if (fsSync.existsSync(manifest) && fsSync.existsSync(distBin)) return dir
     const parent = path.dirname(dir)
     if (parent === dir) break
@@ -114,7 +113,7 @@ function requirePayload(src: string) {
   const ok =
     fsSync.existsSync(path.join(src, "manifest.txt")) &&
     fsSync.existsSync(path.join(src, "dist")) &&
-    fsSync.existsSync(path.join(src, "dist", "bin", STATE_BIN))
+    fsSync.existsSync(path.join(src, "dist", "bin", WORKFLOW_BIN))
   if (!ok) {
     die(
       `${src} is missing dist/ + manifest.txt — clients copy a committed payload (run pnpm run build in the toolkit checkout)`,
@@ -212,9 +211,9 @@ function ghStatus(): "ok" | "logged-out" | "missing" {
   return r.status === 0 ? "ok" : "logged-out"
 }
 
-function stateBinInUse(targetDir: string, home: string): string | undefined {
-  const project = path.join(targetDir, ".agents", "bin", STATE_BIN)
-  const global = path.join(home, ".agents", "bin", STATE_BIN)
+function workflowBinInUse(targetDir: string, home: string): string | undefined {
+  const project = path.join(targetDir, ".agents", "bin", WORKFLOW_BIN)
+  const global = path.join(home, ".agents", "bin", WORKFLOW_BIN)
   if (fsSync.existsSync(project)) return project
   if (fsSync.existsSync(global)) return global
 }
@@ -429,7 +428,9 @@ async function planBin(opts: {
     }
   }
 
+  // The v1 state CLI and its older names; solodev.mjs replaces them.
   const leftovers = [
+    path.join(destDir, "quest-state.mjs"),
     path.join(destDir, "quest-state"),
     path.join(destDir, "quest-state.js"),
     path.join(destDir, "sddkit-state.mjs"),
@@ -447,7 +448,7 @@ async function planBin(opts: {
       label: rel,
       dest: leftover,
       localEdit: false,
-      extra: `(moved to .agents/bin/${STATE_BIN})`,
+      extra: `(replaced by .agents/bin/${WORKFLOW_BIN})`,
     })
   }
   return ops
@@ -512,27 +513,22 @@ function doctor(targetDir: string, home: string) {
 
   log("  paths:")
   log(`    skills          ${targetDir}/.agents/skills/  or  ${home}/.agents/skills/`)
-  log(`    quest-state    ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`)
+  log(`    solodev CLI     ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`)
   log(`    cursor agents   ${targetDir}/.cursor/agents/  or  ${home}/.cursor/agents/`)
   log(`    claude agents   ${targetDir}/.claude/agents/  or  ${home}/.claude/agents/`)
   log(`    claude skills   ${targetDir}/.claude/skills/  or  ${home}/.claude/skills/`)
   log(`    codex agents    ${targetDir}/.codex/agents/  or  \${CODEX_HOME:-${home}/.codex}/agents/`)
 
-  const stateBin = stateBinInUse(targetDir, home)
-  if (stateBin) log(`  [ok]   quest-state: ${stateBin}`)
-  else log("  [warn] quest-state missing — re-run the installer")
-  if (stateBin) {
-    // Same .agents/ root as quest-state: the conductor resolves review checklists from there.
-    const checklists = path.join(path.dirname(path.dirname(stateBin)), "solodev", "checklists")
-    const missing = ["contract", "health", "design"].filter(
-      (area) => !fsSync.existsSync(path.join(checklists, `review-${area}.md`)),
-    )
-    if (missing.length === 0) log(`  [ok]   review checklists: ${checklists}`)
-    else log(`  [warn] review checklists missing (${missing.join(", ")}) in ${checklists} — re-run the installer`)
-  }
+  const bin = workflowBinInUse(targetDir, home)
+  if (bin) log(`  [ok]   solodev CLI: ${bin}`)
+  else log("  [warn] solodev CLI missing — re-run the installer")
+  const skills = [path.join(targetDir, ".agents", "skills"), path.join(home, ".agents", "skills")]
+  if (skills.some((dir) => fsSync.existsSync(path.join(dir, "arise", "SKILL.md"))))
+    log("  [ok]   arise skills installed")
+  else log("  [warn] arise skills missing — re-run the installer")
 
-  if (onPath("node")) log("  [ok]   node is on PATH (needed to run quest-state)")
-  else log("  [warn] node not found — install Node.js 20+ to run quest-state")
+  if (onPath("node")) log("  [ok]   node is on PATH (needed to run the solodev CLI)")
+  else log("  [warn] node not found — install Node.js 20+ to run the solodev CLI")
 
   const gh = ghStatus()
   if (gh === "ok") log("  [ok]   gh installed and authenticated")
@@ -553,15 +549,14 @@ function suggestNextSteps() {
     log("  2. gh is on PATH — run 'gh auth login' if you aren't logged in")
   }
   log("")
-  log("Optional: arise-plan — Product Owner planner (/arise-plan skill) turns a")
-  log("  raw idea into a feature roadmap at docs/product/<slug>/roadmap.md. Run")
-  log("  each feature through arise one at a")
-  log("  time — it hands you the next feature's invocation when one is done.")
+  log("Optional: /arise-planner turns a raw idea into a feature roadmap at")
+  log("  docs/product/<slug>/roadmap.md. Run each feature through /arise, one at")
+  log("  a time; each run ends by naming the next one.")
   log("")
   log("Optional: rtk (filters noisy bash output for agents)")
   log("  brew install rtk   # or see https://github.com/rtk-ai/rtk")
-  log("  # Quick start: exclude git diff/show from rewriting so shadow-code-reviewer")
-  log("  # and shadow-docs-writer see full diffs — in ~/.config/rtk/config.toml:")
+  log("  # Quick start: exclude git diff/show from rewriting so the reviewer and")
+  log("  # the documenter see full diffs — in ~/.config/rtk/config.toml:")
   log("  #   [hooks]")
   log('  #   exclude_commands = ["git diff", "git show"]')
   log("")
@@ -690,7 +685,7 @@ async function main() {
       )
       trees.push(
         await planTree({
-          prefix: "agents/skills",
+          prefix: "claude/skills",
           destRoot: dests.claudeSkills,
           stageDir,
           newManifest: manifest,

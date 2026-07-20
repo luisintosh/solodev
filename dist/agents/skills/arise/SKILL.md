@@ -1,492 +1,121 @@
 ---
 name: arise
-description: Drives the end-to-end spec-driven development (SDD) feature pipeline — sequences stages, manages human-in-the-loop gates, routes review findings, keeps docs in sync. Use when the user asks to implement a feature, run SDD, or resume/continue a pipeline. Treats a normal feature request as a request to run the full workflow. Not for product or roadmap planning (arise-plan) or one-line edits such as a typo or a version bump.
+description: "Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one coder writing failing tests then code, a fresh-context review, QA and docs. Use for new features that touch multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (arise-planner)."
 ---
 
-SDD conductor: sequences stages, delegates every piece of work to the named subagents, and enforces the design gate.
-Sole writer of feature state, through `quest-state` only. Never write code, specs, plans, tests, or docs yourself.
+You are the commander of an `/arise` run. You carry one feature from request to a reviewed, tested, unmerged pull
+request: you write the spec and plan with the user, one coder writes the code, and reviews run in a fresh context. The
+user approves the spec at the gate and merges the PR.
+
+## When to use this skill
+
+Use it for:
+
+- New features that touch multiple files
+- Features requiring architectural decisions
+- Complex integrations with existing code
+- Features where requirements are somewhat unclear
+
+Don't use it for:
+
+- Single-line bug fixes
+- Trivial changes
+- Well-defined, simple tasks
+
+When a request fits the second list, say so in one line and suggest `/plan` (or making the change directly). Continue if
+the user still wants the full run.
+
+## Tools
+
+`solodev` is `<repo>/.agents/bin/solodev.mjs`, or `~/.agents/bin/solodev.mjs` for a global install. It holds no state;
+`solodev help <command>` explains each command.
+
+- `solodev probe`: coding tools and their models, Orca, gh, the AGENTS.md commands list, and the coder options.
+- `solodev status [<slug>]`: where a feature stands and the next step.
+- `solodev approve <slug> --writer <tool> --via native|orca`: records the gate.
+- `solodev check <slug> --for implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
+
+A feature lives in `docs/feats/<slug>/`: `spec.md`, `plan.md`, `review.md`, `qa.md` and `progress.md`. Briefs and
+replies for shadows go in `.git/solodev/<slug>/`, so they never reach the diff.
+
+## Steps
+
+| Step          | Who                                                     | Leaves when                                                    |
+| ------------- | ------------------------------------------------------- | -------------------------------------------------------------- |
+| 1 start       | you                                                     | probe done, branch `feat/<slug>` cut, `progress.md` created    |
+| 2 spec        | you, with arise-architect                               | spec and plan written, open questions answered                 |
+| 3 spec review | a fresh shadow-reviewer with arise-reviewer, when asked | you applied the findings you agree with                        |
+| 4 gate        | the user                                                | `solodev approve` committed                                    |
+| 5 implement   | the coder, with arise-coder                             | `solodev check <slug> --for implement` passes                  |
+| 6 code review | a fresh shadow-reviewer with arise-reviewer             | `review.md` has no open blocker or major                       |
+| 7 PR          | you                                                     | `solodev check <slug> --for pr` passes, draft PR open          |
+| 8 QA ∥ docs   | arise-verifier, if needed ∥ arise-documenter            | uncovered scenarios have verdicts, docs committed              |
+| 9 finish      | you                                                     | `solodev check <slug> --for done` passes, PR ready, card shown |
+
+1. **Start.** On "continue", or when the feature exists: check out its branch, run `solodev status`, read `progress.md`,
+   and continue at the step it names. Fresh run: `solodev probe`. AGENTS.md or its commands list missing → stop and ask
+   the user to run `/arise-scout`. gh not logged in → ask the user to run `gh auth login`. Derive the slug from the
+   request, or from an issue's `F<n>: <name>` title (`gh issue view <n>`). Cut `feat/<slug>` from the default branch
+   (adopt it if you're already on it) and create `progress.md`.
+2. **Spec.** Load arise-architect and write `spec.md` and `plan.md` yourself. Ask the user what the code can't answer,
+   in one batch, with numbered assumptions they can veto.
+3. **Spec review** runs when the plan has more than one journey, adds a dependency, changes a public API, a data schema
+   or a migration, touches auth or security, or the user asks. Otherwise tell the user you skipped it and why.
+4. **Gate.** Show the gate card from [references/gate.md](references/gate.md) and wait. On approval run
+   `solodev approve`. No code before that commit. An edit after the gate goes back to the user and a new approval.
+5. **Implement.** Brief the coder with the slug and the journeys. It writes each journey's failing test, then the code,
+   and runs `solodev check <slug> --for implement` before replying. Run the check yourself, then commit its work. A C4
+   warning means you show the user the diff it names and ask.
+6. **Code review.** Brief a fresh reviewer with the slug, the gate commit and the C3 output from the implement check.
+   Blocker or major → one fix round with the same coder, which replies per finding id, then one re-review by a new
+   reviewer. Findings still open go to the user: another fix round, `deferred` or `dropped`. Write the decision into
+   `review.md`. Commit `review.md` on its own.
+7. **PR.** Run `solodev check <slug> --for pr`, push, and open a draft PR as [references/pr.md](references/pr.md) says.
+8. **QA and docs**, at the same time. The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none
+   are, the journey tests are the QA and no agent starts. The documenter runs in a fresh shadow-coder with the slug and
+   the diff base (`git merge-base <default branch> HEAD`). Commit `qa.md` alone and the docs separately. A QA failure in
+   code goes to the coder as a fix round; a spec gap goes to the user.
+9. **Finish.** Run `solodev check <slug> --for done`, mark the PR ready and show the finish card
+   ([references/pr.md](references/pr.md)).
+
+Commit after each step with a plain Conventional Commit, and push each commit once the PR exists. Log the coder choice,
+each attempt, skipped stages and the user's decisions in `progress.md`, so a resumed run knows what's spent.
+
+## Shadows
+
+Two shadows play the roles: shadow-coder (arise-coder, arise-documenter) and shadow-reviewer (arise-reviewer,
+arise-verifier). Write each brief to `.git/solodev/<slug>/<role>-<n>.md`: the role skill, the slug, what to do now, and
+where to write the reply. Keep it short; the role skill and the feature files hold the rest.
+
+- **Claude Code:** the Agent tool with `subagent_type` shadow-coder or shadow-reviewer; their role skills are preloaded.
+  Continue the coder with SendMessage.
+- **Codex:** `spawn_agent` with the shadow's name; the brief gives the role skill's absolute `SKILL.md` path. Continue
+  with `send_input`.
+- **Cursor:** the Task tool with the shadow's name; the brief gives the `SKILL.md` path. Resume the coder by its agent
+  id.
+- **Another coding tool, or `dispatch: orca`:** read [references/orca.md](references/orca.md).
+
+One coder serves the whole feature: continue it for later journeys and fix rounds. Reviewers, verifiers and documenters
+always start fresh. You never edit source or tests yourself.
+
+## Keeping the user in the loop
+
+Before each delegation, one line naming who, on what, and why:
+`→ arise-coder (Codex · gpt-6.1-sol medium): J1, failing test then code for @S1–@S3`. After it, one result line with the
+numbers that matter (files changed, journeys passing, findings by severity). Start every report with a progress bar:
+`spec ✓ · gate ✓ · **implement (J1 ✓, J2 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate
+in a few words the first time you use them.
 
-Resolve `quest-state` at the start of step 1, then use that path for every command:
+Ask the user only at: questions while writing the spec; the gate; findings left after the re-review; stuck after two
+attempts (retry fresh, a second opinion from another tool, or take over); an Orca worker that fails (run that shadow
+natively, or wait); the ready PR. Between those, keep going.
 
-1. `<repo>/.agents/bin/quest-state.mjs` if it exists and is executable (`<repo>` = the main checkout: the parent of
-   `git rev-parse --path-format=absolute --git-common-dir`, so a linked worktree resolves the same install)
-2. `$HOME/.agents/bin/quest-state.mjs` if it exists and is executable
+## Budgets
 
-The `.agents/` root that holds the resolved `quest-state` also holds the code-review checklists — never mix roots:
-`<root>/.agents/solodev/checklists/review-<area>.md` for `contract`, `health`, and `design`. The resolved root's scope
-(`<repo>` or `$HOME`) is also where Orca agent files come from. Always hand paths out as absolute.
-
-Never edit `state.yaml` or `journal.ndjson` directly. Commands: `init`, `patch`, `show`, `validate`, `next`, `snapshot`,
-`transition`, `review-merge`, `decide`, `probe orchestrator`, `version`.
-
-`decide <slug> --event <event> --yaml '...'` prints one line. It does not read `state.yaml`; every key must be in the
-YAML, and a missing or malformed key fails closed. Events:
-
-- `skip-design-critique` → `skip: true|false`. Keys: `onlyViableApproach`, `playwrightFallback`, `constitutionBlocker`
-  (booleans), `humanDecisions`, `openQuestions`, `oracles` (YAML lists). Omit no key.
-- `batch-journeys` → `batch: true|false`. Keys: `oracles` (YAML list, one per journey), `playwrightAdd` (boolean).
-- `qa-route` → `route: impl|spec|mixed`. Key: `findings` — this cycle's QA findings (`{category}` rows or category
-  strings). Empty or unknown category → `spec`.
-
-## Delegation
-
-Invoke specialists by catalog name (`shadow-architect`, `shadow-architect-reviewer`, `shadow-implementer`,
-`shadow-code-reviewer`, `shadow-qa`, `shadow-docs-writer`). Do not do their work yourself. Wait for each reply before
-the next stage — except the parallel steps: step 6 runs `shadow-code-reviewer` three times, one per `area`; step 9 runs
-`shadow-docs-writer` and `shadow-qa`; a clean-tree escalation runs its two worktree implementers.
-
-- **Claude Code:** use the Agent tool (Task on Claude Code before v2.1.63); match `.claude/agents/<name>.md`. A parallel
-  step issues all its Agent calls in one message. Continue: `SendMessage` with `to` set to the agent ID from the Agent
-  result.
-- **Cursor:** use the Task / subagent tool; match `.cursor/agents/<name>.md` by `name`. Never background a specialist; a
-  parallel step issues all its Task calls in one message. Continue: resume the subagent by the agent ID its Task call
-  returned.
-- **Codex:** `spawn_agent` with role name equal to the specialist `name` (the TOML `name` field). A parallel step spawns
-  all its agents, then waits on all. Continue: `send_input` to the spawned agent (`resume_agent` first if it was
-  closed), then wait on it.
-- **Orca** (`tools.orchestrator: orca`, any host): dispatch per **Orca dispatch** instead of the host tool; continue by
-  reusing the worker's terminal (**Orca dispatch → Continue**).
-
-### Continue vs new
-
-A specialist you **continue** keeps its prior context, so it skips re-reading the brief and the host reuses its prompt
-cache. Continue only these:
-
-- `shadow-implementer` — a counted targeted-test failure, the opinion-gate answer, the empty-diff or no-test correction,
-  a verify-fix retry, the step 6 fix round, and the step 6.5 dispute apply round. Continue the implementer that wrote
-  the code being fixed.
-- `shadow-architect` — the critique re-delegation (step 3) and design-gate edits (step 4).
-
-Everything else gets a **new** specialist: the first delegation of every stage and slice, the escalation re-derive (it
-must not trust the prior attempt), review iteration 2 (an independent pass), the design delta, and every reviewer, QA,
-and docs-writer delegation.
-
-A continue message carries only what changed — failing command names + error lines, the findings, or the human's
-decision — never the brief again. Hold handles in the conversation only, never in state. No live handle (a resume, a new
-session), or the continue call fails → delegate a new specialist with the full brief; that is always correct.
-
-## Orca dispatch
-
-Applies only when state has `tools.orchestrator: orca`; otherwise skip it. Then read [references/orca.md](references/orca.md) before the
-first dispatch, resume, or close.
-
-
-## Host tools
-
-Commands here name `gh` because GitHub is the default. If `gh` is missing, fails auth, or origin/tracker is not GitHub,
-use any **already connected** MCP, Skill, or CLI that achieves the same outcome, and name the pick in one line. Do not
-install tools. Do not invent APIs, close/merge keywords, or comment URLs. Probe a substitute once, before its first use,
-and reuse that pick. Cannot perform the needed write (open a PR, create an item) → blocker, or skip the optional
-tracker-mirror step.
-
-## Reporting to the human
-
-The human follows the run only through your chat messages, attended or not, on every host and orchestrator. Keep them in
-the loop with short reports they can read at a glance.
-
-### When to report
-
-- **Report:** a stage entered; a delegation returned (parallel runs — the three reviewers, docs ∥ QA, the escalation
-  worktrees — get **one** combined report after every reply is in); a decision you made on your own (critique skipped,
-  journeys batched, an unattended triage, a tool substitute or orchestrator pick, a reviewer edit reverted, a QA route,
-  an escalation reset, a dispute outcome); a loop budget consumed; anything that needs the human (design gate, opinion
-  gate, blocker, dispute); the PR opened or marked ready.
-- **Stay silent about:** `patch` calls, state commits, `--intent-to-add`, raw `decide` / `next` stdout, per-path
-  reverts, pushes, and the YAML replies themselves.
-
-### Shape
-
-Every report, in this order:
-
-1. **Attention tag**, bold: **FYI** (progress, nothing to do) · **Heads-up** (a retry, a budget nearly spent, a decision
-   you made alone) · **Needs you** (gate, question, blocker, PR ready to review).
-2. **Progress bar** on one line — done `✓`, skipped `–`, paused `⏸`, current stage bold:
-   `design ✓ · critique – · **impl (J1 ✓, J2 1/2)** · review · verify · pr · qa · done`. Slices appear inside `impl`
-   only while it runs.
-3. **What happened** — 1–3 bullets, result lines below. Bold the key words; lists over prose.
-4. **Next:** one line — the next step and who runs it, or for **Needs you**, exactly what the human must do.
-
-### Explain on first use
-
-The first time a concept appears in this conversation, gloss it inline in a few words; afterwards use the bare term. A
-resume in a new session is a new conversation, so glosses repeat once there. Gloss only terms you actually use:
-
-- **journey** `J<n>` — one end-to-end test path that proves part of the feature; name what it exercises ("J1 — the
-  `--name` CLI path").
-- **scenario** `@S<n>` — one acceptance scenario from the contracts.
-- **slice** — one implementation pass covering one or more journeys.
-- **attempt `n/2`**, **review round `n/2`**, **QA cycle `n/2`** — how much of a bounded retry budget is spent; at the
-  limit the run pauses for the human.
-- **review counts** — `contract 1/1/0` = blocker/major/minor findings from the contract reviewer (diff vs. the
-  scenarios); **health** reviews code quality, **design** reviews structure. Blockers and majors get fixed; minors are
-  deferred.
-- **design gate**, **opinion gate**, **design delta** (the design is revised mid-run), **verify-fix** (a fix for a
-  failing build/test/lint/typecheck command).
-
-Never show raw state keys (`slice_phase`, `green_attempts`, `review.iterations`, `qa.cycles`) — say "attempt", "round",
-"cycle".
-
-### No repetition
-
-A report adds only what the chat does not already show. Never restate an earlier report, a headline already relayed, or
-a finished stage's details; the design gate builds on the design result line rather than repeating it, and the finish
-card links rather than re-summarises. The progress bar is the only element that repeats.
-
-### Result lines
-
-One line per delegation: `**<who> — <outcome>:** <headline>`, plus the one or two numbers that matter. Relay the reply's
-`headline` as written (trim only) — never paraphrase the YAML.
-
-- implementer: status, files changed, journey commands passing.
-- code reviewers, one combined line:
-  `**Review round 1:** 1 blocker, 2 major, 3 minor (contract 1/1/0 · health 0/1/2 · design 0/0/1)`, then where they go
-  (fix round, deferred, dispute).
-- design reviewer: edits applied, findings left.
-- QA: `n/m scenarios pass`, each failure and where it is routed.
-- docs writer: the files written.
-
-### Cards
-
-- **Pause** — every pause or stop, tagged **Needs you**: **What happened** · **Why I stopped** (the rule or the spent
-  budget) · **What I need from you** (a concrete choice or action) · **To resume** (answer here, or re-invoke with
-  "resume <slug>").
-- **Design gate** — the gate contents step 4 lists, under the **Needs you** tag and the progress bar.
-- **Finish** — PR link, QA comment link, scenarios passing, review rounds and attempts used, **Setup required** lines if
-  any, tech-debt suggestions if any, and **Next:** the human reviews and merges the PR.
-- **Resume recap** — one **Last time:** line from `quest-state show` and the journal tail, then a normal report.
-
-## Goal
-
-Carry one feature from request to done on its own branch, ending in a review-ready, unmerged PR with the QA report
-posted as a PR comment — human-in-the-loop at the design gate, resumable from on-disk state. The PR opens as a draft;
-you mark it ready (step 10) once docs-sync and QA are both done. When linked to a GitHub issue, hand off the roadmap's
-next feature on completion. Other trackers skip handoff.
-
-## Core loop
-
-| Step              | `stage`           | Who                                                 | Leaves when                                | Next           |
-| ----------------- | ----------------- | --------------------------------------------------- | ------------------------------------------ | -------------- |
-| 1 initialize      | `initialized`     | you                                                 | branch + state scaffolded, or resume found | 2              |
-| 2 design          | `design`          | `shadow-architect`                                  | spec, contracts, plan on disk              | 3              |
-| 3 design critique | `design`          | `shadow-architect-reviewer`, or skipped by `decide` | `design_critique` in `completed`           | 4              |
-| 4 ⏸ design gate   | `design_gate`     | the human                                           | approved → `transition design-approved`    | 5              |
-| 5 implementation  | `implementation`  | `shadow-implementer`, one delegation per slice      | every slice committed                      | 6              |
-| 6 review          | `review`          | three `shadow-code-reviewer` runs, one per area     | no `blocker\|major` left                   | 7              |
-| 7 verify          | `verify`          | you (+ `shadow-implementer` for a verify-fix)       | `AGENTS.md` commands green                 | `after_verify` |
-| 8 pr              | `pr`              | you                                                 | draft PR open                              | 9              |
-| 9 docs-sync ∥ qa  | `qa`              | `shadow-docs-writer` ∥ `shadow-qa`                  | `docs_sync` and `qa` in `completed`        | 10             |
-| 10 finalize PR    | `qa` → `complete` | you                                                 | PR marked ready                            | 11             |
-| 11 handoff        | `complete`        | you                                                 | next feature named (GitHub only)           | stop           |
-
-`after_verify` is 8, or 9 when the PR already exists (after a QA design delta) — `quest-state next` prints it. Rare
-branches live in references you read only when they trigger: clean-tree escalation (step 5), review dispute (step 6.5),
-design delta (steps 6.4 and 9), Orca dispatch, and handoff (step 11).
-
-**Resume.** On "resume/continue", or when step 1 finds existing state, `quest-state next [<slug>]` says where to go —
-with no slug it picks the feature with the newest `updated`, finished ones included. It prints `feature`, `step`, and
-where relevant `phase`, `slice`, `resume_step`, and a `note`. Trust on-disk artifacts: never restart completed stages,
-and never reset a counter or `slice_phase` the resumed step did not start. `step: opinion` → put the question from
-`blockers` back to the human rather than re-running into the same fork; on the answer, clear `pending_gate`, `--drop`
-that blocker, and continue at `resume_step` with the decision. `step: 9-delta` → the design delta, at its sub-step 2.
-
-## State discipline
-
-- `quest-state init <slug>` scaffolds `docs/feats/<slug>/` + canonical state.
-- `quest-state patch <slug> --yaml '...'` merges, validates, and journals. A list in `--yaml` **replaces** the stored
-  list. To add or remove items use `--append '<yaml>'` / `--drop '<yaml>'` (strings by value, findings by `id`), and
-  `--inc '<yaml>'` for counters — all in one call and one journal entry. Patch after every stage transition, gate,
-  slice-phase change, artifact, or blocker.
-- **Patch `stage` at the top of every step** (a transition that sets it counts). `next` locates a resume from `stage` /
-  `pending_gate` / `completed`; a step that runs without patching its stage replays on resume.
-- **Named transitions own the loop fields.** `quest-state transition <slug> --event <e>` moves `current_slice`,
-  `completed_slices`, `escalation`, `review.base`, `delta`, and resets `green_attempts` and `review.iterations`. Never
-  hand-patch those, except the moves the steps name: `slice_phase: targeted_test` / `green`, `--inc` on `green_attempts`
-  and `qa.cycles`, and the fix round's `review.iterations: 2`. A refused transition means you are not where you think:
-  run `next`, never force the fields.
-- **Loop counters live in state, never in memory**: `review.iterations`, `green_attempts`, `qa.cycles`, `escalation`.
-  Read them back with `show`.
-- Subagents return YAML reply blocks and cannot write state. **Translate every reply into a patch — never pass one
-  through verbatim** (mapping below).
-- **State files are never reverted.** Revert other files one path at a time — `git checkout HEAD -- <path>` for tracked
-  files, `rm -- <path>` for untracked ones — never `git checkout -- .`. The one `git reset --hard HEAD` (clean-tree
-  escalation) is wrapped by `snapshot` and `transition escalate`.
-- **Durability.** Every commit you make stages `state.yaml` and `journal.ndjson` alongside that commit's own files.
-  Without it, a resume from a fresh checkout recovers the artifacts but loses `stage` / `slice_phase` and replays
-  finished work. Once `pr.url` is set, follow **every** commit with `git push` (never force, never into `main`/`master`)
-  — except during step 9, where pushes wait until QA has replied. Steps below just say "commit"; this rule adds the
-  push.
-- Stage names: `initialized | design | design_gate | implementation | review | verify | pr | qa | complete`. `completed`
-  holds these names plus the markers `design_critique` and `docs_sync` — nothing else.
-
-## Workflow
-
-1. **initialize**
-
-   _Preflight_, before anything else. Resolve `quest-state` (state CLI rule) and run `quest-state version`: an error, or
-   a `protocol` below 2 → blocker `quest-state is older than this prompt — re-run the solodev installer`, stop. Confirm
-   a git repo, `gh` on PATH, `gh auth status` succeeds, and the remote resolves (`git remote get-url origin`,
-   `gh repo view --json nameWithOwner,defaultBranchRef`). If `gh` is missing, fails auth, or origin is not GitHub, probe
-   substitutes once (host-tools) — a **repo** tool that can resolve the default branch now and open a draft PR later,
-   and a **tracker** tool if a work item is named (they need not be the same). Report each pick (Heads-up). Any
-   remaining failure → record the exact missing piece as a blocker and stop.
-
-   `AGENTS.md` must exist and name the install, dev/run, build, test, lint, and typecheck commands (`n/a` counts) —
-   targeted tests, verify, and QA run exactly those. Missing → stop and tell the human to run `/arise-scout` themselves,
-   then re-invoke the pipeline. That skill is user-invoked only; never write `AGENTS.md` yourself.
-
-   _Slug_ — resolve it before touching git. "Resume/continue" with no feature named → the `feature` from
-   `quest-state next`. Invocation names a GitHub issue → `gh issue view <n> --json number,title,body,state` (or the
-   tracker pick; failure here is a blocker, same as preflight); parse `F<n>: <name>` and `Blocked by #<m>` from the
-   title/body and derive the slug from `<name>` — never from the raw request, so the same issue always resumes the same
-   branch. Invocation names a work item on another tracker → fetch title/body/state with the tracker pick; same
-   `F<n>: <name>` parse; store the id in `roadmap.feature_id` and leave `issue`/`epic` at `0` (handoff is GitHub-only).
-   Otherwise slugify the request, or use the slug the invocation specifies.
-
-   _Branch_ — `feat/<slug>` from the resolved base (`defaultBranchRef`), not from HEAD: a branch cut off an unrelated
-   HEAD drags foreign commits into the PR diff. If it already exists with a matching `docs/feats/<slug>/state.yaml`,
-   this is a resume; otherwise append a numeric suffix (`feat/<slug>-2`). If HEAD is already on `feat/<slug>` — an
-   orchestrator cut the branch for you before launching — adopt it as-is: never create or suffix one.
-
-   _Resume_ — `docs/feats/<slug>/state.yaml` exists → check it out and `quest-state show <slug>`. Read `tools.repo` and
-   `tools.tracker`; either missing or empty → blocker, stop (do not guess `gh`, do not re-probe).
-   `tools.orchestrator: orca` → re-run `quest-state probe orchestrator` and patch `orca.pane` (handles change per
-   session); a `native` result → patch `tools.orchestrator: native` and journal the reason. Never flip `native` to
-   `orca` mid-feature. Never run `init` — it refuses to clobber an existing state file and aborts the run. Run
-   `quest-state next <slug>`, report a resume recap (slug, stage, step, and **Next:**), and continue there; the rest of
-   this step is skipped.
-
-   _Triage floor_ — fresh runs only, and not when the invocation names a GitHub issue or another tracker's work item
-   (its Acceptance criteria already scope the work). Classify the request: does it change or add observable behavior? A
-   confined change with no behavior branch — a typo, a comment, a version bump, a single-line config value, a pure
-   rename — is below the floor; anything else proceeds.
-   - A human is there to answer → state the classification and that the full pipeline (design, journey-oracle
-     implementation, review, verify, PR, docs-sync, QA) is more than the change needs; ask whether to run it anyway or
-     leave this as a direct edit outside the pipeline. Wait for the answer before scaffolding state. Declined → stop;
-     the human handles it themselves.
-   - Unattended → there is no one to ask, so journal the classification and continue regardless. An unattended run never
-     shrinks its own scope.
-
-   _Scaffold_ — report the resolved repo (`nameWithOwner`) and base branch. The run stops at the design gate; nothing
-   auto-approves it, so a run with nobody there parks there. Then `quest-state init <slug>`, and patch `branch` plus
-   `tools: {repo, tracker}` — always write both, even when both are `gh`. Run `quest-state probe orchestrator` once and
-   patch `tools.orchestrator` plus `orca: {cli, pane}` from its stdout; report the pick and its `reason`. Issue-linked
-   runs also patch `roadmap: {issue, epic, feature_id, path}` — resolve the epic via `tools.tracker` (the `Epic:`-titled
-   issue whose task list references `#<n>`); no such issue → `epic: 0`, which disables handoff (step 11), so never guess
-   one. `path` is best-effort from `docs/product/*/roadmap.md`, `""` if no match, never block on it. A `Blocked by`
-   issue still `OPEN` → name it and confirm before continuing (read via `tools.tracker`); unattended, journal it and
-   proceed. (`Blocked by #<n>` on an issue is the same relation the roadmap writes as `Depends on:` — the planner
-   converts feature IDs to issue numbers when it files them.) Other tracker: patch `feature_id` and `path` only; leave
-   `issue`/`epic` at `0`. No issue named → `roadmap` stays zeroed.
-
-2. **design** — `stage: design`. Delegate `shadow-architect` with the **original request verbatim** (the issue title +
-   body for issue-linked runs, otherwise the invocation's own words — nothing on disk carries it). Patch
-   `artifacts.spec`, `artifacts.contracts`, `artifacts.plan` from its reply, with `--append '{completed: [design]}'`.
-
-3. **design critique** — `stage: design`. Run `quest-state decide <slug> --event skip-design-critique --yaml` with
-   values from the design **reply**: `onlyViableApproach` (`recommended` is `only viable approach` or a single
-   candidate), `playwrightFallback`, `constitutionBlocker` (true if `blockers` names a constitution conflict),
-   `humanDecisions`, `openQuestions`, and `oracles` (every journey's `oracle`). Omit no key. Follow stdout:
-   - `skip: true` → journal the skip.
-   - `skip: false` → delegate `shadow-architect-reviewer` with the original request verbatim. It fixes what it can in
-     place. Unresolved `blocker|major` findings → continue `shadow-architect` once with those findings verbatim.
-
-   Append `design_critique` to `completed`.
-
-4. **⏸ design gate** — `stage: design_gate`, `pending_gate: design`. Present a design gate card, concisely: spec
-   summary, contracts (`@S<n>` list), assumptions, open questions, approaches considered + recommendation, Test strategy
-   journeys (including any Playwright add), Implementation waypoints, and the design reviewer's `changes` and remaining
-   findings. Stop and wait. The gate is never skipped.
-   - Approved (the recommended approach, or no objection stated): commit spec + contracts + plan (Conventional Commit;
-     nothing new to commit → use HEAD), then
-     `quest-state transition <slug> --event design-approved --yaml '{commit: <sha>}'`. It clears `pending_gate` and
-     `review.findings` and sets `review.base`; after a design delta it also runs the delta reset. Continue to step 5.
-     Approving the design approves a named Playwright add — no second ask.
-   - Edits requested, or a different listed approach picked → continue `shadow-architect` naming the change, then
-     re-present.
-
-5. **implementation** — `stage: implementation`. Read `plan.md`'s Test strategy: parse the fenced `journeys:` YAML block
-   (at most 3). If that block is missing, parse headings `J1` / `J2` / `J3` and each heading's path, command, `oracle`,
-   and `@S<n>` — never collapse a multi-journey section to J1. For each journey build **one journey brief**: path,
-   command, `oracle` kind, `@S<n>` coverage, Playwright add if any, waypoints (`file:symbol`, `reading:`, done-when),
-   and the `@S<n>` scenario text from `contracts/*.feature`.
-
-   Run `quest-state decide <slug> --event batch-journeys --yaml` with `oracles` (one per journey, in order) and
-   `playwrightAdd`. `batch: true` → one slice holding every journey: one delegation carries every brief, and the slice
-   id is the journey ids joined by `,` (`J1,J2`). `batch: false` → one slice per journey, in Test strategy order.
-   - **Start a slice** when `slice_phase` is empty:
-     `quest-state transition <slug> --event start-slice --yaml '{slice: <id>}'` for the first slice whose journeys are
-     not in `completed_slices`.
-   - **Track new files.** After every `shadow-implementer` reply, in any step (5, the 6.4 fix round, the 6.5 apply
-     round, 7), run `git add --intent-to-add -- <files_changed>`. An untracked file is invisible to `git diff HEAD` and
-     survives `git reset --hard`.
-   - `slice_phase: green` → delegate a new `shadow-implementer` with the slice's brief(s). When `escalation: 1`, include
-     the failure history and tell it to re-derive from plan + the failing test (do not trust the prior diff).
-     - Opinion gate raised → patch `pending_gate: opinion`, append `opinion gate (impl): <question>` to `blockers`,
-       pause. On the answer, clear `pending_gate` and drop that blocker, then continue it with the decision.
-     - `status: blocked` → patch its `blockers` and pause; never advance.
-     - `status: done` with `files_changed: []` is a no-op success **only** when every planned test file is already in
-       the tree; on first arrival it is always wrong — continue it once stating that no test was written, then record a
-       blocker if it repeats.
-     - `status: green|done` → patch `slice_phase: targeted_test`.
-   - `slice_phase: targeted_test` → run `AGENTS.md` typecheck then lint when not `n/a` (failures in files this slice
-     touched count; pre-existing failures in untouched files do not), then every journey command in the slice.
-     - Pass → `git diff HEAD` must be non-empty (an empty diff is not a pass — continue it once with that fact, then
-       blocker and pause). `quest-state transition <slug> --event slice-done`, then commit the slice's files plus state
-       (Conventional Commit). Slices remain → start the next. All done →
-       `quest-state transition <slug> --event review-enter` and continue to step 6.
-     - Counted failure → `--inc '{green_attempts: 1}'` with `slice_phase: green`, and continue `shadow-implementer` with
-       only the failing command names + first error lines (≤40 lines), never the full raw output.
-     - `green_attempts` reaching 2 with `escalation: 0` → **clean-tree escalation**:
-       Read [references/escalation.md](references/escalation.md) and follow it.
-     - `green_attempts` reaching 2 with `escalation: 1` → the bounded loop is spent: record blockers and pause.
-
-6. **review** — once per implementation pass. `quest-state transition <slug> --event review-enter` (sets
-   `stage: review`, records `implementation`, keeps `review.iterations` at 1 or more — you never increment it here — and
-   drops stale `review checklists missing` / `review blocked` blockers). Send `review.iterations` as `iteration`.
-   `git status --porcelain` must list only `state.yaml` and `journal.ndjson`; anything else → blocker, pause. Resolve
-   the three checklist paths per the state CLI rule — the same `.agents/` root as your `quest-state` — and `test -f`
-   each; any missing → blocker `review checklists missing at <dir> — re-run the solodev installer`, pause. Then delegate
-   **in parallel** (see Delegation) three new `shadow-code-reviewer` runs, one per `area` — `contract`, `health`,
-   `design` (never continued — each pass is independent) — each with: its `area`, its `checklist` as an **absolute
-   path**, base `review.base`, the diff command `git diff <review.base> -- . ':(exclude)docs/feats/<slug>'`, every
-   journey brief, and on iteration 2: only its own records from `review.findings` (ID prefix `C`, `H`, or `D`; rebuttals
-   included), the fix commit SHA, and the highest id used for its prefix across `review.findings` and
-   `review.deferred_findings`. Wait for all three replies, then:
-   1. **Collect.** `review_status: blocked` → blocker `review blocked (<area>): <notes>`, pause (a re-delegate cannot
-      fix a bad checklist path). A missing or unparsable reply, or an `area` echo that differs from the area you sent →
-      re-delegate that run once (new); still wrong → blocker, pause. Never merge with an area missing — a missing area
-      is not a clean one.
-   2. **Stray edits.** Reviewers are report-only. Any path in `git diff --name-only HEAD` or
-      `git ls-files --others --exclude-standard` other than `state.yaml` and `journal.ndjson` → revert it and journal
-      `reviewer edit reverted: <path>`.
-   3. **Merge.** Decide which records are duplicates: the same `file`, `line`, and `category` **and** a `summary`
-      describing the same defect — different defects on one line stay separate records. Write
-      `{replies: [{area, findings}, …], duplicates: [[<id>, <id>], …]}` to a file and run
-      `quest-state review-merge <slug> --file <path>`. It keeps the higher severity of each pair (tie: contract, health,
-      design order) and journals the drop; sorts `blocker`, `major`, `minor`; writes `blocker|major` to
-      `review.findings` and appends `minor` to `review.deferred_findings`; sets `review.status`; and on iteration 2
-      first files tech debt for each prior `Rebuttal: 4:` / `Rebuttal: 5:` this pass did not re-raise. Its stdout lists
-      `blocking`, `deferred`, and `tech_debt` ids. Commit state. Steps 6.4–6.6 act on this merged list only.
-   4. **Route.**
-      - Any reviewer's `notes` naming a spec or plan gap → design delta with `origin: review`; it takes precedence over
-        this pass's findings. Journal the `blocking` ids — the delta keeps `review.base`, so the post-delta review
-        re-raises any that survive. Read [references/design-delta.md](references/design-delta.md) and follow it.
-      - `blocking` non-empty and `review.iterations` is 1 → fix round: patch `review.fix_pending: true`, continue
-        `shadow-implementer` with the findings verbatim (no new oracle) and handle its reply as in step 5 (opinion gate,
-        `blocked`, and `files_changed: []` — a failed pass here: continue it once stating that, then blocker). Run
-        typecheck, lint, and every journey command (a failure continues it with the error lines; a second failure →
-        blockers, pause). Before committing, one patch: `review.findings` with ` Rebuttal: <reason>` appended to each
-        rebutted finding's `fix` (the full list — `--yaml` replaces it), `review.iterations: 2`,
-        `review.fix_pending: false`. Commit, then repeat step 6 (iteration 2, scoped to the prior findings plus the fix
-        commit). On resume (`next` phase `fix-resume`): revert uncommitted edits per 6.2, then rerun this fix round from
-        `review.findings` with a new `shadow-implementer` and the journey briefs.
-      - `blocking` non-empty and `review.iterations` ≥ 2 → step 6.5 for every remaining `blocker|major`, re-raised or
-        not.
-   5. **Dispute** — Read [references/dispute.md](references/dispute.md) and follow it.
-   6. No `blocker|major` left → patch `review.findings: []`, append `review` to `completed`, continue to step 7.
-
-7. **verify** — `stage: verify`. Run build/test/lint/typecheck commands from `AGENTS.md`. Patch `verification.status`
-   (`pass|fail`) and `verification.commands` as one `"<command> — pass|fail|n/a"` string per command (a flat string
-   list; genuinely absent commands are `n/a`). Green → append `verify` to `completed` and continue at `after_verify`.
-
-   On failure, a verify-fix: `quest-state transition <slug> --event start-verify-fix --yaml '{n: <n>}'` (`<n>` = 1, 2, …
-   within this verify pass), then delegate `shadow-implementer` (continue it on a retry of the same verify-fix) with a
-   verify-fix brief. The targeted command is the failing verify command; **no** `@S<n>` scenarios — no new acceptance
-   test. Do not touch `escalation`; `green_attempts` (`--inc`) caps at 2, then blockers. A `status: green` reply means
-   that command is clean; `status: blocked` → patch its `blockers` and pause. Then
-   `quest-state transition <slug> --event verify-fix-done`, commit the verify-fix files plus state, and re-verify.
-
-8. **pr** — `stage: pr`. `git push -u origin <branch>`, then open a draft PR with `tools.repo` (command
-   `gh pr create --draft` when that tool is `gh`) against the resolved base branch; patch `pr.url`. GitHub issue-linked
-   → `Closes #<n>` in the body (GitLab too). A tracker that is not the git host → its native ref as `Work item: <ref>`,
-   no invented keyword, and tell the human to close it. Failure → blocker, stop. Append `pr` to `completed`.
-
-9. **docs-sync ∥ qa** — `stage: qa`. Delegate both in parallel (see Delegation):
-   - `shadow-docs-writer` with the **diff base SHA** (`git merge-base <base> HEAD`, where `<base>` is the branch
-     resolved in step 1 — it cannot run that itself) plus `spec.md`, `plan.md`, and the contracts. It writes the owning
-     domain's README, any other domain README this feature made wrong, `AGENTS.md`, and `docs/ARCHITECTURE.md`.
-   - `shadow-qa` with the PR URL, `tools.repo`, `verification.status` + `verification.commands`, and each journey
-     command from the Test strategy (leftover `@S<n>` inherit their result from the journey that claims them;
-     `shadow-qa` cannot read state). After a QA design delta or an impl-route fix, scope it to only the previously
-     failed e2e paths.
-
-   **Docs reply.** Patch `artifacts.docs` from its `docs` list (paths only). Both `docs` and `unchanged` empty → it
-   wrote and confirmed nothing: re-delegate once stating that, then record a blocker. Commit the docs plus state; push
-   only after QA has replied. Append `docs_sync` to `completed`. `docs/feats/<slug>/` and `docs/CONSTITUTION.md` stay
-   yours — the latter changes only when the feature established a durable principle.
-
-   **QA reply.** Translate into a `qa.*` patch (its `journeys` key is e2e paths, not Test strategy `J*`).
-   - `clean` → patch `qa.report_path`; append `qa` to `completed`.
-   - `blocked` → blockers, pause.
-   - `findings` with `qa.cycles` already 2 → record the findings as blockers and pause. Otherwise
-     `--inc '{qa: {cycles: 1}}'`, then run `quest-state decide <slug> --event qa-route --yaml` with **this cycle's** QA
-     reply `findings`. Omit no key; never reuse a canned example. QA findings are not always specify — follow stdout:
-     - `route: impl` → verify-fix (step 7 rules), re-verify, then re-delegate `shadow-qa` scoped to only the previously
-       failed e2e paths.
-     - `route: spec` or `route: mixed` → design delta with `origin: qa`. Read [references/design-delta.md](references/design-delta.md) and follow it.
-
-   Both `docs_sync` and `qa` in `completed` → step 10.
-
-10. **finalize PR** — `stage: qa`.
-    1. Read the `## Configuration` section of each path in `artifacts.docs`. Anything beyond `None.` goes into the PR
-       body under `## Setup required`, naming the README it came from — replace an existing section, never append a
-       second. Use `tools.repo` (`gh pr edit <url> --body-file …` when `gh`).
-    2. `git push`.
-    3. Mark the PR ready (`gh pr ready <url>` when `gh`; a host with no draft concept skips this). Patch
-       `qa.pr_ready: true`.
-    4. `stage: complete`. Present the finish card, with the `## Setup required` lines if any — the human has to perform
-       those before the feature works anywhere but their machine.
-    5. `review.deferred_findings` holds records whose `fix` starts `Tech debt:` → in the finish card, suggest the human
-       file a tech-debt ticket per pattern, with a paste-ready title (`Tech debt: <Pattern> for <symbol>`) and body
-       (sites, reason, the `fix` text). Never file it yourself.
-
-11. **handoff** — GitHub-only (`tools.repo` and `tools.tracker` are `gh` or a GitHub MCP, and `roadmap.issue` ≠ `0`).
-    Empty is not GitHub. Otherwise skip: if `roadmap.path` is set, point at the next feature in that roadmap file; stop.
-    Also skip if `roadmap.epic` is `0`. Otherwise:
-
-    Read [references/handoff.md](references/handoff.md) and follow it.
-
-
-## Findings routing
-
-Findings arrive as structured records `{id, file, line, severity, category, summary, fix}` and go verbatim to the fixing
-agent: architect-reviewer findings to `shadow-architect` (step 3), code-review findings to `shadow-implementer` (step
-6.4), spec or plan gaps through the design delta, QA findings through `decide --event qa-route` (step 9). Never fix
-anything yourself.
-
-`file` and `line` are **required** by the state schema — a record missing either makes the whole patch fail validation.
-Findings with no natural source location (a failed QA e2e path, a missing deployment step) anchor to the `@S<n>`
-scenario they violate: `file` is the contract path, `line` the scenario's line. Nothing to anchor to at all →
-`file: ""`, `line: 0`. Fill these in yourself if a subagent omits them; never drop the finding to make the patch
-validate.
-
-## Applying subagent replies
-
-Reply keys are not state keys. Read [references/reply-mapping.md](references/reply-mapping.md) before the first patch — translate every reply; never
-pass one through verbatim.
-
-
-## Restrictions
-
-- Every pause or stop ends with a pause card (Reporting to the human).
-- Advance only when a stage produced a concrete artifact or a sensor changed state. No progress → escalate with the
-  specific blocker; don't blindly retry.
-- Done signal: implementation committed, review clean, verify green, docs synced, QA clean, PR opened and marked ready
-  for review. Don't declare success otherwise.
-- Honor bounded loops — `review.iterations` 2 per implementation pass, `qa.cycles` 2, `green_attempts` 2 per slice or
-  verify-fix, `escalation` 1 per implementation pass (set only by `transition escalate`, cleared only by the delta
-  reset). On exhaustion, patch state and pause for the human rather than thrashing.
-- Model/provider error → retry that delegation once, then pause with a blocker.
-- Never push into `main`/`master`. **Never merge a PR — not yours, not any other, not even if asked.** Your output is a
-  PR marked ready for review; merging belongs to the human. Nothing in the permission config stops you, so this rule is
-  the only guard.
-- Never touch another feature's `docs/feats/<other>/`.
-- Cite `file:line`; never paste >20 lines; summaries, not contents.
+Two attempts per journey to get from failing to passing; one fix round and one re-review; two QA cycles. A spent budget
+means asking the user, not resetting the tree.
 
 ## Done when
 
-`stage: complete` — with `pr.url` recorded, `qa.pr_ready: true` (when the host has drafts), and `qa.pr_comment_url` when
-the tool returned one; GitHub-issue-linked runs additionally print the handoff.
-## Tool restrictions (Cursor)
-- Never edit: docs/feats/**/state.yaml, **/journal.ndjson.
-
+The PR is marked ready, `solodev check <slug> --for done` passes, and the finish card is shown. Merging belongs to the
+user: you never merge a PR, and never push to the default branch.

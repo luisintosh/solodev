@@ -5,28 +5,31 @@ file.
 
 ## What this is
 
-solodev ships no runtime app. It ships agent prompts plus a small state CLI that `npx`/`bunx github:luisintosh/solodev`
-installs into a _consuming_ repo or `$HOME` (`.cursor/agents/`, `.claude/`, `.codex/agents/`, `.agents/skills/`,
-`.agents/bin/quest-state.mjs`, `.agents/bin/solodev.mjs`). Nothing here runs against this repo's own code.
+solodev ships no runtime app. It ships role skills, two shadow agents and a small workflow CLI that
+`npx`/`bunx github:luisintosh/solodev` installs into a _consuming_ repo or `$HOME` (`.agents/skills/`,
+`.claude/skills/`, `.claude/agents/`, `.cursor/agents/`, `.codex/agents/`, `.agents/bin/solodev.mjs`). Nothing here runs
+against this repo's own code.
 
 ## Generation model
 
-`src/catalog.yaml` (host × profile models; per-agent mode, temperature, steps, permissions) and `src/prompts/**` are the
-**only** sources of truth. `tools/transpile.ts` emits Cursor, Claude Code, Codex, and shared skills.
+`src/catalog.yaml` (host × profile models, skills with line budgets, shadows with hard denies) and `src/prompts/**` are
+the **only** sources of truth. `tools/transpile.ts` emits the skills for each host and the two shadows per host.
 
 - Never hand-edit `dist/` or `manifest.txt` — both are generated and **tracked**. Fix the catalog or the prompt body,
   then `pnpm run build` before commit.
-- Prompt bodies in `src/prompts/agents/*.md` carry **no frontmatter**; transpile adds it.
+- Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;
+  transpile adds it.
 - `{{include:fragments/<name>.md}}` in a prompt body is resolved at transpile time.
-- `{{orca:routes}}` (in `fragments/orca.md`) renders `orchestrators.orca` from the catalog into the conductor's routing
-  table; `src/state/orca.ts` holds the shared formatting used by transpile, check, and the `probe` CLI command.
+- Prompts are short and plain: no capitalized MUST/NEVER/CRITICAL/ALWAYS, and each skill stays within its `budget`.
+  Detail a step needs only sometimes goes in the skill's `references/`, linked from `SKILL.md`.
+- A rule that can be verified from git, files or an exit code belongs in `src/cli/checks.ts`, not in a prompt.
 
 ## Checked artifacts
 
 `pnpm run check` fails the build (and CI) on drift, so these must be updated together:
 
-- Changing a host profile in `src/catalog.yaml` requires editing the profile × host matrix in `README.md` to match — the
-  check compares the matrix and each agent's `profile`.
+- Changing a model in `src/catalog.yaml` requires editing the matrix in `README.md` and `GOLDEN_MODELS` in
+  `tools/models.ts` to match.
 - Any `src/` change requires a `pnpm run build` before `pnpm run check`; check compares against `dist/` and against
   `manifest.txt` hashes.
 

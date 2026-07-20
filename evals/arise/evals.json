@@ -3,76 +3,53 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Add a greet(name) function in a new module that returns \"Hello, <name>!\", and make `npm run dev -- --name Ada` print it. Run the full SDD pipeline; I approve the design as soon as you present it.",
-      "expected_output": "Run in a copy of test/fixture-repo. One design delegation and one design gate; one journey whose diff is only new files is implemented, committed, reviewed once over the feature diff, and the PR is marked ready by the conductor.",
+      "prompt": "Add a greet(name) function in a new module that returns \"Hello, <name>!\", and make `npm run dev -- --name Ada` print it. Take it through /arise; I approve the spec as soon as you present it, and the coder can be this tool.",
+      "expected_output": "Run in a copy of test/fixture-repo. One spec and plan in docs/feats/<slug>/, one gate, a recorded approval commit, one coder writing a failing test then code, one fresh review, and a ready, unmerged PR.",
       "files": ["test/fixture-repo"],
       "expectations": [
-        "shadow-architect was delegated once and the human saw exactly one gate (the design gate)",
-        "After each shadow-implementer reply, the conductor ran `git add --intent-to-add` on the reply's files_changed",
-        "shadow-code-reviewer was delegated three times in parallel, once per area (contract, health, design), each with an absolute checklist path under the same .agents/ root as quest-state, review.base as the diff base, and a diff that included the new module and its test file",
-        "No reviewer edited the tree (any stray edit was reverted), and the three replies were merged into one review.findings list before verify",
-        "shadow-docs-writer and shadow-qa both ran after the PR opened, and the conductor (not shadow-qa) marked the PR ready",
-        "state.yaml and journal.ndjson were written only through quest-state",
-        "Every human-facing report carries a bold attention tag (FYI, Heads-up, or Needs you), the progress bar, and a bold **Next:** line",
-        "The first mention of J1 and of the per-area review counts is glossed in plain words; later mentions are not glossed again",
-        "No human-facing text shows raw state keys (slice_phase, green_attempts, review.iterations, qa.cycles)",
-        "The three code-reviewer replies produced one combined report, and each delegation's result line relays its reply's headline",
-        "The run ended with a finish card: PR link, QA comment link, and Next: the human reviews and merges the PR"
+        "spec.md has @S<n> scenarios and plan.md has a fenced journeys: block with at most 3 journeys",
+        "The user saw exactly one gate, and its last question offered the coder options from `solodev probe`",
+        "Spec review was skipped (one journey, nothing risky) and the commander said why",
+        "`solodev approve` made the approval commit (Solodev-Gate and Solodev-Writer trailers) before any source file was committed",
+        "The coder ran as shadow-coder with the arise-coder skill, and `solodev check <slug> --for implement` passed before review",
+        "Code review ran in a fresh shadow-reviewer and wrote docs/feats/<slug>/review.md; the commit that added it touched nothing else",
+        "No QA agent started, because plan.md listed no uncovered scenarios",
+        "The documenter ran in a fresh shadow-coder after the draft PR opened",
+        "`solodev check <slug> --for done` passed and the commander, not a shadow, marked the PR ready; nothing was merged",
+        "Every report started with a progress bar, and each delegation was announced in one line before it started"
       ]
     },
     {
       "id": 2,
       "prompt": "Add a --version flag to the CLI that prints the package.json version.",
-      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The conductor stops at initialize and hands the setup to the human.",
+      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander stops at start and asks the user to run /arise-scout.",
       "files": ["test/fixture-repo"],
       "expectations": [
-        "The conductor stopped before running `quest-state init`",
-        "The reply tells the human to run /arise-scout themselves, then re-invoke the pipeline",
-        "AGENTS.md was not created"
+        "The commander ran `solodev probe` and noticed AGENTS.md was missing",
+        "The reply asks the user to run /arise-scout, then re-invoke /arise",
+        "No branch, feature folder or code was created"
       ]
     },
     {
       "id": 3,
-      "prompt": "bump vitest to ^2.2.0",
-      "expected_output": "Run in a copy of test/fixture-repo with a human present. The triage floor classifies the request as below the floor and asks before scaffolding.",
+      "prompt": "/arise fix the typo 'Helo' in src/index.js",
+      "expected_output": "Run in a copy of test/fixture-repo. The commander says this is a trivial change better suited to /plan or a direct edit, and asks before starting the full run.",
       "files": ["test/fixture-repo"],
       "expectations": [
-        "The conductor classified the request as below the triage floor",
-        "It asked whether to run the full pipeline or leave it as a direct edit",
-        "No docs/feats/ directory or state.yaml exists before the human answers"
+        "The reply names the request as a single-line or trivial change in one line",
+        "The reply suggests /plan (or a direct edit) and offers to run the full workflow anyway",
+        "No branch, feature folder or spec was created before the user answered"
       ]
     },
     {
       "id": 4,
-      "prompt": "Add a fetchWeather(city) function in a new module that calls https://example.com/weather?city=<city> and returns the JSON body. Run the full SDD pipeline; I approve the design as soon as you present it.",
-      "expected_output": "Run in a copy of test/fixture-repo seeded with an identical `withRetry`-style wrapper (3 attempts, 200ms backoff) pasted inline in src/users.js and src/orders.js, each executed by a test. The implementer writes a third inline copy; the design reviewer sweeps the repo and files one Decorator finding.",
+      "prompt": "continue the greet feature",
+      "expected_output": "Run in a copy of test/fixture-repo on branch feat/greet with an approval commit and a passing implement check but no review.md. The commander resumes at code review.",
       "files": ["test/fixture-repo"],
       "expectations": [
-        "The shadow-code-reviewer (area design) returned a `major` `quality` finding whose fix starts `Decorator:` and lists the new module under `In diff` and src/users.js and src/orders.js under `Migrate now`",
-        "shadow-implementer applied the finding: one shared retry wrapper now serves all three sites, and it did not rebut",
-        "No `Tech debt:` record was added to review.deferred_findings"
-      ]
-    },
-    {
-      "id": 5,
-      "prompt": "Add a fetchWeather(city) function in a new module that calls https://example.com/weather?city=<city> with 5 retries and returns the JSON body. Run the full SDD pipeline; I approve the design as soon as you present it.",
-      "expected_output": "Run in a copy of test/fixture-repo seeded with two inline retry wrappers that differ in policy: src/users.js retries 3 times on any error, src/orders.js retries only on HTTP 429 with no backoff. The wrappers look alike but do not share intent.",
-      "files": ["test/fixture-repo"],
-      "expectations": [
-        "The shadow-code-reviewer (area design) filed no Decorator finding naming src/users.js or src/orders.js",
-        "src/users.js and src/orders.js are unchanged in the feature diff"
-      ]
-    },
-    {
-      "id": 6,
-      "prompt": "Add a fetchWeather(city) function in a new module that calls https://example.com/weather?city=<city> and returns the JSON body. Run the full SDD pipeline; I approve the design as soon as you present it.",
-      "expected_output": "Run in a copy of test/fixture-repo seeded with the same inline retry wrapper in six files under src/, each executed by a test. Migrating all of them exceeds the 5-file cap, so the remainder becomes tech debt.",
-      "files": ["test/fixture-repo"],
-      "expectations": [
-        "The Decorator finding lists at most 5 outside files under `Migrate now` and the rest under `Tech debt:`",
-        "review.deferred_findings holds a `minor` record whose fix starts `Tech debt: Decorator`",
-        "The final summary suggests filing a tech-debt ticket with a paste-ready title and body",
-        "No issue or ticket was created by the conductor"
+        "The commander ran `solodev status` and read docs/feats/greet/progress.md before doing anything else",
+        "It continued at code review without rewriting the spec, plan or code",
+        "Its first report carried the progress bar with implement marked done"
       ]
     }
   ]

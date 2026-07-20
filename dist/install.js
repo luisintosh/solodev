@@ -1244,14 +1244,13 @@ function parseManifest(raw) {
   }
   return map;
 }
-var STATE_BIN = "quest-state.mjs";
 var WORKFLOW_BIN = "solodev.mjs";
-var BINS = [STATE_BIN, WORKFLOW_BIN];
+var BINS = [WORKFLOW_BIN];
 function findPackageRoot() {
   let dir = path.dirname(fileURLToPath(import.meta.url));
   for (let i2 = 0; i2 < 8; i2++) {
     const manifest = path.join(dir, "manifest.txt");
-    const distBin = path.join(dir, "dist", "bin", STATE_BIN);
+    const distBin = path.join(dir, "dist", "bin", WORKFLOW_BIN);
     if (fsSync.existsSync(manifest) && fsSync.existsSync(distBin)) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) break;
@@ -1260,7 +1259,7 @@ function findPackageRoot() {
   die("could not find solodev payload (manifest.txt + dist/) \u2014 run pnpm run build in the toolkit checkout");
 }
 function requirePayload(src) {
-  const ok = fsSync.existsSync(path.join(src, "manifest.txt")) && fsSync.existsSync(path.join(src, "dist")) && fsSync.existsSync(path.join(src, "dist", "bin", STATE_BIN));
+  const ok = fsSync.existsSync(path.join(src, "manifest.txt")) && fsSync.existsSync(path.join(src, "dist")) && fsSync.existsSync(path.join(src, "dist", "bin", WORKFLOW_BIN));
   if (!ok) {
     die(
       `${src} is missing dist/ + manifest.txt \u2014 clients copy a committed payload (run pnpm run build in the toolkit checkout)`
@@ -1345,9 +1344,9 @@ function ghStatus() {
   const r2 = spawnSync("gh", ["auth", "status"], { stdio: "ignore" });
   return r2.status === 0 ? "ok" : "logged-out";
 }
-function stateBinInUse(targetDir, home) {
-  const project = path.join(targetDir, ".agents", "bin", STATE_BIN);
-  const global = path.join(home, ".agents", "bin", STATE_BIN);
+function workflowBinInUse(targetDir, home) {
+  const project = path.join(targetDir, ".agents", "bin", WORKFLOW_BIN);
+  const global = path.join(home, ".agents", "bin", WORKFLOW_BIN);
   if (fsSync.existsSync(project)) return project;
   if (fsSync.existsSync(global)) return global;
 }
@@ -1528,6 +1527,7 @@ async function planBin(opts) {
     }
   }
   const leftovers = [
+    path.join(destDir, "quest-state.mjs"),
     path.join(destDir, "quest-state"),
     path.join(destDir, "quest-state.js"),
     path.join(destDir, "sddkit-state.mjs")
@@ -1543,7 +1543,7 @@ async function planBin(opts) {
       label: rel,
       dest: leftover,
       localEdit: false,
-      extra: `(moved to .agents/bin/${STATE_BIN})`
+      extra: `(replaced by .agents/bin/${WORKFLOW_BIN})`
     });
   }
   return ops;
@@ -1597,24 +1597,20 @@ function doctor(targetDir, home) {
   else log("  [warn] AGENTS.md missing \u2014 run /arise-scout first");
   log("  paths:");
   log(`    skills          ${targetDir}/.agents/skills/  or  ${home}/.agents/skills/`);
-  log(`    quest-state    ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`);
+  log(`    solodev CLI     ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`);
   log(`    cursor agents   ${targetDir}/.cursor/agents/  or  ${home}/.cursor/agents/`);
   log(`    claude agents   ${targetDir}/.claude/agents/  or  ${home}/.claude/agents/`);
   log(`    claude skills   ${targetDir}/.claude/skills/  or  ${home}/.claude/skills/`);
   log(`    codex agents    ${targetDir}/.codex/agents/  or  \${CODEX_HOME:-${home}/.codex}/agents/`);
-  const stateBin = stateBinInUse(targetDir, home);
-  if (stateBin) log(`  [ok]   quest-state: ${stateBin}`);
-  else log("  [warn] quest-state missing \u2014 re-run the installer");
-  if (stateBin) {
-    const checklists = path.join(path.dirname(path.dirname(stateBin)), "solodev", "checklists");
-    const missing = ["contract", "health", "design"].filter(
-      (area) => !fsSync.existsSync(path.join(checklists, `review-${area}.md`))
-    );
-    if (missing.length === 0) log(`  [ok]   review checklists: ${checklists}`);
-    else log(`  [warn] review checklists missing (${missing.join(", ")}) in ${checklists} \u2014 re-run the installer`);
-  }
-  if (onPath("node")) log("  [ok]   node is on PATH (needed to run quest-state)");
-  else log("  [warn] node not found \u2014 install Node.js 20+ to run quest-state");
+  const bin = workflowBinInUse(targetDir, home);
+  if (bin) log(`  [ok]   solodev CLI: ${bin}`);
+  else log("  [warn] solodev CLI missing \u2014 re-run the installer");
+  const skills = [path.join(targetDir, ".agents", "skills"), path.join(home, ".agents", "skills")];
+  if (skills.some((dir) => fsSync.existsSync(path.join(dir, "arise", "SKILL.md"))))
+    log("  [ok]   arise skills installed");
+  else log("  [warn] arise skills missing \u2014 re-run the installer");
+  if (onPath("node")) log("  [ok]   node is on PATH (needed to run the solodev CLI)");
+  else log("  [warn] node not found \u2014 install Node.js 20+ to run the solodev CLI");
   const gh = ghStatus();
   if (gh === "ok") log("  [ok]   gh installed and authenticated");
   else if (gh === "logged-out") log("  [warn] gh installed but not logged in \u2014 run 'gh auth login'");
@@ -1632,15 +1628,14 @@ function suggestNextSteps() {
     log("  2. gh is on PATH \u2014 run 'gh auth login' if you aren't logged in");
   }
   log("");
-  log("Optional: arise-plan \u2014 Product Owner planner (/arise-plan skill) turns a");
-  log("  raw idea into a feature roadmap at docs/product/<slug>/roadmap.md. Run");
-  log("  each feature through arise one at a");
-  log("  time \u2014 it hands you the next feature's invocation when one is done.");
+  log("Optional: /arise-planner turns a raw idea into a feature roadmap at");
+  log("  docs/product/<slug>/roadmap.md. Run each feature through /arise, one at");
+  log("  a time; each run ends by naming the next one.");
   log("");
   log("Optional: rtk (filters noisy bash output for agents)");
   log("  brew install rtk   # or see https://github.com/rtk-ai/rtk");
-  log("  # Quick start: exclude git diff/show from rewriting so shadow-code-reviewer");
-  log("  # and shadow-docs-writer see full diffs \u2014 in ~/.config/rtk/config.toml:");
+  log("  # Quick start: exclude git diff/show from rewriting so the reviewer and");
+  log("  # the documenter see full diffs \u2014 in ~/.config/rtk/config.toml:");
   log("  #   [hooks]");
   log('  #   exclude_commands = ["git diff", "git show"]');
   log("");
@@ -1756,7 +1751,7 @@ async function main() {
       );
       trees.push(
         await planTree({
-          prefix: "agents/skills",
+          prefix: "claude/skills",
           destRoot: dests.claudeSkills,
           stageDir,
           newManifest: manifest
