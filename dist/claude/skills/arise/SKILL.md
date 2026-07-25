@@ -42,17 +42,17 @@ replies for shadows go in `.git/solodev/<slug>/`, so they never reach the diff.
 
 ## Steps
 
-| Step          | Who                                                     | Leaves when                                                    |
-| ------------- | ------------------------------------------------------- | -------------------------------------------------------------- |
-| 1 start       | you                                                     | probe done, branch `feat/<slug>` cut, `progress.md` created    |
-| 2 spec        | you, with arise-architect                               | spec and plan written, open questions answered                 |
-| 3 spec review | a fresh shadow-reviewer with arise-reviewer, when asked | you applied the findings you agree with                        |
-| 4 gate        | the user                                                | `solodev approve` committed                                    |
-| 5 implement   | the coder, with arise-coder                             | `solodev check <slug> --for implement` passes                  |
-| 6 code review | a fresh shadow-reviewer with arise-reviewer             | `review.md` has no open blocker or major                       |
-| 7 PR          | you                                                     | `solodev check <slug> --for pr` passes, draft PR open          |
-| 8 QA ∥ docs   | arise-verifier, if needed ∥ arise-documenter            | uncovered scenarios have verdicts, docs committed              |
-| 9 finish      | you                                                     | `solodev check <slug> --for done` passes, PR ready, card shown |
+| Step          | Who                                                      | Leaves when                                                    |
+| ------------- | -------------------------------------------------------- | -------------------------------------------------------------- |
+| 1 start       | you                                                      | probe done, branch `feat/<slug>` cut, `progress.md` created    |
+| 2 spec        | you, with arise-architect                                | spec and plan written, open questions answered                 |
+| 3 spec review | a fresh shadow-reviewer with arise-reviewer, when needed | you applied the findings you agree with                        |
+| 4 gate        | the user                                                 | `solodev approve` committed                                    |
+| 5 implement   | the coder, with arise-coder                              | `solodev check <slug> --for implement` passes                  |
+| 6 code review | a fresh shadow-reviewer with arise-reviewer              | `review.md` has no open blocker or major                       |
+| 7 PR          | you                                                      | `solodev check <slug> --for pr` passes, draft PR open          |
+| 8 QA ∥ docs   | arise-verifier, if needed ∥ arise-documenter             | uncovered scenarios have verdicts, docs committed              |
+| 9 finish      | you                                                      | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** On "continue", or when the feature exists: check out its branch, run `solodev status`, read `progress.md`,
    and continue at the step it names. Fresh run: `solodev probe`. AGENTS.md or its commands list missing → stop and ask
