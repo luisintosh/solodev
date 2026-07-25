@@ -67,7 +67,7 @@ npx -y github:luisintosh/solodev
 ```
 
 The installer asks for a **scope** (this repo or `$HOME`) and the **hosts** to install for (Claude Code, Codex, Cursor).
-It shows the file plan before applying it. Pin a release with `#v2.0.0`. Re-running is idempotent, and files removed
+It shows the file plan before applying it. Pin a release with `#vX.Y.Z`. Re-running is idempotent, and files removed
 upstream are cleaned up.
 
 Flags: `--dry-run`, `--doctor`, `--yes`. For CI or scripts, use `INSTALL_SCOPE=project|global` and
@@ -267,5 +267,5 @@ Prompts are written once and transpiled into each host's format by `pnpm run bui
 ## OpenCode
 
 OpenCode and open-weight models are no longer supported. Pin the last release that ships them,
-`npx -y github:luisintosh/solodev#v1.x`. Re-running a current installer over an old install removes the OpenCode files
+`npx -y github:luisintosh/solodev#v2.1.1`. Re-running a current installer over an old install removes the OpenCode files
 it wrote (only those listed in `.opencode/.harness-manifest`).

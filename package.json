@@ -26,7 +26,8 @@
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write . && prettier --write \"**/*.{md,yaml,yml}\"",
-    "format:check": "biome format . && prettier --check \"**/*.{md,yaml,yml}\""
+    "format:check": "biome format . && prettier --check \"**/*.{md,yaml,yml}\"",
+    "eval:validate": "node tools/eval.ts validate"
   },
   "dependencies": {
     "@clack/prompts": "^1.7.0",

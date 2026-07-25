@@ -1,0 +1,41 @@
+{
+  "baseline": "v1-claude",
+  "configs": [
+    {
+      "id": "v1-claude",
+      "install": "ref:v2.1.1",
+      "home": "claude",
+      "writer": "claude",
+      "note": "the last release with the v1 conductor and eight agents"
+    },
+    { "id": "v2-claude", "install": "local", "home": "claude", "writer": "claude" },
+    { "id": "v2-codex", "install": "local", "home": "codex", "writer": "codex" },
+    { "id": "v2-cursor", "install": "local", "home": "cursor", "writer": "cursor" },
+    { "id": "v2-claude+codex", "install": "local", "home": "claude", "writer": "codex" },
+    { "id": "v2-claude+cursor", "install": "local", "home": "claude", "writer": "cursor" },
+    {
+      "id": "ablate-spec-review",
+      "install": "local",
+      "home": "claude",
+      "writer": "claude",
+      "suffix": "Run the spec review even when the plan has a single journey.",
+      "note": "spec review always vs conditional"
+    },
+    {
+      "id": "ablate-verifier",
+      "install": "local",
+      "home": "claude",
+      "writer": "claude",
+      "suffix": "Run arise-verifier for every scenario, not only the uncovered ones.",
+      "note": "verifier always vs conditional"
+    },
+    {
+      "id": "ablate-waypoints",
+      "install": "local",
+      "home": "claude",
+      "writer": "claude",
+      "suffix": "In plan.md, also give each journey file:symbol waypoints, a reading list of 3 to 5 files, and a done-when line.",
+      "note": "a v1-style plan vs the v2 plan"
+    }
+  ]
+}

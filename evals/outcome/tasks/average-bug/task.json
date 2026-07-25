@@ -1,0 +1,4 @@
+{
+  "shape": "bug fix",
+  "prompt": "average() in src/stats.js returns NaN for an empty list; it should return 0. While you're there, a list containing anything that isn't a finite number should throw a TypeError whose message names the bad value. Averages of normal lists must not change."
+}

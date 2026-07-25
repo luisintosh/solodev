@@ -1,0 +1,4 @@
+{
+  "shape": "CLI flag + config",
+  "prompt": "Give the package a version, 0.1.0, in package.json, and make `npm run dev -- --version` print it (just the version, from package.json, not hard-coded). Without the flag the output stays `fixture-repo: hello`."
+}
