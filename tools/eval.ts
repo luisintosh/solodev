@@ -141,11 +141,40 @@ function install(ws: string, config: Config) {
   sh("git", ["commit", "-q", "-m", "chore: install solodev"], ws)
 }
 
-/** The headless command for each coding tool, with approvals off: evals run in a throwaway directory. */
-function agentCommand(home: Tool, text: string): [string, string[]] {
-  if (home === "claude")
-    return ["claude", ["-p", text, "--output-format", "json", "--permission-mode", "bypassPermissions"]]
-  if (home === "codex") return ["codex", ["exec", "--json", "--full-auto", text]]
+/**
+ * Commands an unattended Claude Code run may use without asking: edits, plus the git, node and package-manager calls an
+ * /arise run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
+ */
+const CLAUDE_ALLOWED = [
+  "Read",
+  "Edit",
+  "Write",
+  "Glob",
+  "Grep",
+  "Agent",
+  "Skill",
+  "Bash(git:*)",
+  "Bash(node:*)",
+  "Bash(npm:*)",
+  "Bash(npx:*)",
+  "Bash(.agents/bin/solodev.mjs:*)",
+]
+
+/**
+ * The headless command for each coding tool. These run on the host, not in a container, so each one is limited as far
+ * as its CLI allows: Claude Code to an allowlist, Codex to its workspace-write sandbox. Cursor's headless mode can only
+ * approve everything (`--force`), so it runs only with --allow-unsandboxed.
+ */
+function agentCommand(home: Tool, text: string, allowUnsandboxed: boolean): [string, string[]] {
+  if (home === "claude") {
+    return ["claude", ["-p", text, "--output-format", "json", "--allowedTools", CLAUDE_ALLOWED.join(" ")]]
+  }
+  if (home === "codex") return ["codex", ["exec", "--json", "--sandbox", "workspace-write", text]]
+  if (!allowUnsandboxed) {
+    throw new Error(
+      "cursor-agent can't run headless without approving every command (--force); run it in a container or VM and pass --allow-unsandboxed",
+    )
+  }
   return ["cursor-agent", ["-p", text, "--output-format", "json", "--force"]]
 }
 
@@ -170,7 +199,12 @@ function usage(stdout: string): Pick<Result, "costUsd" | "inputTokens" | "output
   return { costUsd: null, inputTokens: null, outputTokens: null }
 }
 
-async function runConfig(configId: string, only: string | undefined, repeats: number): Promise<number> {
+async function runConfig(
+  configId: string,
+  only: string | undefined,
+  repeats: number,
+  allowUnsandboxed: boolean,
+): Promise<number> {
   const { configs } = JSON.parse(await fs.readFile(path.join(evalDir, "configs.json"), "utf8")) as { configs: Config[] }
   const config = configs.find((c) => c.id === configId)
   if (!config) throw new Error(`no config ${configId}; see evals/outcome/configs.json`)
@@ -182,7 +216,7 @@ async function runConfig(configId: string, only: string | undefined, repeats: nu
       try {
         install(ws, config)
         const base = sh("git", ["rev-parse", "HEAD"], ws).stdout.trim()
-        const [cmd, args] = agentCommand(config.home, prompt(task, config))
+        const [cmd, args] = agentCommand(config.home, prompt(task, config), allowUnsandboxed)
         const started = Date.now()
         const agent = sh(cmd, args, ws, { timeoutMs: 60 * 60_000, env: { SOLODEV_HOME: config.home } })
         const wallSeconds = Math.round((Date.now() - started) / 1000)
@@ -278,11 +312,16 @@ async function main(argv: string[]): Promise<number> {
   if (command === "run") {
     const config = flag(args, "--config")
     if (!config) throw new Error("run needs --config <id>")
-    return runConfig(config, flag(args, "--task"), Number(flag(args, "--repeat") ?? 3))
+    return runConfig(
+      config,
+      flag(args, "--task"),
+      Number(flag(args, "--repeat") ?? 3),
+      args.includes("--allow-unsandboxed"),
+    )
   }
   if (command === "report") return report()
   console.error(
-    "Usage: node tools/eval.ts validate [--task <id>] | run --config <id> [--task <id>] [--repeat 3] | report",
+    "Usage: node tools/eval.ts validate [--task <id>] | run --config <id> [--task <id>] [--repeat 3] [--allow-unsandboxed] | report",
   )
   return 2
 }
