@@ -6,9 +6,10 @@ export const HELP: Record<string, CommandHelp> = {
     usage: "solodev probe",
     summary: "What's available: coding tools, their models, Orca, gh, the AGENTS.md commands list.",
     detail: [
-      "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models),",
-      "Orca (runtime ready and orchestration skill installed), gh, the AGENTS.md commands, and `writers`: the",
-      "coder options for the gate card, another tool first. Read-only; takes a few seconds.",
+      "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models and",
+      "their Orca launch fields), Orca (runtime ready, orchestration skill installed), gh, the AGENTS.md commands,",
+      "personal defaults from ~/.agents/solodev.yaml, and `writers`: the coder options for the gate card, another",
+      "tool first. Read-only; takes a few seconds.",
     ],
     example: "solodev probe",
   },
