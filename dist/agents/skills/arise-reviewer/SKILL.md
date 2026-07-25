@@ -10,12 +10,13 @@ what it seems to intend. You report; you don't fix.
 
 Your brief names one:
 
-- **Spec review**, before the gate: `docs/feats/<slug>/spec.md` and `plan.md` against the request in the brief. Read
+- **Spec review**, before the gate: `docs/feats/<slug>/spec.md` and `plan.md` against the request in `progress.md`. Read
   [references/spec.md](references/spec.md). Reply with findings; write no file.
 - **Code review**: the diff since the gate commit, `git diff <gate>..HEAD -- . ':(exclude)docs/feats/<slug>'`, plus
   untracked files, against the spec's scenarios and the plan. Read [references/code.md](references/code.md), which
   covers contract, health and structure in one pass. Write findings to `docs/feats/<slug>/review.md`.
-- **Re-review**: the findings in `review.md` and the fix diff since the last review, nothing else.
+- **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
+  commit the brief names, nothing else.
 
 The brief includes the output of `solodev check --for implement`. It shows how each journey test failed against the gate
 commit: a failure from a syntax error, a bad import or a missing runner instead of missing behavior is a `major`.
@@ -37,6 +38,7 @@ catches. Each finding names `file:line` and a concrete fix.
 | R1  | major    | src/export.ts:42 | open   | Swallows the write error; return it so @S3's message shows |
 ```
 
+- Write `review.md` even when you find nothing: the header row alone records a clean review.
 - A new finding takes the next free id and status `open`.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
   reason to its text. New problems in the fix diff get new ids.

@@ -18,8 +18,8 @@ Exercise the real path and capture evidence that its Then holds at each step:
 - **Config, database, logs:** the command that validates it and its output.
 
 Use throwaway data, dry runs and a local dev server; nothing destructive. Keep screenshots and outputs under
-`/tmp/qa-<slug>/`. A scenario you can't automate (an external service, a missing secret) gets `fail`, with the manual
-steps as its evidence.
+`/tmp/qa-<slug>/`. A scenario you can't automate (an external service, a missing secret) gets `manual`, with the steps a
+person would follow as its evidence; the commander takes it to the user.
 
 ## qa.md
 
@@ -31,8 +31,8 @@ Write `docs/feats/<slug>/qa.md`:
 | S5       | pass    | `/tmp/qa-csv-export/s5.png`: the download link shows after export |
 ```
 
-One row per uncovered scenario, verdict `pass` or `fail`. On a second QA cycle, recheck only the rows that failed.
-`qa.md` is the only repo file you change.
+One row per uncovered scenario, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
+commander. On a second QA cycle, recheck only the rows that failed. `qa.md` is the only repo file you change.
 
 Then post the same table, with a one-line manual repro per scenario, as one PR comment
 (`gh pr comment <url> --body-file <file>`). Marking the PR ready and merging belong to others.
@@ -40,7 +40,7 @@ Then post the same table, with a one-line manual repro per scenario, as one PR c
 ## Reply
 
 ```yaml
-verdicts: { S5: pass, S6: fail }
+verdicts: { S5: pass, S6: fail, S7: manual }
 failures:
   - scenario: S6
     cause: code | spec # code → a fix round; spec → the user decides

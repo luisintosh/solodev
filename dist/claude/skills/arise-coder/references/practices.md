@@ -18,7 +18,7 @@ Check your own diff against these, the same lists the reviewer uses. What you le
 - **Security:** authorization on every newly reachable path, validation where input crosses a trust boundary, no secrets
   or tokens in code or logs.
 - **Test quality:** tests assert behavior, not implementation; none passes only because a mock was called or relies on
-  another test's order or leftovers.
+  another test's order or leftovers. Any existing test skipped, deleted or loosened to get green is a `blocker`.
 - **Residue:** no comments narrating the change ("changed from X per review"), no commented-out old code, no debug
   output.
 

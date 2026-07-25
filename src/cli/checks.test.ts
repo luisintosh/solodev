@@ -194,6 +194,19 @@ describe("checks", () => {
     expect((await check("C4")).status).toBe("fail")
   })
 
+  test("C4 also compares other changed tests with the gate commit", async () => {
+    write("test/existing.test.js", 'import assert from "node:assert"\nassert.ok(1)\nassert.ok(2)\n')
+    commit("test: existing", "test")
+    await gate()
+    implement()
+    write("test/existing.test.js", 'import assert from "node:assert"\nassert.ok(1)\n')
+    const r = await check("C4")
+    expect(r.status).toBe("warn")
+    expect(r.details.join("\n")).toContain("test/existing.test.js: 1 assertion(s) removed")
+    fs.rmSync(path.join(root, "test/existing.test.js"))
+    expect((await check("C4")).summary).toContain("test/existing.test.js was deleted")
+  })
+
   test("C5 fails when code lands before the gate", async () => {
     write("src/hello.js", IMPL)
     commit("feat: jumped the gate", "src")
@@ -230,6 +243,16 @@ describe("checks", () => {
     expect((await check("C8")).summary).toContain("no qa.md for S2")
     write("docs/feats/hello/qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | fail | greets wrong |\n")
     expect((await check("C8")).status).toBe("fail")
+    write(
+      "docs/feats/hello/qa.md",
+      "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | manual | needs a real inbox |\n",
+    )
+    expect((await check("C8")).summary).toContain("S2 needs a person")
+    write(
+      "docs/feats/hello/qa.md",
+      "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | waived | user: covered by staging |\n",
+    )
+    expect((await check("C8")).status).toBe("pass")
     write("docs/feats/hello/qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | pass | ran it |\n")
     expect((await check("C8")).status).toBe("pass")
   })
