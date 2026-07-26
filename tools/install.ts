@@ -549,7 +549,7 @@ function suggestNextSteps() {
     log("  2. gh is on PATH — run 'gh auth login' if you aren't logged in")
   }
   log("")
-  log("Optional: /arise-planner turns a raw idea into a feature roadmap at")
+  log("Optional: /arise-strategist turns a raw idea into a feature roadmap at")
   log("  docs/product/<slug>/roadmap.md. Run each feature through /arise, one at")
   log("  a time; each run ends by naming the next one.")
   log("")

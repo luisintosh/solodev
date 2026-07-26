@@ -1,5 +1,5 @@
 {
-  "skill_name": "arise-planner",
+  "skill_name": "arise-strategist",
   "evals": [
     {
       "id": 1,
@@ -7,7 +7,7 @@
       "expected_output": "Run in a copy of test/fixture-repo. Code-first questions, gated goal and approach, an approved roadmap on disk, and a host-neutral handoff.",
       "files": ["test/fixture-repo"],
       "expectations": [
-        "The planner read src/index.js or AGENTS.md before asking its first question",
+        "The strategist read src/index.js or AGENTS.md before asking its first question",
         "No question round asked more than 5 questions",
         "Routine choices appear as a numbered Assumptions ledger, not as questions",
         "Nothing was written under docs/product/ before the roadmap was approved",

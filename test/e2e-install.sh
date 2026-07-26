@@ -30,7 +30,7 @@ assert_grep() {
   if grep -q -- "$1" <<<"$2"; then ok "$3"; else bad "$3 (no '$1' in: $2)"; fi
 }
 
-SKILLS=(arise arise-architect arise-coder arise-reviewer arise-verifier arise-documenter arise-planner arise-scout)
+SKILLS=(arise arise-architect arise-coder arise-reviewer arise-verifier arise-documenter arise-strategist arise-scout)
 
 # 0. build output
 (cd "$REPO_ROOT" && pnpm run build >/dev/null)
@@ -137,11 +137,11 @@ assert_file_absent "${TARGET}/.agents/bin/quest-state.mjs" "v1 quest-state.mjs r
 assert_file_exists "${TARGET}/.claude/agents/shadow-reviewer.md" "v2 shadow-reviewer present after upgrade"
 
 # 4b. prune a whole skill (rename) leaves no empty folder behind
-rm -r "${UPSTREAM}/dist/agents/skills/arise-planner" "${UPSTREAM}/dist/claude/skills/arise-planner"
+rm -r "${UPSTREAM}/dist/agents/skills/arise-strategist" "${UPSTREAM}/dist/claude/skills/arise-strategist"
 HARNESS_ROOT="$UPSTREAM" node "${REPO_ROOT}/tools/gen-manifest.ts" >/dev/null
 LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all node "$INSTALL_JS" >/dev/null 2>&1
-assert_file_absent "${TARGET}/.agents/skills/arise-planner" "removed skill folder pruned from .agents/skills"
-assert_file_absent "${TARGET}/.claude/skills/arise-planner" "removed skill folder pruned from .claude/skills"
+assert_file_absent "${TARGET}/.agents/skills/arise-strategist" "removed skill folder pruned from .agents/skills"
+assert_file_absent "${TARGET}/.claude/skills/arise-strategist" "removed skill folder pruned from .claude/skills"
 assert_file_exists "${TARGET}/.agents/skills/arise/SKILL.md" "other skills kept after prune"
 restore_upstream
 LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all node "$INSTALL_JS" >/dev/null 2>&1
