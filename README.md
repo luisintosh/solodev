@@ -73,9 +73,24 @@ upstream are cleaned up.
 Flags: `--dry-run`, `--doctor`, `--yes`. For CI or scripts, use `INSTALL_SCOPE=project|global` and
 `INSTALL_TARGET=all|claude,codex,cursor`.
 
-**Requirements:** Node 20+ and the [`gh`](https://cli.github.com/) CLI (or another forge connected through an MCP
-server, skill or CLI). [Orca](https://github.com/stablyai/orca) is optional, for a coder on another tool.
-[rtk](https://github.com/rtk-ai/rtk) is optional.
+**Requirements**, with the macOS install command (most use [Homebrew](https://brew.sh)):
+
+- [Node.js](https://nodejs.org) 20+, to run the installer and the `solodev` CLI: `brew install node`
+- [Git](https://git-scm.com): `xcode-select --install`
+- [GitHub CLI](https://cli.github.com) (`gh`), to open the PR, or another forge connected through an MCP server, skill
+  or CLI: `brew install gh && gh auth login`
+- At least one coding tool, logged in:
+  - [Claude Code](https://code.claude.com): `curl -fsSL https://claude.ai/install.sh | bash`
+  - [Codex](https://developers.openai.com/codex): `curl -fsSL https://chatgpt.com/codex/install.sh | sh`
+  - [Cursor CLI](https://cursor.com/cli): `curl https://cursor.com/install -fsS | bash`
+
+Optional:
+
+- [Orca](https://www.onorca.dev), for a coder on another tool:
+  `brew install --cask stablyai/orca/orca && orca skills install --skill orchestration`
+- [agent-browser](https://github.com/vercel-labs/agent-browser), for checking UI scenarios no test covers:
+  `npm install -g agent-browser && agent-browser install`
+- [rtk](https://github.com/rtk-ai/rtk), to trim noisy command output for agents: `brew install rtk`
 
 ### 2. Map the repo (once)
 
