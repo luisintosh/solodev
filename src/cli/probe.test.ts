@@ -26,7 +26,7 @@ function deps(over: Partial<ProbeDeps> = {}): ProbeDeps {
       if (key === "orca status --json") return { code: 0, stdout: ready }
       if (key === "orca skills installed") return { code: 0, stdout: "agent-browser (1)\norchestration (2)\n" }
       if (key === "claude auth status") return { code: 0, stdout: '{"loggedIn": true}' }
-      if (key === "cursor-agent status") return { code: 0, stdout: "✓ Logged in as someone" }
+      if (key === "agent status") return { code: 0, stdout: "✓ Logged in as someone" }
       return { code: 0, stdout: "" }
     },
     which: async () => true,

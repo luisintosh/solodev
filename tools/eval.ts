@@ -172,10 +172,10 @@ function agentCommand(home: Tool, text: string, allowUnsandboxed: boolean): [str
   if (home === "codex") return ["codex", ["exec", "--json", "--sandbox", "workspace-write", text]]
   if (!allowUnsandboxed) {
     throw new Error(
-      "cursor-agent can't run headless without approving every command (--force); run it in a container or VM and pass --allow-unsandboxed",
+      "Cursor's `agent` can't run headless without approving every command (--force); run it in a container or VM and pass --allow-unsandboxed",
     )
   }
-  return ["cursor-agent", ["-p", text, "--output-format", "json", "--force"]]
+  return ["agent", ["-p", text, "--output-format", "json", "--force"]]
 }
 
 function usage(stdout: string): Pick<Result, "costUsd" | "inputTokens" | "outputTokens"> {
