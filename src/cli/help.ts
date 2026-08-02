@@ -42,7 +42,7 @@ export const HELP: Record<string, CommandHelp> = {
       "(C9); pr adds the full commands, the gate order, report-only reviews and a settled review; done adds QA",
       "verdicts. Without --for: the set for the stage. C1 commands · C2 coverage · C3 fail then pass · C4 tests not",
       "weakened (a warning: ask the user) · C5 gate before code · C6 reports only · C7 review settled · C8 QA verdicts",
-      "· C9 config documented.",
+      "· C9 config documented. C1 runs only the commands AGENTS.md lists and skips the rest.",
     ],
     example: "solodev check csv-export --for implement",
   },

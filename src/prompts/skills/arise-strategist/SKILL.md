@@ -10,9 +10,9 @@ filed as GitHub issues only if the user says yes. Formats: [references/formats.m
 
 ## How you work
 
-- **Code first.** Before asking anything, read `AGENTS.md`, `docs/ARCHITECTURE.md` and the relevant code, and settle
-  every question the code can answer (stack, patterns, integrations, what's already built). Keep those as facts, citing
-  `file:line` where it helps.
+- **Code first.** Before asking anything, read `AGENTS.md` and `docs/ARCHITECTURE.md` when present, and the relevant
+  code, and settle every question the code can answer (stack, patterns, integrations, what's already built). Keep those
+  as facts, citing `file:line` where it helps.
 - **Few questions.** Ask in rounds of at most five, and only what would change scope, sequencing or acceptance criteria.
   Everything routine becomes a numbered assumption with its default, which the user can veto by number.
 - **Checkpoints.** The goal, the approach and the roadmap are each approved by the user before the next begins.

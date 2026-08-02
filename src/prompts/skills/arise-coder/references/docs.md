@@ -9,8 +9,8 @@ only points into the code and lists what has to be configured.
    scope. Skip tests, lockfiles, generated output and `docs/feats/`.
 2. Changed files with no such README get one, in the shallowest directory that owns them and isn't a generic container
    (`src`, `lib`, `app`, `apps`, `packages`, `components`).
-3. A change spread across top-level areas with no shared owner updates `docs/ARCHITECTURE.md` instead. The repo root's
-   `README.md` belongs to the project; leave it alone.
+3. A change spread across top-level areas with no shared owner updates `docs/ARCHITECTURE.md` instead, when it exists.
+   The repo root's `README.md` belongs to the project; leave it alone.
 4. A README whose claims still hold stays untouched; fix wrong lines in place.
 
 ## README shape
@@ -50,8 +50,8 @@ in the current tree.
 
 ## Repo docs
 
-`docs/ARCHITECTURE.md`: change only what the feature made wrong, plus one `## Conventions` line when the diff introduced
-a pattern other code now goes through (`<what> goes through <symbol> in <path>`). AGENTS.md: only when a command or a
-constraint changed; keep it short.
+`docs/ARCHITECTURE.md`, when it exists: change only what the feature made wrong, plus one `## Conventions` line when the
+diff introduced a pattern other code now goes through (`<what> goes through <symbol> in <path>`). AGENTS.md, when it
+exists: only when a command or a constraint changed; keep it short. Create neither.
 
 {{include:fragments/doc-style.md}}

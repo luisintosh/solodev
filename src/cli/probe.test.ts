@@ -79,11 +79,17 @@ describe("probe", () => {
     expect(p.writers.map((w) => w.tool)).toEqual(["cursor", "claude"])
   })
 
+  test("suggests /arise-scout as optional when AGENTS.md is missing", async () => {
+    const p = await probe(deps({ read: async () => undefined }), models)
+    expect(p.agentsMd.found).toBe(false)
+    expect(p.warnings.join("\n")).toMatch(/AGENTS.md not found.*optional: run \/arise-scout/)
+  })
+
   test("flags missing commands and a long AGENTS.md", async () => {
     const long = `## Commands\n- test: \`t\`\n${"line\n".repeat(120)}`
     const p = await probe(deps({ read: async (file) => (file.endsWith("AGENTS.md") ? long : undefined) }), models)
     expect(p.agentsMd.missing).toEqual(["install", "dev", "build", "test_file", "lint", "typecheck"])
-    expect(p.warnings.join("\n")).toMatch(/missing install, dev/)
+    expect(p.warnings.join("\n")).toMatch(/doesn't list install, dev.*optional: run \/arise-scout/)
     expect(p.warnings.join("\n")).toMatch(/AGENTS.md is 1\d\d lines/)
   })
 })

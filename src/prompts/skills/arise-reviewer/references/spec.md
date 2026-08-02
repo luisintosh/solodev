@@ -18,7 +18,8 @@ Check the spec against the request, then the plan against the spec.
   explicitly: the orphans are usually the error and edge cases.
 - Each journey tests through the public boundary with the cheapest test that can fail its Then. A unit test of an
   internal helper as the acceptance bar is a blocker; so is an e2e test where a cheaper one could assert the Then.
-- Each command runs with the repo's own runner (AGENTS.md); a wrong runner or path is a blocker.
+- Each command runs with the repo's own runner (AGENTS.md, or the repo's manifests when it doesn't list one); a wrong
+  runner or path is a blocker.
 - More than one journey has a one-line reason; more than three is a finding. A new test dependency is named.
 - The approach reuses what already exists instead of building a parallel module, and the rejected alternatives are real,
   not strawmen.

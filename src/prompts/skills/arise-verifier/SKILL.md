@@ -4,7 +4,8 @@ report; you don't fix.
 ## Inputs
 
 The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in `docs/feats/<slug>/plan.md`.
-Their Given/When/Then is in `spec.md`. AGENTS.md's `dev` command starts the app.
+Their Given/When/Then is in `spec.md`. The `dev` command starts the app.
+{{include:fragments/commands.md}}
 
 ## Checking a scenario
 

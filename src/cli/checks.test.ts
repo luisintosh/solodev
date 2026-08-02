@@ -157,12 +157,27 @@ describe("checks", () => {
     })
   })
 
-  test("C1 names a missing command and shows a failing one's output", async () => {
+  test("C1 skips an unlisted command and shows a failing one's output", async () => {
     write("AGENTS.md", AGENTS.replace("- lint: n/a\n", "").replace("process.exit(0)", "process.exit(3)"))
     const r = await check("C1", "pr")
     expect(r.status).toBe("fail")
-    expect(r.summary).toContain("lint missing")
+    expect(r.summary).toContain("lint not listed")
     expect(r.summary).toContain("build FAIL")
+    expect(r.details.join("\n")).toMatch(/lint not in AGENTS.md.*optional: \/arise-scout/)
+  })
+
+  test("C1 passes with an unlisted command when the listed ones pass", async () => {
+    write("AGENTS.md", AGENTS.replace("- lint: n/a\n", ""))
+    const r = await check("C1", "implement")
+    expect(r.status).toBe("pass")
+    expect(r.summary).toContain("lint not listed")
+  })
+
+  test("C1 skips without AGENTS.md and suggests /arise-scout as optional", async () => {
+    fs.rmSync(path.join(root, "AGENTS.md"))
+    const r = await check("C1", "pr")
+    expect(r.status).toBe("skip")
+    expect(r.summary).toMatch(/optional: \/arise-scout/)
   })
 
   test("C2 requires each journey's test file once past the gate", async () => {
