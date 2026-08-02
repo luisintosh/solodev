@@ -25,8 +25,9 @@ against this repo's own code.
 `src/catalog.yaml` (host × profile models, skills with line budgets, shadows with hard denies) and `src/prompts/**` are
 the **only** sources of truth. `tools/transpile.ts` emits the skills for each host and the two shadows per host.
 
-- Never hand-edit `dist/` or `manifest.txt` — both are generated and **tracked**. Fix the catalog or the prompt body,
-  then `pnpm run build` before commit.
+- Never hand-edit `dist/`, `manifest.txt`, `bin/install.js` or `release.json`: all are generated. Only `bin/install.js`
+  and `release.json` are tracked. The installer downloads the rest of the payload from the GitHub Release that
+  `release.json` names. Fix the catalog or the prompt body, then `pnpm run build`.
 - Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;
   transpile adds it.
 - `{{include:fragments/<name>.md}}` in a prompt body is resolved at transpile time.

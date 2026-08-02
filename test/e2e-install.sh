@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Tier 1 e2e for dist/install.js and the installed solodev CLI — LOCAL_SOURCE, no network.
+# Tier 1 e2e for bin/install.js and the installed solodev CLI — LOCAL_SOURCE, no network.
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-INSTALL_JS="${REPO_ROOT}/dist/install.js"
+INSTALL_JS="${REPO_ROOT}/bin/install.js"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -320,13 +320,13 @@ assert_file_absent "${TARGET3}/.opencode/agents/arise.md" "v1 OpenCode agent rem
 assert_file_absent "${TARGET3}/.opencode/.harness-manifest" "v1 OpenCode manifest removed"
 assert_file_exists "${TARGET3}/.opencode/agents/mine.md" "user's own OpenCode file kept"
 
-# bunx-equivalent: same dist/install.js under bun (consumers may still use bunx)
+# bunx-equivalent: same bin/install.js under bun (consumers may still use bunx)
 if ! command -v bun >/dev/null 2>&1; then
-  ok "bun dist/install.js --doctor (skipped: bun not installed)"
+  ok "bun bin/install.js --doctor (skipped: bun not installed)"
 elif TARGET_DIR="$TARGET" bun "$INSTALL_JS" --doctor >/dev/null 2>&1; then
-  ok "bun dist/install.js --doctor exits 0"
+  ok "bun bin/install.js --doctor exits 0"
 else
-  bad "bun dist/install.js --doctor should exit 0"
+  bad "bun bin/install.js --doctor should exit 0"
 fi
 
 echo ""

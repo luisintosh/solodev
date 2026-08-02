@@ -4,8 +4,6 @@ on:
   push:
     branches: [master]
   pull_request:
-  release:
-    types: [published]
 
 jobs:
   shell-lint:
@@ -91,26 +89,3 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: bash test/e2e-install.sh
-
-  release-assets:
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Build payload
-        run: |
-          pnpm run build
-          tar -czf solodev-dist.tar.gz dist manifest.txt
-      - name: Upload release assets
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$TAG" solodev-dist.tar.gz --clobber

@@ -1205,6 +1205,9 @@ var i = `${styleText("gray", S_BAR)}  `;
 // tools/install.ts
 var HOSTS = ["cursor", "claude", "codex"];
 var REPO_NAME = "solodev";
+var REPO = "luisintosh/solodev";
+var PAYLOAD_ASSET = "solodev-dist.tar.gz";
+var RELEASE = false ? null : null;
 function log(message) {
   console.error(message);
 }
@@ -1247,23 +1250,15 @@ function parseManifest(raw) {
 var WORKFLOW_BIN = "solodev.mjs";
 var BINS = [WORKFLOW_BIN];
 function findPackageRoot() {
-  let dir = path.dirname(fileURLToPath(import.meta.url));
-  for (let i2 = 0; i2 < 8; i2++) {
-    const manifest = path.join(dir, "manifest.txt");
-    const distBin = path.join(dir, "dist", "bin", WORKFLOW_BIN);
-    if (fsSync.existsSync(manifest) && fsSync.existsSync(distBin)) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  die("could not find solodev payload (manifest.txt + dist/) \u2014 run pnpm run build in the toolkit checkout");
+  const dir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+  const manifest = path.join(dir, "manifest.txt");
+  const distBin = path.join(dir, "dist", "bin", WORKFLOW_BIN);
+  if (fsSync.existsSync(manifest) && fsSync.existsSync(distBin)) return dir;
 }
 function requirePayload(src) {
   const ok = fsSync.existsSync(path.join(src, "manifest.txt")) && fsSync.existsSync(path.join(src, "dist")) && fsSync.existsSync(path.join(src, "dist", "bin", WORKFLOW_BIN));
   if (!ok) {
-    die(
-      `${src} is missing dist/ + manifest.txt \u2014 clients copy a committed payload (run pnpm run build in the toolkit checkout)`
-    );
+    die(`${src} is missing dist/ + manifest.txt \u2014 run pnpm run build in the toolkit checkout`);
   }
 }
 function normalizeTargets(raw) {
@@ -1669,15 +1664,48 @@ async function stagePayload(payloadDir) {
   }
   return { stageDir, manifest, fileCount };
 }
+async function payloadRoot() {
+  const local = findPackageRoot();
+  if (local) return local;
+  if (!RELEASE) {
+    die(
+      `this installer records no release \u2014 pin one (npx -y github:${REPO}#vX.Y.Z) or run pnpm run build in the toolkit checkout`
+    );
+  }
+  const url = `https://github.com/${REPO}/releases/download/${RELEASE.version}/${PAYLOAD_ASSET}`;
+  log(`Downloading ${REPO_NAME} ${RELEASE.version}...`);
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    die(`could not download ${url}: ${err.message}`);
+  }
+  if (!res.ok) die(`could not download ${url}: HTTP ${res.status}`);
+  const archive = Buffer.from(await res.arrayBuffer());
+  if (createHash("sha256").update(archive).digest("hex") !== RELEASE.sha256) {
+    die(`checksum mismatch for ${PAYLOAD_ASSET} ${RELEASE.version} \u2014 aborting, nothing installed`);
+  }
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-payload-"));
+  process.on("exit", () => fsSync.rmSync(dir, { recursive: true, force: true }));
+  const archivePath = path.join(dir, PAYLOAD_ASSET);
+  await fs.writeFile(archivePath, archive);
+  const r2 = spawnSync("tar", ["-xzf", archivePath, "-C", dir], {
+    encoding: "utf8",
+    stdio: ["ignore", "ignore", "pipe"]
+  });
+  if (r2.status !== 0) die(`could not unpack ${PAYLOAD_ASSET}: ${r2.stderr?.trim() || r2.error?.message}`);
+  requirePayload(dir);
+  return dir;
+}
 var WORKFLOW_COMMANDS = /* @__PURE__ */ new Set(["probe", "status", "approve", "check", "help", "--help", "-h"]);
-function runWorkflow(argv) {
-  const bin = path.join(findPackageRoot(), "dist", "bin", WORKFLOW_BIN);
+async function runWorkflow(argv) {
+  const bin = path.join(await payloadRoot(), "dist", "bin", WORKFLOW_BIN);
   const r2 = spawnSync(process.execPath, [bin, ...argv], { stdio: "inherit" });
   process.exit(r2.status ?? 1);
 }
 async function main() {
   let argv = process.argv.slice(2);
-  if (argv[0] && WORKFLOW_COMMANDS.has(argv[0])) runWorkflow(argv);
+  if (argv[0] && WORKFLOW_COMMANDS.has(argv[0])) await runWorkflow(argv);
   if (argv[0] === "install") argv = argv.slice(1);
   const { dryRun, doctorOnly, yes } = parseArgs(argv);
   const targetDir = path.resolve(process.env.TARGET_DIR || process.cwd());
@@ -1714,8 +1742,7 @@ async function main() {
     payloadDir = localSource;
     log(`Installing from local source: ${localSource} (scope=${scope} target=${installTarget})`);
   } else {
-    payloadDir = findPackageRoot();
-    requirePayload(payloadDir);
+    payloadDir = await payloadRoot();
     log(`Installing ${REPO_NAME} (scope=${scope} target=${installTarget})...`);
   }
   const { stageDir, manifest, fileCount } = await stagePayload(payloadDir);

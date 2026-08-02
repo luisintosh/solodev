@@ -15,6 +15,12 @@ type Scope = "project" | "global"
 type Manifest = Map<string, string>
 
 const REPO_NAME = "solodev"
+const REPO = "luisintosh/solodev"
+const PAYLOAD_ASSET = "solodev-dist.tar.gz"
+
+// Set by tools/build-install.ts from release.json: the release whose payload this installer downloads.
+declare const __SOLODEV_RELEASE__: { version: string; sha256: string } | null
+const RELEASE = typeof __SOLODEV_RELEASE__ === "undefined" ? null : __SOLODEV_RELEASE__
 
 function log(message: string) {
   console.error(message)
@@ -96,17 +102,13 @@ const WORKFLOW_BIN = "solodev.mjs"
 // Installed to <root>/.agents/bin/.
 const BINS = [WORKFLOW_BIN]
 
-function findPackageRoot(): string {
-  let dir = path.dirname(fileURLToPath(import.meta.url))
-  for (let i = 0; i < 8; i++) {
-    const manifest = path.join(dir, "manifest.txt")
-    const distBin = path.join(dir, "dist", "bin", WORKFLOW_BIN)
-    if (fsSync.existsSync(manifest) && fsSync.existsSync(distBin)) return dir
-    const parent = path.dirname(dir)
-    if (parent === dir) break
-    dir = parent
-  }
-  die("could not find solodev payload (manifest.txt + dist/) — run pnpm run build in the toolkit checkout")
+// The package root only (this file is bin/install.js or tools/install.ts): a payload found in any parent folder
+// would skip the release checksum.
+function findPackageRoot(): string | undefined {
+  const dir = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
+  const manifest = path.join(dir, "manifest.txt")
+  const distBin = path.join(dir, "dist", "bin", WORKFLOW_BIN)
+  if (fsSync.existsSync(manifest) && fsSync.existsSync(distBin)) return dir
 }
 
 function requirePayload(src: string) {
@@ -115,9 +117,7 @@ function requirePayload(src: string) {
     fsSync.existsSync(path.join(src, "dist")) &&
     fsSync.existsSync(path.join(src, "dist", "bin", WORKFLOW_BIN))
   if (!ok) {
-    die(
-      `${src} is missing dist/ + manifest.txt — clients copy a committed payload (run pnpm run build in the toolkit checkout)`,
-    )
+    die(`${src} is missing dist/ + manifest.txt — run pnpm run build in the toolkit checkout`)
   }
 }
 
@@ -592,18 +592,53 @@ async function stagePayload(payloadDir: string): Promise<{ stageDir: string; man
   return { stageDir, manifest, fileCount }
 }
 
+/** A built checkout next to this installer, else the release payload downloaded and checked against RELEASE.sha256. */
+async function payloadRoot(): Promise<string> {
+  const local = findPackageRoot()
+  if (local) return local
+  if (!RELEASE) {
+    die(
+      `this installer records no release — pin one (npx -y github:${REPO}#vX.Y.Z) or run pnpm run build in the toolkit checkout`,
+    )
+  }
+  const url = `https://github.com/${REPO}/releases/download/${RELEASE.version}/${PAYLOAD_ASSET}`
+  log(`Downloading ${REPO_NAME} ${RELEASE.version}...`)
+  let res: Response
+  try {
+    res = await fetch(url)
+  } catch (err) {
+    die(`could not download ${url}: ${(err as Error).message}`)
+  }
+  if (!res.ok) die(`could not download ${url}: HTTP ${res.status}`)
+  const archive = Buffer.from(await res.arrayBuffer())
+  if (createHash("sha256").update(archive).digest("hex") !== RELEASE.sha256) {
+    die(`checksum mismatch for ${PAYLOAD_ASSET} ${RELEASE.version} — aborting, nothing installed`)
+  }
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-payload-"))
+  process.on("exit", () => fsSync.rmSync(dir, { recursive: true, force: true }))
+  const archivePath = path.join(dir, PAYLOAD_ASSET)
+  await fs.writeFile(archivePath, archive)
+  const r = spawnSync("tar", ["-xzf", archivePath, "-C", dir], {
+    encoding: "utf8",
+    stdio: ["ignore", "ignore", "pipe"],
+  })
+  if (r.status !== 0) die(`could not unpack ${PAYLOAD_ASSET}: ${r.stderr?.trim() || r.error?.message}`)
+  requirePayload(dir)
+  return dir
+}
+
 // Subcommands the packaged bin hands to the workflow CLI; no subcommand, `install`, or a flag runs the installer.
 const WORKFLOW_COMMANDS = new Set(["probe", "status", "approve", "check", "help", "--help", "-h"])
 
-function runWorkflow(argv: string[]): never {
-  const bin = path.join(findPackageRoot(), "dist", "bin", WORKFLOW_BIN)
+async function runWorkflow(argv: string[]): Promise<never> {
+  const bin = path.join(await payloadRoot(), "dist", "bin", WORKFLOW_BIN)
   const r = spawnSync(process.execPath, [bin, ...argv], { stdio: "inherit" })
   process.exit(r.status ?? 1)
 }
 
 async function main() {
   let argv = process.argv.slice(2)
-  if (argv[0] && WORKFLOW_COMMANDS.has(argv[0])) runWorkflow(argv)
+  if (argv[0] && WORKFLOW_COMMANDS.has(argv[0])) await runWorkflow(argv)
   if (argv[0] === "install") argv = argv.slice(1)
   const { dryRun, doctorOnly, yes } = parseArgs(argv)
   const targetDir = path.resolve(process.env.TARGET_DIR || process.cwd())
@@ -646,8 +681,7 @@ async function main() {
     payloadDir = localSource
     log(`Installing from local source: ${localSource} (scope=${scope} target=${installTarget})`)
   } else {
-    payloadDir = findPackageRoot()
-    requirePayload(payloadDir)
+    payloadDir = await payloadRoot()
     log(`Installing ${REPO_NAME} (scope=${scope} target=${installTarget})...`)
   }
 

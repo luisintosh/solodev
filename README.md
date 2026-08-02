@@ -67,8 +67,8 @@ npx -y github:luisintosh/solodev
 ```
 
 The installer asks for a **scope** (this repo or `$HOME`) and the **hosts** to install for (Claude Code, Codex, Cursor).
-It shows the file plan before applying it. Pin a release with `#vX.Y.Z`. Re-running is idempotent, and files removed
-upstream are cleaned up.
+It downloads the release payload from GitHub Releases, verifies its sha256, and shows the file plan before applying it.
+Pin a release with `#vX.Y.Z`. Re-running is idempotent, and files removed upstream are cleaned up.
 
 Flags: `--dry-run`, `--doctor`, `--yes`. For CI or scripts, use `INSTALL_SCOPE=project|global` and
 `INSTALL_TARGET=all|claude,codex,cursor`.
@@ -273,7 +273,8 @@ src/
 tools/                  transpile, build, install, hygiene check
 evals/                  trigger evals and outcome evals
 test/                   e2e install script, fixture repo
-dist/                   generated install payload (tracked, never hand-edited)
+bin/install.js          generated installer that npx/bunx run (tracked, never hand-edited)
+dist/                   generated install payload (untracked; shipped in each GitHub Release)
 ```
 
 Prompts are written once and transpiled into each host's format by `pnpm run build`. See
