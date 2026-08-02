@@ -7,8 +7,9 @@ changed in three to five bullets, the scenarios and the journey tests that prove
 
 **Finish (step 9).**
 
-1. Read the `## Configuration` section of each README the documenter wrote. Anything beyond `None.` goes into the PR
-   body under `## Setup required`, naming its README. Replace an existing section rather than adding a second.
+1. Read `plan.md`'s `## Setup` and the `## Configuration` section of each README the diff touched. Anything beyond
+   `None.` goes into the PR body under `## Setup required`, naming where it came from. Replace an existing section
+   rather than adding a second.
 2. Write `## Follow-ups` into the PR body, replacing an existing one: each `deferred` finding and open `minor`
    (including `Tech debt:` ones) and each `waived` QA scenario, one line each with its id and why it was left. Write
    `None.` when there are none. This is where the merger sees what's left.

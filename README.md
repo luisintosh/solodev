@@ -131,14 +131,13 @@ flowchart TD
   ask{{"questions the code<br/>can't answer"}}:::human
   sreview["spec review · arise-reviewer<br/>only for multi-journey or risky plans"]:::review
   gate{{"⏸ spec gate<br/>approve + pick the coder"}}:::human
-  impl["implement · arise-coder<br/>per journey: failing test → code"]:::writer
+  impl["implement · arise-coder<br/>per journey: failing test → code<br/>then docs beside the code"]:::writer
   stuck{{"stuck after 2 attempts<br/>retry · second opinion · take over"}}:::human
   review["code review · arise-reviewer<br/>fresh shadow-reviewer"]:::review
   fix["fix round · same coder"]:::writer
   dispute{{"left after re-review<br/>fix · defer · drop"}}:::human
   pr["solodev check → draft PR"]:::think
   qa["QA · arise-verifier<br/>only for scenarios no test covers"]:::review
-  docs["docs · arise-documenter<br/>fresh shadow-coder"]:::writer
   done(["solodev check --for done → PR ready<br/>you merge"]):::human
 
   req --> spec
@@ -153,9 +152,9 @@ flowchart TD
   review -->|survives re-review| dispute --> pr
   review -->|clean| pr
   pr -.-> qa
-  pr --> docs
+  pr --> done
   qa -->|finding| fix
-  qa & docs --> done
+  qa --> done
 
   classDef human fill:#fde68a,stroke:#b45309,color:#1f2937
   classDef think fill:#e0e7ff,stroke:#4338ca,color:#1e1b4b
@@ -166,17 +165,17 @@ flowchart TD
 Blue runs in your main session, green is the one coder, pink is a fresh-context reviewer, yellow is you. Dotted steps
 run only when they add something.
 
-| Step          | Who                                              | Leaves when                                              |
-| ------------- | ------------------------------------------------ | -------------------------------------------------------- |
-| 1 start       | the commander (`/arise`)                         | `solodev probe` done, branch `feat/<slug>` cut           |
-| 2 spec        | `arise-architect`, in your main session          | `spec.md` and `plan.md` written, your questions answered |
-| 3 spec review | `arise-reviewer`, only when needed               | the commander applied the findings it agrees with        |
-| 4 ⏸ gate      | you                                              | `solodev approve` committed                              |
-| 5 implement   | `arise-coder`, the one writer                    | `solodev check --for implement` passes                   |
-| 6 code review | `arise-reviewer`, fresh                          | `review.md` has no open blocker or major                 |
-| 7 PR          | the commander                                    | `solodev check --for pr` passes, draft PR open           |
-| 8 QA ∥ docs   | `arise-verifier`, if needed ∥ `arise-documenter` | uncovered scenarios have verdicts, docs committed        |
-| 9 finish      | the commander                                    | `solodev check --for done` passes, PR marked ready       |
+| Step          | Who                                     | Leaves when                                              |
+| ------------- | --------------------------------------- | -------------------------------------------------------- |
+| 1 start       | the commander (`/arise`)                | `solodev probe` done, branch `feat/<slug>` cut           |
+| 2 spec        | `arise-architect`, in your main session | `spec.md` and `plan.md` written, your questions answered |
+| 3 spec review | `arise-reviewer`, only when needed      | the commander applied the findings it agrees with        |
+| 4 ⏸ gate      | you                                     | `solodev approve` committed                              |
+| 5 implement   | `arise-coder`, the one writer           | `solodev check --for implement` passes                   |
+| 6 code review | `arise-reviewer`, fresh                 | `review.md` has no open blocker or major                 |
+| 7 PR          | the commander                           | `solodev check --for pr` passes, draft PR open           |
+| 8 QA          | `arise-verifier`, if needed             | uncovered scenarios have verdicts                        |
+| 9 finish      | the commander                           | `solodev check --for done` passes, PR marked ready       |
 
 Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
 security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
@@ -211,6 +210,7 @@ solodev help [<command>]               what each command does
 | C6    | reviewer and verifier commits changed only their report                                                     |
 | C7    | `review.md` has no open blocker or major                                                                    |
 | C8    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                               |
+| C9    | every env var the code reads since the gate is named in a README, `docs/` or `.env.example`                 |
 
 ## Models
 
@@ -255,7 +255,7 @@ docs/
     qa.md                       verdicts for scenarios no test covers (pass, fail, manual, waived)
     progress.md                 the request verbatim, decisions and attempts, for resuming
   product/<slug>/roadmap.md     optional, from /arise-strategist
-src/<domain>/README.md          domain docs, kept current by arise-documenter
+src/<domain>/README.md          signpost: purpose, entry points, configuration (doc comments hold the rest)
 .agents/bin/solodev.mjs         the workflow CLI
 .agents/skills/                 arise and its role skills (Codex, Cursor)
 .claude/skills/  .claude/agents/  .cursor/agents/  .codex/agents/    host copies and the two shadows

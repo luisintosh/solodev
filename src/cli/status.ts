@@ -4,7 +4,7 @@ import { run } from "./exec.ts"
 import { exists, featureDir, parsePlan, parseQa, parseReview, readIfExists } from "./feature.ts"
 import { currentBranch, gateCommits } from "./git.ts"
 
-export const STAGES = ["spec", "gate", "implement", "review", "pr", "qa-docs", "done", "v1"] as const
+export const STAGES = ["spec", "gate", "implement", "review", "pr", "qa", "done", "v1"] as const
 export type Stage = (typeof STAGES)[number]
 
 export type PrInfo = { url: string; isDraft: boolean; state: string }
@@ -42,8 +42,8 @@ const NEXT: Record<Stage, (slug: string) => string> = {
     `arise-coder writes each journey's test, then the code; then \`solodev check ${s} --for implement\``,
   review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
   pr: (s) => `\`solodev check ${s} --for pr\`, then push and open the draft PR`,
-  "qa-docs": (s) =>
-    `arise-verifier for uncovered scenarios (if any) and arise-documenter; then \`solodev check ${s} --for done\` and mark the PR ready`,
+  qa: (s) =>
+    `arise-verifier for uncovered scenarios (if any); then \`solodev check ${s} --for done\` and mark the PR ready`,
   done: () => "the user reviews and merges the PR",
   v1: () =>
     "a run from solodev v2.1.1 or earlier: finish it with `npx -y github:luisintosh/solodev#v2.1.1`, or restart from its approved spec",
@@ -95,7 +95,7 @@ export async function featureStatus(root: string, slug: string, deps: StatusDeps
   } catch (err) {
     notes.push((err as Error).message)
   }
-  return done("qa-docs", { gate, writer, pr })
+  return done("qa", { gate, writer, pr })
 }
 
 /** Feature slugs under docs/feats/, newest directory first. */

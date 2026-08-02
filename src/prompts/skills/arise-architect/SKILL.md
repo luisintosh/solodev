@@ -24,6 +24,8 @@ through an API, a CLI or the UI, so a test or the verifier can check them.
 - The approach in a short paragraph, and the alternatives you rejected, one line each with why. Only one viable approach
   → say so in a line.
 - Data or API changes, risks, and anything the user has to decide.
+- `## Setup`: what a human does outside the repo (an API key, a webhook endpoint, a scope, a migration on a hosted
+  database), each naming the exact place to do it. `None.` when there is nothing.
 - A fenced YAML block whose first key is `journeys:`:
 
 ```yaml

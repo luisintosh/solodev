@@ -29,12 +29,12 @@ export type CheckResult = {
   evidence?: string[]
 }
 
-export const CHECK_IDS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"] as const
+export const CHECK_IDS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"] as const
 export type CheckId = (typeof CHECK_IDS)[number]
 
 export const CHECK_SETS = {
-  implement: ["C1", "C2", "C3", "C4"],
-  pr: ["C1", "C2", "C3", "C4", "C5", "C6", "C7"],
+  implement: ["C1", "C2", "C3", "C4", "C9"],
+  pr: ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C9"],
   done: [...CHECK_IDS],
 } as const satisfies Record<string, readonly CheckId[]>
 
@@ -58,6 +58,7 @@ const TITLES: Record<CheckId, string> = {
   C6: "reports only",
   C7: "review settled",
   C8: "QA verdicts",
+  C9: "config documented",
 }
 
 const result = (id: CheckId, status: CheckStatus, summary: string, details: string[] = []): CheckResult => ({
@@ -372,6 +373,78 @@ async function c8(ctx: CheckContext): Promise<CheckResult> {
   return result("C8", "pass", `${plan.uncovered.length} uncovered scenario(s) verified`)
 }
 
+// Literal env var reads in JS/TS, Python, Go, Ruby, Rust and Java; a computed name (`process.env[key]`) can't be checked.
+const ENV_READS = new RegExp(
+  [
+    String.raw`\bprocess\.env\.([A-Z][A-Z0-9_]*)`,
+    String.raw`\bprocess\.env\[\s*["'\`]([A-Z][A-Z0-9_]*)["'\`]\s*\]`,
+    String.raw`\bimport\.meta\.env\.([A-Z][A-Z0-9_]*)`,
+    String.raw`\b(?:Deno\.env\.get|os\.getenv|os\.environ\.get|os\.Getenv|ENV\.fetch|env::var|System\.getenv)\(\s*["'\`]([A-Z][A-Z0-9_]*)["'\`]`,
+    String.raw`(?:\bos\.environ|\bENV)\[\s*["']([A-Z][A-Z0-9_]*)["']\s*\]`,
+  ].join("|"),
+  "g",
+)
+
+/** Set by the runtime or the shell, not by whoever deploys the feature. */
+const RUNTIME_VARS = new Set(["NODE_ENV", "CI", "HOME", "PATH", "PWD", "USER", "SHELL", "TERM", "TMPDIR"])
+
+/** Where a variable counts as documented: any README, docs/ outside feature folders, or an env template. */
+const CONFIG_DOCS = [
+  ":(glob)**/README.md",
+  ":(glob)docs/**",
+  ":(exclude,glob)docs/feats/**",
+  ".env.example",
+  ".env.sample",
+  ".env.template",
+]
+
+const skipForEnv = (file: string) => TEST_FILE.test(file) || file.startsWith("docs/feats/") || file.endsWith(".md")
+
+/** Variable name → first file that reads it, from lines added since the gate, committed or not. */
+async function envReads(root: string, gate: string): Promise<Map<string, string>> {
+  const reads = new Map<string, string>()
+  const scan = (file: string, text: string) => {
+    if (skipForEnv(file)) return
+    for (const m of text.matchAll(ENV_READS)) {
+      const name = m.slice(1).find(Boolean)!
+      if (!RUNTIME_VARS.has(name) && !reads.has(name)) reads.set(name, file)
+    }
+  }
+  let file = ""
+  for (const line of (await git(root, ["diff", "-U0", "--no-color", gate])).split("\n")) {
+    if (line.startsWith("+++ ")) file = line.replace(/^\+\+\+ (b\/)?/, "")
+    else if (line.startsWith("+")) scan(file, line.slice(1))
+  }
+  for (const f of (await git(root, ["ls-files", "--others", "--exclude-standard"])).split("\n").filter(Boolean)) {
+    if (!skipForEnv(f)) scan(f, (await readIfExists(path.join(root, f))) ?? "")
+  }
+  return reads
+}
+
+async function c9(ctx: CheckContext): Promise<CheckResult> {
+  const gate = (await gateCommits(ctx.root, ctx.slug))[0]
+  if (!gate) return result("C9", "skip", "no approval commit yet")
+  const reads = await envReads(ctx.root, gate.sha)
+  if (!reads.size) return result("C9", "pass", "no new env reads")
+  const patterns = [...reads.keys()].flatMap((name) => ["-e", name])
+  const found = await run("git", ["grep", "--untracked", "-h", "-o", "-w", ...patterns, "--", ...CONFIG_DOCS], {
+    cwd: ctx.root,
+  })
+  const documented = new Set(found.stdout.split("\n").map((l) => l.trim()))
+  const missing = [...reads].filter(([name]) => !documented.has(name))
+  if (missing.length) {
+    return result(
+      "C9",
+      "fail",
+      `${missing.length} env var(s) read but not documented`,
+      missing.map(
+        ([name, file]) => `${name} read in ${file} — add it to the owning README's ## Configuration or .env.example`,
+      ),
+    )
+  }
+  return result("C9", "pass", `${reads.size} env var(s) read, all documented`)
+}
+
 const RUNNERS: Record<CheckId, (ctx: CheckContext) => Promise<CheckResult>> = {
   C1: c1,
   C2: c2,
@@ -381,6 +454,7 @@ const RUNNERS: Record<CheckId, (ctx: CheckContext) => Promise<CheckResult>> = {
   C6: c6,
   C7: c7,
   C8: c8,
+  C9: c9,
 }
 
 export async function runCheck(id: CheckId, ctx: CheckContext): Promise<CheckResult> {

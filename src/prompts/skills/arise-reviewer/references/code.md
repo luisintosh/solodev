@@ -12,4 +12,7 @@ fixed now; sites outside it are fixed in the same round when that stays within a
 has a test that runs it. The rest becomes a `minor` finding whose text starts `Tech debt:`; open minors don't block, and
 the finish card suggests each as a ticket.
 
+A missing doc comment on a new export is `minor` when the repo already uses them, and so is a padded one (restates the
+signature, runs to paragraphs). A doc comment or README that contradicts the code is `major`.
+
 A large diff: review the riskiest files first and name in your reply what you didn't reach.

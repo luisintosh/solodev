@@ -44,7 +44,7 @@ replies for shadows go in `.git/solodev/<slug>/`, so they never reach the diff.
 | 5 implement   | the coder, with arise-coder                              | `solodev check <slug> --for implement` passes                  |
 | 6 code review | a fresh shadow-reviewer with arise-reviewer              | `review.md` has no open blocker or major                       |
 | 7 PR          | you                                                      | `solodev check <slug> --for pr` passes, draft PR open          |
-| 8 QA ∥ docs   | arise-verifier, if needed ∥ arise-documenter             | uncovered scenarios have verdicts, docs committed              |
+| 8 QA          | arise-verifier, if needed                                | uncovered scenarios have verdicts                              |
 | 9 finish      | you                                                      | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** On "continue", or when the feature exists: check out its branch, run `solodev status`, read `progress.md`,
@@ -71,11 +71,10 @@ replies for shadows go in `.git/solodev/<slug>/`, so they never reach the diff.
 7. **PR.** Run `solodev check <slug> --for pr`. A failing command (C1) goes to the coder as a fix round with its output,
    inside the same two-attempt budget; it adds no new acceptance test. Then push and open a draft PR as
    [references/pr.md](references/pr.md) says.
-8. **QA and docs**, at the same time. The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none
-   are, the journey tests are the QA and no agent starts. The documenter runs in a fresh shadow-coder with the slug and
-   the diff base (`git merge-base <default branch> HEAD`). Commit `qa.md` alone and the docs separately. A QA failure in
-   code goes to the coder as a fix round; a spec gap goes to the user. A `manual` verdict goes to the user: they check
-   it and you record `pass` with their words as evidence, or they waive it and you record `waived`.
+8. **QA.** The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none are, the journey tests are
+   the QA and no agent starts. Commit `qa.md` alone. A QA failure in code goes to the coder as a fix round; a spec gap
+   goes to the user. A `manual` verdict goes to the user: they check it and you record `pass` with their words as
+   evidence, or they waive it and you record `waived`.
 9. **Finish.** Run `solodev check <slug> --for done`, mark the PR ready and show the finish card
    ([references/pr.md](references/pr.md)).
 
@@ -85,9 +84,9 @@ choice, each attempt, skipped stages and the user's decisions in `progress.md`, 
 
 ## Shadows
 
-Two shadows play the roles: shadow-coder (arise-coder, arise-documenter) and shadow-reviewer (arise-reviewer,
-arise-verifier). Write each brief to `.git/solodev/<slug>/<role>-<n>.md`: the role skill, the slug, what to do now, and
-where to write the reply. Keep it short; the role skill and the feature files hold the rest.
+Two shadows play the roles: shadow-coder (arise-coder) and shadow-reviewer (arise-reviewer, arise-verifier). Write each
+brief to `.git/solodev/<slug>/<role>-<n>.md`: the role skill, the slug, what to do now, and where to write the reply.
+Keep it short; the role skill and the feature files hold the rest.
 
 - **Claude Code:** the Agent tool with `subagent_type` shadow-coder or shadow-reviewer; their role skills are preloaded.
   Continue the coder with SendMessage.
@@ -97,8 +96,8 @@ where to write the reply. Keep it short; the role skill and the feature files ho
   id.
 - **Another coding tool, or `dispatch: orca`:** read [references/orca.md](references/orca.md).
 
-One coder serves the whole feature: continue it for later journeys and fix rounds. Reviewers, verifiers and documenters
-always start fresh. You never edit source or tests yourself.
+One coder serves the whole feature: continue it for later journeys and fix rounds. Reviewers and verifiers always start
+fresh. You never edit source or tests yourself.
 
 ## Keeping the user in the loop
 
