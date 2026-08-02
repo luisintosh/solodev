@@ -6,6 +6,14 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
+};
 var __commonJS = (cb, mod) => function __require() {
   try {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -30,10 +38,19 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// <define:__SOLODEV_RELEASE__>
+var define_SOLODEV_RELEASE_default;
+var init_define_SOLODEV_RELEASE = __esm({
+  "<define:__SOLODEV_RELEASE__>"() {
+    define_SOLODEV_RELEASE_default = { version: "v3.0.0", sha256: "1d5eadd87f283fd74807c465ca1479a00ace831607213ad12a515bdea35389d7" };
+  }
+});
+
 // node_modules/.pnpm/sisteransi@1.0.5/node_modules/sisteransi/src/index.js
 var require_src = __commonJS({
   "node_modules/.pnpm/sisteransi@1.0.5/node_modules/sisteransi/src/index.js"(exports, module) {
     "use strict";
+    init_define_SOLODEV_RELEASE();
     var ESC2 = "\x1B";
     var CSI2 = `${ESC2}[`;
     var beep = "\x07";
@@ -87,6 +104,7 @@ var require_src = __commonJS({
 });
 
 // tools/install.ts
+init_define_SOLODEV_RELEASE();
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import * as fsSync from "node:fs";
@@ -95,11 +113,25 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// node_modules/.pnpm/@clack+prompts@1.8.1/node_modules/@clack/prompts/dist/index.mjs
+init_define_SOLODEV_RELEASE();
+
 // node_modules/.pnpm/@clack+core@1.5.1/node_modules/@clack/core/dist/index.mjs
+init_define_SOLODEV_RELEASE();
 import { stdout, stdin } from "node:process";
 import l__default from "node:readline";
 
+// node_modules/.pnpm/fast-wrap-ansi@0.2.2/node_modules/fast-wrap-ansi/lib/main.js
+init_define_SOLODEV_RELEASE();
+
+// node_modules/.pnpm/fast-string-width@3.0.2/node_modules/fast-string-width/dist/index.js
+init_define_SOLODEV_RELEASE();
+
+// node_modules/.pnpm/fast-string-truncated-width@3.0.3/node_modules/fast-string-truncated-width/dist/index.js
+init_define_SOLODEV_RELEASE();
+
 // node_modules/.pnpm/fast-string-truncated-width@3.0.3/node_modules/fast-string-truncated-width/dist/utils.js
+init_define_SOLODEV_RELEASE();
 var getCodePointsLength = /* @__PURE__ */ (() => {
   const SURROGATE_PAIR_RE = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
   return (input) => {
@@ -1207,7 +1239,7 @@ var HOSTS = ["cursor", "claude", "codex"];
 var REPO_NAME = "solodev";
 var REPO = "luisintosh/solodev";
 var PAYLOAD_ASSET = "solodev-dist.tar.gz";
-var RELEASE = false ? null : null;
+var RELEASE = typeof define_SOLODEV_RELEASE_default === "undefined" ? null : define_SOLODEV_RELEASE_default;
 function log(message) {
   console.error(message);
 }
