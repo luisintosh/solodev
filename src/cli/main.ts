@@ -3,13 +3,14 @@ import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
 import catalog from "../catalog.yaml"
-import { approve, type Dispatch } from "./approve.ts"
+import { approve } from "./approve.ts"
 import { CHECK_SETS, type CheckSet, formatResults, runChecks } from "./checks.ts"
 import { run } from "./exec.ts"
 import { exists, featureDir, SLUG } from "./feature.ts"
 import { HELP, helpText } from "./help.ts"
-import { isTool, modelsFromCatalog, TOOLS } from "./models.ts"
-import { detectHome, probe } from "./probe.ts"
+import { modelsFromCatalog } from "./models.ts"
+import { probe } from "./probe.ts"
+import { stateDir } from "./state.ts"
 import { branchFeature, featureStatus, formatStatus, ghPr, listFeatures, type Stage } from "./status.ts"
 
 class UsageError extends Error {}
@@ -41,10 +42,16 @@ async function repoRoot(): Promise<string> {
   return process.cwd()
 }
 
-async function requireFeature(root: string, slug: string | undefined): Promise<string> {
+const LEGACY =
+  "a run from solodev v3.0 or earlier keeps its files in docs/feats/; finish it with npx -y github:luisintosh/solodev#v3.0.0"
+
+async function requireFeature(root: string, state: string, slug: string | undefined): Promise<string> {
   if (!slug) throw new UsageError("missing <slug>")
   if (!SLUG.test(slug)) throw new UsageError(`"${slug}" is not a feature slug (lowercase letters, digits, dashes)`)
-  if (!(await exists(featureDir(root, slug)))) throw new UsageError(`docs/feats/${slug}/ does not exist`)
+  if (!(await exists(featureDir(state, slug)))) {
+    if (await exists(path.join(root, "docs", "feats", slug))) throw new UsageError(`${slug}: ${LEGACY}`)
+    throw new UsageError(`${featureDir(state, slug)} does not exist`)
+  }
   return slug
 }
 
@@ -62,6 +69,7 @@ async function main(argv: string[]): Promise<number> {
     return 0
   }
   const root = await repoRoot()
+  const state = await stateDir(root, process.env, os.homedir())
   const models = modelsFromCatalog(catalog)
   const json = args.includes("--json")
 
@@ -72,6 +80,7 @@ async function main(argv: string[]): Promise<number> {
           env: process.env,
           platform: process.platform,
           root,
+          state,
           home: os.homedir(),
           exec: async (cmd, a) => {
             const r = await run(cmd, a, { cwd: root, timeoutMs: 15_000 })
@@ -80,6 +89,17 @@ async function main(argv: string[]): Promise<number> {
           which: async (bin) => (await run("sh", ["-c", `command -v ${bin}`])).code === 0,
           exists,
           read: (file) => fs.readFile(file, "utf8").catch(() => undefined),
+          writable: async (dir) => {
+            try {
+              await fs.mkdir(dir, { recursive: true })
+              const probeFile = path.join(dir, `.probe-${process.pid}`)
+              await fs.writeFile(probeFile, "")
+              await fs.rm(probeFile)
+              return true
+            } catch {
+              return false
+            }
+          },
         },
         models,
       )
@@ -87,52 +107,41 @@ async function main(argv: string[]): Promise<number> {
       return 0
     }
     case "status": {
-      const slug = positional(args)[0] ?? (await branchFeature(root))
+      const slug = positional(args)[0] ?? (await branchFeature(root, state))
       if (slug) {
-        const status = await featureStatus(root, await requireFeature(root, slug), { pr: ghPr })
+        const status = await featureStatus(root, state, await requireFeature(root, state, slug), { pr: ghPr })
         console.log(json ? JSON.stringify(status, null, 2) : formatStatus(status))
         return 0
       }
-      const slugs = await listFeatures(root)
+      const slugs = await listFeatures(state)
       if (!slugs.length) {
-        console.log("no features under docs/feats/ — start one with /arise")
+        console.log(`no features in ${state} — start one with /arise`)
+        if (await exists(path.join(root, "docs", "feats"))) console.log(`note: ${LEGACY}`)
         return 0
       }
       // The PR belongs to the current branch, so the list leaves it out; name a slug for the full status.
-      const all = await Promise.all(slugs.map((s) => featureStatus(root, s, { pr: async () => null })))
+      const all = await Promise.all(slugs.map((s) => featureStatus(root, state, s, { pr: async () => null })))
       if (json) console.log(JSON.stringify(all, null, 2))
       else for (const s of all) console.log(`${s.slug}: ${s.stage === "pr" ? "pr or later" : s.stage}`)
       return 0
     }
     case "approve": {
-      const slug = await requireFeature(root, positional(args)[0])
-      const writer = flag(args, "--writer")
-      if (!writer || !isTool(writer)) throw new UsageError(`--writer must be one of ${TOOLS.join("|")}`)
-      const viaFlag = flag(args, "--via")
-      if (viaFlag && viaFlag !== "native" && viaFlag !== "orca") throw new UsageError("--via must be native or orca")
-      const via: Dispatch =
-        (viaFlag as Dispatch | undefined) ?? (writer === detectHome(process.env) ? "native" : "orca")
-      const approval = await approve({ root, slug, writer, via, models })
-      console.log(`approved ${slug} at ${approval.sha.slice(0, 7)}`)
-      console.log(
-        approval.message
-          .split("\n")
-          .filter((l) => l.startsWith("Solodev-"))
-          .join("\n"),
-      )
+      const slug = await requireFeature(root, state, positional(args)[0])
+      const approval = await approve({ root, dir: featureDir(state, slug) })
+      console.log(`approved ${slug}: spec ${approval.spec} at ${approval.at}`)
       return 0
     }
     case "check": {
-      const slug = await requireFeature(root, positional(args)[0])
+      const slug = await requireFeature(root, state, positional(args)[0])
       const forFlag = flag(args, "--for")
       if (forFlag && !(forFlag in CHECK_SETS)) throw new UsageError("--for must be implement, pr or done")
       let set = forFlag as CheckSet | undefined
       if (!set) {
-        const stage = (await featureStatus(root, slug, { pr: ghPr })).stage
+        const stage = (await featureStatus(root, state, slug, { pr: ghPr })).stage
         set = SET_FOR_STAGE[stage] ?? "implement"
       }
       const timeoutMs = Number(process.env.SOLODEV_TIMEOUT_MS) || 10 * 60_000
-      const results = await runChecks({ root, slug, set, timeoutMs })
+      const results = await runChecks({ root, dir: featureDir(state, slug), set, timeoutMs })
       if (json) console.log(JSON.stringify({ slug, set, results }, null, 2))
       else console.log(`solodev check ${slug} --for ${set}\n${formatResults(results)}`)
       return results.some((r) => r.status === "fail") ? 1 : 0

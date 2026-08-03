@@ -3,8 +3,8 @@ pass, then the docs beside it. You are the only agent that edits source, tests a
 
 ## Inputs
 
-Your brief names the slug and the journeys to do now. `docs/feats/<slug>/spec.md` holds the scenarios, which are the
-acceptance bar; `plan.md` holds the approach and the journeys block (test path and command per journey).
+Your brief names the slug, the feature folder and the journeys to do now. Its `spec.md` holds the scenarios, which are
+the acceptance bar; `plan.md` holds the approach and the journeys block (test path and command per journey).
 {{include:fragments/commands.md}} Your brief may already name the unlisted ones. Explore the code yourself, reuse what's
 there, and match the surrounding style.
 
@@ -30,8 +30,8 @@ source neither spec nor plan names is a `question`.
 
 Once committed, a journey test is the contract, and every test already in the repo protects behavior someone relied on.
 Getting to green by skipping, focusing, deleting or loosening any of them isn't done: `solodev check` compares journey
-tests with their first committed version and other changed tests with the gate commit, and flags that. A test or
-scenario that seems wrong is a `question` for the commander.
+tests with their first committed version and other changed tests with the base (the code before the feature), and flags
+that. A test or scenario that seems wrong is a `question` for the commander.
 
 ## Fix rounds
 
@@ -64,4 +64,4 @@ blocked: <what stopped you, or "">
 headline: <one plain sentence for the user>
 ```
 
-You don't commit, push, open PRs or edit `docs/feats/`; the commander does that.
+You don't commit, push, open PRs or edit the feature folder; the commander does that.

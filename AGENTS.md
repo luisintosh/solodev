@@ -42,8 +42,9 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   in its `references/`. Raise a skill's `budget` only with a reason in the commit message.
 - **Plain prompts.** "Do X when Y", no capitalized MUST/NEVER/CRITICAL/ALWAYS, no step-by-step for what a top model
   already knows.
-- **Git is the state.** No state files and no stage machine. Progress comes from commits, the approval commit's trailers
-  and `docs/feats/<slug>/`, and `solodev status` derives it.
+- **Git for code, one folder per feature.** No state files and no stage machine. A feature's spec, plan, reports and
+  approval line live in its folder outside the repo (`~/.agents/skills/solodev/<repo>/<slug>/`), the code in git, and
+  `solodev status` derives the stage from both. Nothing harness-related is committed to the user's repo.
 - **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
 - **The user decides.** New pauses for the user go in `/arise`'s "ask the user only at" list; nothing approves the gate
   or merges for them.

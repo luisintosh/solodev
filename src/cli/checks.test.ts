@@ -5,18 +5,8 @@ import * as path from "node:path"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import { approve } from "./approve.ts"
 import { type CheckId, type CheckSet, runCheck, runChecks } from "./checks.ts"
-import { gateCommits } from "./git.ts"
-import type { Models } from "./models.ts"
+import { parseApprovals } from "./feature.ts"
 import { featureStatus, type PrInfo } from "./status.ts"
-
-const models: Models = {
-  claude: {
-    think: { id: "claude-opus-5-5", effort: "medium" },
-    implement: { id: "claude-sonnet-5-5", effort: "high" },
-  },
-  codex: { think: { id: "gpt-6.1-sol", effort: "max" }, implement: { id: "gpt-6.1-sol", effort: "medium" } },
-  cursor: { think: { id: "grok-4.7", effort: "xhigh" }, implement: { id: "grok-4.7", effort: "medium" } },
-}
 
 const AGENTS = `# Fixture
 
@@ -61,6 +51,9 @@ assert.strictEqual(hello("ana"), "hello ana")
 const IMPL = `export const hello = (name) => (name ? \`hello \${name}\` : "hello")\n`
 
 let root: string
+/** The repo's state folder; the feature folder is `${state}/hello`. */
+let state: string
+let dir: string
 
 function sh(...args: string[]) {
   return execFileSync("git", args, { cwd: root, encoding: "utf8" })
@@ -71,17 +64,23 @@ function write(rel: string, content: string) {
   fs.writeFileSync(path.join(root, rel), content)
 }
 
+/** Writes into the feature folder, outside the repo. */
+function feat(rel: string, content: string) {
+  fs.mkdirSync(dir, { recursive: true })
+  fs.writeFileSync(path.join(dir, rel), content)
+}
+
 function commit(message: string, ...paths: string[]) {
   sh("add", "--", ...(paths.length ? paths : ["."]))
   sh("commit", "-q", "-m", message)
 }
 
-const check = (id: CheckId, set: CheckSet = "done") => runCheck(id, { root, slug: "hello", set, timeoutMs: 30_000 })
+const check = (id: CheckId, set: CheckSet = "done") => runCheck(id, { root, dir, set, timeoutMs: 30_000 })
 
 async function gate(planText = plan()) {
-  write("docs/feats/hello/spec.md", SPEC)
-  write("docs/feats/hello/plan.md", planText)
-  return approve({ root, slug: "hello", writer: "codex", via: "orca", models })
+  feat("spec.md", SPEC)
+  feat("plan.md", planText)
+  return approve({ root, dir, date: "2026-10-12" })
 }
 
 function implement() {
@@ -92,6 +91,8 @@ function implement() {
 
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), "solodev-test-"))
+  state = fs.mkdtempSync(path.join(os.tmpdir(), "solodev-state-"))
+  dir = path.join(state, "hello")
   sh("init", "-q", "-b", "main")
   sh("config", "user.email", "t@example.com")
   sh("config", "user.name", "t")
@@ -104,38 +105,34 @@ beforeEach(() => {
 
 afterEach(() => {
   fs.rmSync(root, { recursive: true, force: true })
+  fs.rmSync(state, { recursive: true, force: true })
 })
 
 describe("approve", () => {
-  test("commits the spec and plan with the gate and writer trailers", async () => {
+  test("appends the approval line to progress.md and commits nothing", async () => {
+    feat("progress.md", "## Request\n\nhello")
+    const head = sh("rev-parse", "HEAD")
     const approval = await gate()
-    expect(approval.message).toContain("Solodev-Gate: approved")
-    expect(approval.message).toContain("Solodev-Writer: codex/gpt-6.1-sol/medium via orca")
-    expect(await gateCommits(root, "hello")).toEqual([
-      { sha: approval.sha, writer: "codex/gpt-6.1-sol/medium via orca" },
-    ])
-    expect(sh("show", "--name-only", "--format=", "HEAD").trim().split("\n").sort()).toEqual([
-      "docs/feats/hello/plan.md",
-      "docs/feats/hello/spec.md",
-    ])
+    expect(approval.at).toBe(sh("rev-parse", "--short=12", "HEAD").trim())
+    const progress = fs.readFileSync(path.join(dir, "progress.md"), "utf8")
+    expect(progress).toBe(`## Request\n\nhello\n- approved 2026-10-12 · spec ${approval.spec} · at ${approval.at}\n`)
+    expect(parseApprovals(progress)).toEqual([approval])
+    expect(sh("rev-parse", "HEAD")).toBe(head)
+    expect(sh("status", "--porcelain")).toBe("")
   })
 
   test("refuses a plan that leaves a scenario unclaimed", async () => {
-    write("docs/feats/hello/spec.md", `${SPEC}- @S3 a third one\n`)
-    write("docs/feats/hello/plan.md", plan())
-    await expect(approve({ root, slug: "hello", writer: "claude", via: "native", models })).rejects.toThrow(
-      /no journey or uncovered entry claims S3/,
-    )
+    feat("spec.md", `${SPEC}- @S3 a third one\n`)
+    feat("plan.md", plan())
+    await expect(approve({ root, dir })).rejects.toThrow(/no journey or uncovered entry claims S3/)
   })
 
-  test("refuses when code outside the feature folder is staged", async () => {
+  test("refuses while code is staged", async () => {
     write("src/early.js", "export {}\n")
     sh("add", "src/early.js")
-    write("docs/feats/hello/spec.md", SPEC)
-    write("docs/feats/hello/plan.md", plan())
-    await expect(approve({ root, slug: "hello", writer: "claude", via: "native", models })).rejects.toThrow(
-      /staged files outside docs\/feats\/hello\/: src\/early.js/,
-    )
+    feat("spec.md", SPEC)
+    feat("plan.md", plan())
+    await expect(approve({ root, dir })).rejects.toThrow(/staged files: src\/early.js/)
   })
 })
 
@@ -143,7 +140,7 @@ describe("checks", () => {
   test("a run that follows the workflow passes every implement and pr check but review", async () => {
     await gate()
     implement()
-    const results = await runChecks({ root, slug: "hello", set: "pr", timeoutMs: 30_000 })
+    const results = await runChecks({ root, dir, set: "pr", timeoutMs: 30_000 })
     const byId = Object.fromEntries(results.map((r) => [r.id, r.status]))
     expect(byId).toEqual({
       C1: "pass",
@@ -187,18 +184,19 @@ describe("checks", () => {
     expect(r.summary).toContain("test file test/hello.test.js does not exist")
   })
 
-  test("C3 fails a test that already passes at the gate commit", async () => {
+  test("C3 fails a test that already passes before the feature", async () => {
     write("src/hello.js", IMPL)
     commit("chore: hello existed before", "src")
+    sh("branch", "-f", "main", "HEAD")
     await gate()
     write("test/hello.test.js", TEST)
     commit("test: hello", "test")
     const r = await check("C3")
     expect(r.status).toBe("fail")
-    expect(r.summary).toContain("J1 passes at gate")
+    expect(r.summary).toContain("J1 passes at base")
   })
 
-  test("C3 proves red then green and shows the gate failure", async () => {
+  test("C3 proves red then green and shows the failure before the feature", async () => {
     await gate()
     implement()
     const r = await check("C3")
@@ -218,9 +216,10 @@ describe("checks", () => {
     expect((await check("C4")).status).toBe("fail")
   })
 
-  test("C4 also compares other changed tests with the gate commit", async () => {
+  test("C4 also compares other changed tests with the base", async () => {
     write("test/existing.test.js", 'import assert from "node:assert"\nassert.ok(1)\nassert.ok(2)\n')
     commit("test: existing", "test")
+    sh("branch", "-f", "main", "HEAD")
     await gate()
     implement()
     write("test/existing.test.js", 'import assert from "node:assert"\nassert.ok(1)\n')
@@ -231,57 +230,60 @@ describe("checks", () => {
     expect((await check("C4")).summary).toContain("test/existing.test.js was deleted")
   })
 
-  test("C5 fails when code lands before the gate", async () => {
+  test("C5 fails without an approval and when code lands before it", async () => {
+    expect((await check("C5")).summary).toContain("not approved")
     write("src/hello.js", IMPL)
     commit("feat: jumped the gate", "src")
     await gate()
     const r = await check("C5")
     expect(r.status).toBe("fail")
-    expect(r.details.join("\n")).toContain("src/hello.js")
+    expect(r.details.join("\n")).toContain("feat: jumped the gate")
   })
 
-  test("C6 fails a report commit that also changes code", async () => {
+  test("C5 reopens the gate when the spec or plan changes after approval", async () => {
+    await gate()
+    expect((await check("C5")).status).toBe("pass")
+    feat("plan.md", `${plan()}\nOne more line.\n`)
+    expect((await check("C5")).summary).toContain("changed since approval")
+    expect((await featureStatus(root, state, "hello", { pr: async () => null })).stage).toBe("gate")
+    await approve({ root, dir })
+    expect((await check("C5")).status).toBe("pass")
+  })
+
+  test("C6 fails a tracked change left in the project", async () => {
     await gate()
     implement()
-    write("docs/feats/hello/review.md", "| id | severity | location | status | finding |\n|-|-|-|-|-|\n")
+    expect((await check("C6")).status).toBe("pass")
     write("src/hello.js", `${IMPL}// reviewer was here\n`)
-    commit("docs: review")
     const r = await check("C6")
     expect(r.status).toBe("fail")
-    expect(r.details[0]).toContain("src/hello.js beside its report")
+    expect(r.details).toEqual(["src/hello.js"])
   })
 
   test("C7 blocks on an open major and accepts it once fixed", async () => {
     const table = (status: string) =>
       `| id | severity | location | status | finding |\n|---|---|---|---|---|\n| R1 | major | src/hello.js:1 | ${status} | x |\n`
-    write("docs/feats/hello/review.md", table("open"))
+    feat("review.md", table("open"))
     expect((await check("C7")).status).toBe("fail")
-    write("docs/feats/hello/review.md", table("fixed"))
+    feat("review.md", table("fixed"))
     expect((await check("C7")).status).toBe("pass")
-    write("docs/feats/hello/review.md", table("disputed"))
+    feat("review.md", table("disputed"))
     expect((await check("C7")).summary).toContain("unknown severity or status")
   })
 
   test("C8 requires a passing verdict for each uncovered scenario", async () => {
     await gate(plan("S2"))
     expect((await check("C8")).summary).toContain("no qa.md for S2")
-    write("docs/feats/hello/qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | fail | greets wrong |\n")
+    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | fail | greets wrong |\n")
     expect((await check("C8")).status).toBe("fail")
-    write(
-      "docs/feats/hello/qa.md",
-      "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | manual | needs a real inbox |\n",
-    )
+    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | manual | needs a real inbox |\n")
     expect((await check("C8")).summary).toContain("S2 needs a person")
-    write(
-      "docs/feats/hello/qa.md",
-      "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | waived | user: covered by staging |\n",
-    )
+    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | waived | user: covered by staging |\n")
     expect((await check("C8")).status).toBe("pass")
-    write("docs/feats/hello/qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | pass | ran it |\n")
+    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | pass | ran it |\n")
     expect((await check("C8")).status).toBe("pass")
   })
-  test("C9 fails an env var read since the gate until a README or .env.example names it", async () => {
-    expect((await check("C9")).status).toBe("skip")
+  test("C9 fails an env var read since the base until a README or .env.example names it", async () => {
     await gate()
     implement()
     expect((await check("C9")).summary).toBe("no new env reads")
@@ -292,8 +294,6 @@ describe("checks", () => {
     expect(r.details).toEqual([
       "PAY_KEY read in src/pay.js — add it to the owning README's ## Configuration or .env.example",
     ])
-    write("docs/feats/hello/plan.md", `${plan()}\nNeeds PAY_KEY.\n`)
-    expect((await check("C9")).status).toBe("fail")
     write("src/README.md", "# Pay\n\n## Configuration\n\n| PAY_KEY | yes | charges | dashboard |\n")
     expect((await check("C9")).summary).toBe("1 env var(s) read, all documented")
     commit("feat: pay")
@@ -306,35 +306,31 @@ describe("checks", () => {
 
 describe("status", () => {
   const pr = (info: PrInfo | null) => ({ pr: async () => info })
+  const stage = async (info: PrInfo | null = null) => (await featureStatus(root, state, "hello", pr(info))).stage
 
-  test("walks the stages from files, the gate commit and the PR", async () => {
-    expect((await featureStatus(root, "hello", pr(null))).stage).toBe("spec")
-    write("docs/feats/hello/spec.md", SPEC)
-    write("docs/feats/hello/plan.md", plan())
-    expect((await featureStatus(root, "hello", pr(null))).stage).toBe("gate")
-    await approve({ root, slug: "hello", writer: "claude", via: "native", models })
-    const implementing = await featureStatus(root, "hello", pr(null))
+  test("walks the stages from the feature folder and the PR", async () => {
+    expect(await stage()).toBe("spec")
+    feat("spec.md", SPEC)
+    feat("plan.md", plan())
+    expect(await stage()).toBe("gate")
+    await approve({ root, dir, date: "2026-10-12" })
+    const implementing = await featureStatus(root, state, "hello", pr(null))
     expect(implementing.stage).toBe("implement")
-    expect(implementing.writer).toBe("claude/claude-sonnet-5-5/high via native")
-    write(
-      "docs/feats/hello/review.md",
+    expect(implementing.approved).toMatch(/^2026-10-12 at [0-9a-f]{7}$/)
+    feat(
+      "review.md",
       "| id | severity | location | status | finding |\n|-|-|-|-|-|\n| R1 | blocker | a:1 | open | x |\n",
     )
-    const reviewing = await featureStatus(root, "hello", pr(null))
+    const reviewing = await featureStatus(root, state, "hello", pr(null))
     expect(reviewing.stage).toBe("review")
     expect(reviewing.notes).toEqual(["open: R1"])
-    write(
-      "docs/feats/hello/review.md",
+    feat(
+      "review.md",
       "| id | severity | location | status | finding |\n|-|-|-|-|-|\n| R1 | blocker | a:1 | fixed | x |\n",
     )
-    expect((await featureStatus(root, "hello", pr(null))).stage).toBe("pr")
+    expect(await stage()).toBe("pr")
     const draft = { url: "https://example.com/pr/1", isDraft: true, state: "OPEN" }
-    expect((await featureStatus(root, "hello", pr(draft))).stage).toBe("qa")
-    expect((await featureStatus(root, "hello", pr({ ...draft, isDraft: false }))).stage).toBe("done")
-  })
-
-  test("a v1 state.yaml without a gate commit is reported as v1", async () => {
-    write("docs/feats/hello/state.yaml", "stage: design\n")
-    expect((await featureStatus(root, "hello", pr(null))).stage).toBe("v1")
+    expect(await stage(draft)).toBe("qa")
+    expect(await stage({ ...draft, isDraft: false })).toBe("done")
   })
 })

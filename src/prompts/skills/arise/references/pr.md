@@ -1,9 +1,9 @@
 # PR and finish
 
-**Draft PR (step 7).** `gh pr create --draft` against the default branch. The body opens with one line linking the
-feature's `spec.md`, `plan.md` and `progress.md` on the branch (full URLs from `gh repo view --json url`), then: what
-changed in three to five bullets, the scenarios and the journey tests that prove them, findings deferred or dropped, and
-`Closes #<n>` for an issue run.
+**Draft PR (step 7).** `gh pr create --draft` against the default branch. The spec and plan stay outside the repo, so
+the body carries what a reviewer needs from them: what changed in three to five bullets, each scenario (`@S<n>` and its
+Then) with the journey test that proves it or `uncovered`, findings deferred or dropped, and `Closes #<n>` for an issue
+run.
 
 **Finish (step 9).**
 

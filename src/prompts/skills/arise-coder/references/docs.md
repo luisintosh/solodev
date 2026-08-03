@@ -6,7 +6,7 @@ only points into the code and lists what has to be configured.
 ## Which README
 
 1. Each changed source file belongs to the nearest ancestor directory with a `README.md`; each of those READMEs is in
-   scope. Skip tests, lockfiles, generated output and `docs/feats/`.
+   scope. Skip tests, lockfiles and generated output.
 2. Changed files with no such README get one, in the shallowest directory that owns them and isn't a generic container
    (`src`, `lib`, `app`, `apps`, `packages`, `components`).
 3. A change spread across top-level areas with no shared owner updates `docs/ARCHITECTURE.md` instead, when it exists.

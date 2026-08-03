@@ -216,10 +216,13 @@ cat >"${TARGET}/AGENTS.md" <<'EOF'
 - typecheck: n/a
 EOF
 (cd "$TARGET" && git add -A && git commit -q -m "chore: init" && git checkout -q -b feat/hello)
-mkdir -p "${TARGET}/docs/feats/hello"
+# feature state lives outside the repo; without an origin it's keyed by the checkout's folder name
+export SOLODEV_STATE="${WORK}/state"
+FEATURE="${SOLODEV_STATE}/consumer-repo/hello"
+mkdir -p "$FEATURE"
 printf '# Hello\n\n## Acceptance\n\n- @S1 Given nothing, when I call hello, then it returns "hello".\n' \
-  >"${TARGET}/docs/feats/hello/spec.md"
-cat >"${TARGET}/docs/feats/hello/plan.md" <<'EOF'
+  >"${FEATURE}/spec.md"
+cat >"${FEATURE}/plan.md" <<'EOF'
 # Plan
 
 ```yaml
@@ -232,8 +235,13 @@ journeys:
 EOF
 status_out="$(cd "$TARGET" && "$SOLODEV" status)"
 assert_grep 'hello: gate' "$status_out" "solodev status finds the feature waiting at the gate"
-approve_out="$(cd "$TARGET" && "$SOLODEV" approve hello --writer claude --via native)"
-assert_grep 'Solodev-Writer: claude/claude-sonnet-5-5/high via native' "$approve_out" "solodev approve records the writer"
+head_before="$(cd "$TARGET" && git rev-parse HEAD)"
+approve_out="$(cd "$TARGET" && "$SOLODEV" approve hello)"
+assert_grep 'approved hello: spec ' "$approve_out" "solodev approve records the gate"
+assert_grep '^- approved .* · spec [0-9a-f]* · at [0-9a-f]*$' "$(cat "${FEATURE}/progress.md")" \
+  "the approval line lands in the feature's progress.md"
+assert_eq "$(cd "$TARGET" && git rev-parse HEAD)" "$head_before" "solodev approve commits nothing to the repo"
+assert_eq "$(cd "$TARGET" && git status --porcelain)" "" "solodev approve leaves the repo clean"
 mkdir -p "${TARGET}/test" "${TARGET}/src"
 printf 'import assert from "node:assert"\nimport { hello } from "../src/hello.mjs"\nassert.strictEqual(hello(), "hello")\n' \
   >"${TARGET}/test/hello.test.mjs"
@@ -244,7 +252,7 @@ check_out="$(cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for impl
 check_rc=$?
 set -e
 assert_eq "$check_rc" "0" "solodev check --for implement passes a red-then-green journey"
-assert_grep 'J1 red→green' "$check_out" "C3 proves the journey failed at the gate and passes now"
+assert_grep 'J1 red→green' "$check_out" "C3 proves the journey failed before the feature and passes now"
 set +e
 (cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for pr >/dev/null 2>&1)
 pr_rc=$?

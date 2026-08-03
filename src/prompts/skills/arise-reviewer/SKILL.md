@@ -5,16 +5,17 @@ what it seems to intend. You report; you don't fix.
 
 Your brief names one:
 
-- **Spec review**, before the gate: `docs/feats/<slug>/spec.md` and `plan.md` against the request in `progress.md`. Read
-  [references/spec.md](references/spec.md). Reply with findings; write no file.
-- **Code review**: the diff since the gate commit, `git diff <gate>..HEAD -- . ':(exclude)docs/feats/<slug>'`, plus
-  untracked files, against the spec's scenarios and the plan. Read [references/code.md](references/code.md), which
-  covers contract, health and structure in one pass. Write findings to `docs/feats/<slug>/review.md`.
+- **Spec review**, before the gate: `spec.md` and `plan.md` in the feature folder against the request in `progress.md`.
+  Read [references/spec.md](references/spec.md). Reply with findings; write no file.
+- **Code review**: the diff since the base the brief names, `git diff <base>..HEAD`, plus untracked files, against the
+  spec's scenarios and the plan. Read [references/code.md](references/code.md), which covers contract, health and
+  structure in one pass. Write findings to `review.md` in the feature folder.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
   commit the brief names, nothing else.
 
-The brief includes the output of `solodev check --for implement`. It shows how each journey test failed against the gate
-commit: a failure from a syntax error, a bad import or a missing runner instead of missing behavior is a `major`.
+The brief includes the output of `solodev check --for implement`. It shows how each journey test failed against the code
+before the feature: a failure from a syntax error, a bad import or a missing runner instead of missing behavior is a
+`major`.
 
 ## Findings
 
@@ -38,7 +39,7 @@ catches. Each finding names `file:line` and a concrete fix.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
   reason to its text. New problems in the fix diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander. Leave those rows as they are.
-- `review.md` is the only file you change. No source, tests or other docs, no git writes, no builds or test runs.
+- `review.md` is the only file you change. No repo files at all, no git writes, no builds or test runs.
 
 A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it
 to the user.

@@ -8,40 +8,41 @@ export const HELP: Record<string, CommandHelp> = {
     detail: [
       "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models and",
       "their Orca launch fields), Orca (runtime ready, orchestration skill installed), gh, the AGENTS.md commands,",
+      "`state`: this repo's folder of features (outside the repo) and whether this session can write there,",
       "personal defaults from ~/.agents/solodev.yaml, and `writers`: the coder options for the gate card, another",
-      "tool first. Read-only; takes a few seconds.",
+      "tool first. Takes a few seconds.",
     ],
     example: "solodev probe",
   },
   status: {
     usage: "solodev status [<slug>] [--json]",
-    summary: "Where a feature stands and what comes next, worked out from git and its files.",
+    summary: "Where a feature stands and what comes next, worked out from its folder and the PR.",
     detail: [
-      "Derives the stage (spec, gate, implement, review, pr, qa, done) from docs/feats/<slug>/, the approval",
-      "commit and the branch's PR, and prints the next step. Without a slug: the feature the current feat/<slug>",
-      "branch names, or one line per feature. Nothing stores the stage, so this is always current.",
+      "Derives the stage (spec, gate, implement, review, pr, qa, done) from the feature folder (the approval line",
+      "in progress.md, review.md, qa.md) and the branch's PR, and prints the next step. Without a slug: the feature",
+      "the current feat/<slug> branch names, or one line per feature. Nothing stores the stage.",
     ],
     example: "solodev status csv-export",
   },
   approve: {
-    usage: "solodev approve <slug> --writer claude|codex|cursor [--via native|orca]",
-    summary: "Record the spec gate: commit the spec and plan with who writes the code.",
+    usage: "solodev approve <slug>",
+    summary: "Record the spec gate: an approval line in the feature's progress.md.",
     detail: [
-      "Run only after the user approves. Checks the plan covers the spec (C2), then commits docs/feats/<slug>/ with",
-      "the trailers Solodev-Gate: approved and Solodev-Writer: <tool>/<model>/<effort> via <native|orca>. --via",
-      "defaults to native for the tool running this session and orca for any other.",
+      "Run only after the user approves. Checks the plan covers the spec (C2) and nothing is staged, then appends",
+      "`- approved <date> · spec <hash of spec.md + plan.md> · at <HEAD>` to progress.md. Commits nothing. Editing",
+      "spec.md or plan.md afterwards reopens the gate until the user approves again.",
     ],
-    example: "solodev approve csv-export --writer codex",
+    example: "solodev approve csv-export",
   },
   check: {
     usage: "solodev check <slug> [--for implement|pr|done] [--json]",
     summary: "Run the checks that must pass before implement → review, PR, or PR ready.",
     detail: [
       "Prints one line per check and exits 1 if any fails, naming what to fix. --for implement proves each",
-      "journey's test fails against the gate commit's code and passes now (C3) and every new env var is documented",
-      "(C9); pr adds the full commands, the gate order, report-only reviews and a settled review; done adds QA",
+      "journey's test fails against the code before the feature and passes now (C3), the gate held (C5) and every",
+      "new env var is documented (C9); pr adds the full commands, a clean tree and a settled review; done adds QA",
       "verdicts. Without --for: the set for the stage. C1 commands · C2 coverage · C3 fail then pass · C4 tests not",
-      "weakened (a warning: ask the user) · C5 gate before code · C6 reports only · C7 review settled · C8 QA verdicts",
+      "weakened (a warning: ask the user) · C5 gate held · C6 reports only · C7 review settled · C8 QA verdicts",
       "· C9 config documented. C1 runs only the commands AGENTS.md lists and skips the rest.",
     ],
     example: "solodev check csv-export --for implement",
@@ -70,7 +71,7 @@ export function helpText(command?: string): string {
   }
   const width = Math.max(...Object.keys(HELP).map((k) => k.length))
   return [
-    "solodev: checks and evidence for an /arise feature run. Holds no state; reads git and docs/feats/<slug>/.",
+    "solodev: checks and evidence for an /arise feature run. Reads git and the feature folder; commits nothing.",
     "",
     ...Object.entries(HELP).map(([name, h]) => `  ${name.padEnd(width)}  ${h.summary}`),
   ].join("\n")

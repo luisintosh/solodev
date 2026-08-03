@@ -35,7 +35,7 @@ export type Result = {
   costUsd: number | null
   inputTokens: number | null
   outputTokens: number | null
-  gateCommit: boolean
+  gateRecorded: boolean
   diffLines: number
 }
 
@@ -199,6 +199,18 @@ function usage(stdout: string): Pick<Result, "costUsd" | "inputTokens" | "output
   return { costUsd: null, inputTokens: null, outputTokens: null }
 }
 
+const STATE_DIR = ".solodev-state"
+
+/** An approval line in a feature's progress.md, or, for releases before v3.1, an approval commit's trailer. */
+async function gateRecorded(ws: string, state: string): Promise<boolean> {
+  if (sh("git", ["log", "--grep", "Solodev-Gate: approved", "--format=%H"], ws).stdout.trim() !== "") return true
+  const files = await fs.readdir(state, { recursive: true }).catch(() => [] as string[])
+  for (const f of files.filter((f) => path.basename(f) === "progress.md")) {
+    if (/^- approved /m.test(await fs.readFile(path.join(state, f), "utf8"))) return true
+  }
+  return false
+}
+
 async function runConfig(
   configId: string,
   only: string | undefined,
@@ -216,9 +228,15 @@ async function runConfig(
       try {
         install(ws, config)
         const base = sh("git", ["rev-parse", "HEAD"], ws).stdout.trim()
+        // Feature folders go inside the workspace, where every tool's sandbox can write, but stay out of git.
+        const state = path.join(ws, STATE_DIR)
+        await fs.appendFile(path.join(ws, ".git", "info", "exclude"), `${STATE_DIR}/\n`)
         const [cmd, args] = agentCommand(config.home, prompt(task, config), allowUnsandboxed)
         const started = Date.now()
-        const agent = sh(cmd, args, ws, { timeoutMs: 60 * 60_000, env: { SOLODEV_HOME: config.home } })
+        const agent = sh(cmd, args, ws, {
+          timeoutMs: 60 * 60_000,
+          env: { SOLODEV_HOME: config.home, SOLODEV_STATE: state },
+        })
         const wallSeconds = Math.round((Date.now() - started) / 1000)
         const scored = await score(ws, task)
         const stat = sh(
@@ -237,7 +255,7 @@ async function runConfig(
           wallSeconds,
           agentExit: agent.code,
           ...usage(agent.stdout),
-          gateCommit: sh("git", ["log", "--grep", "Solodev-Gate: approved", "--format=%H"], ws).stdout.trim() !== "",
+          gateRecorded: await gateRecorded(ws, state),
           diffLines: [...stat.matchAll(/(\d+) (?:insertion|deletion)/g)].reduce((n, m) => n + Number(m[1]), 0),
         }
         await fs.appendFile(out, `${JSON.stringify(result)}\n`)

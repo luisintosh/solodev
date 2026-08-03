@@ -7,7 +7,11 @@ export type ProbeDeps = {
   env: Record<string, string | undefined>
   platform: string
   root: string
+  /** The repo's folder of features, outside the repo (state.ts). */
+  state: string
   home: string
+  /** Whether this session can create files in `dir`; it runs inside the agent's sandbox. */
+  writable: (dir: string) => Promise<boolean>
   /** Runs a command; never throws. `code` is null when the binary could not start. */
   exec: (cmd: string, args: string[]) => Promise<{ code: number | null; stdout: string }>
   which: (bin: string) => Promise<boolean>
@@ -41,6 +45,8 @@ export type Probe = {
   orca: { cli: string; ready: boolean; reason: string }
   gh: { installed: boolean; loggedIn: boolean }
   agentsMd: { found: boolean; lines: number; commands: Record<string, string | null>; missing: string[] }
+  /** Where feature folders go (`<dir>/<slug>/`). */
+  state: { dir: string; writable: boolean }
   defaults: Defaults
   writers: WriterOption[]
   warnings: string[]
@@ -185,6 +191,9 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     warnings.push(`AGENTS.md is ${lines} lines; keep it near the commands list (about 100 lines at most)`)
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
 
+  const writable = await deps.writable(deps.state)
+  if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /arise`)
+
   const defaults = parseDefaults(await deps.read(path.join(deps.home, ".agents", "solodev.yaml")), warnings)
   if (defaults.dispatch === "orca" && !orca.ready) {
     warnings.push(`dispatch: orca, but Orca isn't ready (${orca.reason}); shadows run natively`)
@@ -216,6 +225,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     orca,
     gh: { installed: ghInstalled, loggedIn: ghLoggedIn },
     agentsMd: { found: agents !== undefined, lines, commands: Object.fromEntries(commands), missing },
+    state: { dir: deps.state, writable },
     defaults,
     writers,
     warnings,

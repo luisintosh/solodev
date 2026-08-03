@@ -30,8 +30,8 @@ shadows:
       the only agent that edits source.
     permission:
       edit:
-        # The spec, plan and reports belong to the commander and the reviewers.
-        "docs/feats/**": deny
+        # The feature folder (spec, plan, reports) belongs to the commander and the reviewers.
+        "~/.agents/skills/solodev/**": deny
       bash:
         "git commit*": deny
         "git push*": deny

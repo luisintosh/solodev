@@ -1,30 +1,32 @@
+import * as fs from "node:fs/promises"
+import * as path from "node:path"
 import { coverage } from "./checks.ts"
-import { featurePath, git } from "./git.ts"
-import { type Models, type Tool, writerId } from "./models.ts"
+import { type Approval, approvalLine, readIfExists, specHash } from "./feature.ts"
+import { git } from "./git.ts"
 
-export type Dispatch = "native" | "orca"
-
-export type ApproveOptions = { root: string; slug: string; writer: Tool; via: Dispatch; models: Models }
-
-export type Approval = { sha: string; message: string }
+export type ApproveOptions = { root: string; dir: string; date?: string }
 
 /**
- * Commits the feature's spec and plan as the spec gate. Refuses when the plan doesn't cover the spec (C2) or when
- * anything outside the feature folder is staged, so the gate commit holds the approved documents and nothing else.
+ * Records the spec gate: appends an approval line to the feature's progress.md with a hash of spec.md + plan.md and
+ * the project's HEAD. Refuses when the plan doesn't cover the spec (C2) or when code is staged, since nothing may be
+ * committed to the project before the gate. Commits nothing.
  */
 export async function approve(opts: ApproveOptions): Promise<Approval> {
-  const covered = await coverage(opts.root, opts.slug, false)
+  const covered = await coverage(opts.root, opts.dir, false)
   if (covered.status !== "pass") {
     throw new Error([`can't approve: ${covered.summary}`, ...covered.details].join("\n  "))
   }
-  const dir = featurePath(opts.slug)
-  await git(opts.root, ["add", "--", dir])
   const staged = (await git(opts.root, ["diff", "--cached", "--name-only"])).split("\n").filter(Boolean)
-  const outside = staged.filter((p) => !p.startsWith(dir))
-  if (outside.length) throw new Error(`can't approve: staged files outside ${dir}: ${outside.join(", ")}`)
-  const writer = `${writerId(opts.writer, opts.models[opts.writer].implement)} via ${opts.via}`
-  const message = `docs: approve spec for ${opts.slug.replaceAll("-", " ")}\n\nSolodev-Gate: approved\nSolodev-Writer: ${writer}\n`
-  await git(opts.root, ["commit", "--quiet", "--allow-empty", "--file", "-"], message)
-  const sha = (await git(opts.root, ["rev-parse", "HEAD"])).trim()
-  return { sha, message }
+  if (staged.length) throw new Error(`can't approve: staged files: ${staged.join(", ")}`)
+  const read = (f: string) => fs.readFile(path.join(opts.dir, f), "utf8")
+  const approval: Approval = {
+    date: opts.date ?? new Date().toISOString().slice(0, 10),
+    spec: specHash(await read("spec.md"), await read("plan.md")),
+    at: (await git(opts.root, ["rev-parse", "--short=12", "HEAD"])).trim(),
+  }
+  const progressFile = path.join(opts.dir, "progress.md")
+  const progress = (await readIfExists(progressFile)) ?? ""
+  const sep = progress === "" || progress.endsWith("\n") ? "" : "\n"
+  await fs.writeFile(progressFile, `${progress}${sep}${approvalLine(approval)}\n`)
+  return approval
 }
