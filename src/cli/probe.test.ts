@@ -20,7 +20,7 @@ function deps(over: Partial<ProbeDeps> = {}): ProbeDeps {
     env: { CLAUDECODE: "1" },
     platform: "darwin",
     root: "/repo",
-    state: "/home/u/.agents/skills/solodev/acme/repo",
+    state: "/home/u/.agents/solodev/acme/repo",
     home: "/home/u",
     writable: async () => true,
     exec: async (cmd, args) => {
@@ -51,7 +51,7 @@ describe("probe", () => {
     expect(p.tools.claude.launch.think).toEqual({ agent: "claude", model: "claude-opus-5-5", effort: "medium" })
     expect(p.defaults).toEqual({ writer: "ask", dispatch: "auto" })
     expect(p.agentsMd.missing).toEqual([])
-    expect(p.state).toEqual({ dir: "/home/u/.agents/skills/solodev/acme/repo", writable: true })
+    expect(p.state).toEqual({ dir: "/home/u/.agents/solodev/acme/repo", writable: true })
     expect(p.warnings).toEqual([])
   })
 
@@ -59,7 +59,7 @@ describe("probe", () => {
     const p = await probe(deps({ writable: async () => false }), models)
     expect(p.state.writable).toBe(false)
     expect(p.warnings).toContain(
-      "can't write to /home/u/.agents/skills/solodev/acme/repo; allow it in this tool's sandbox before /arise",
+      "can't write to /home/u/.agents/solodev/acme/repo; allow it in this tool's sandbox before /arise",
     )
   })
 

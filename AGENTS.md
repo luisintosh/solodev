@@ -43,7 +43,7 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
 - **Plain prompts.** "Do X when Y", no capitalized MUST/NEVER/CRITICAL/ALWAYS, no step-by-step for what a top model
   already knows.
 - **Git for code, one folder per feature.** No state files and no stage machine. A feature's spec, plan, reports and
-  approval line live in its folder outside the repo (`~/.agents/skills/solodev/<repo>/<slug>/`), the code in git, and
+  approval line live in its folder outside the repo (`~/.agents/solodev/<repo>/<slug>/`), the code in git, and
   `solodev status` derives the stage from both. Nothing harness-related is committed to the user's repo.
 - **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
 - **The user decides.** New pauses for the user go in `/arise`'s "ask the user only at" list; nothing approves the gate

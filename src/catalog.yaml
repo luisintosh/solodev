@@ -31,7 +31,7 @@ shadows:
     permission:
       edit:
         # The feature folder (spec, plan, reports) belongs to the commander and the reviewers.
-        "~/.agents/skills/solodev/**": deny
+        "~/.agents/solodev/**": deny
       bash:
         "git commit*": deny
         "git push*": deny

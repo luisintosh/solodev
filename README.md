@@ -33,8 +33,8 @@ things they can't give themselves:
 - **Independent eyes.** The agent that wrote the code never signs off on it. Pick a coder on another tool and every PR
   also gets a review from a different model family.
 - **Nothing extra in your repo.** A feature's spec, plan, reports and approval live in one folder outside it,
-  `~/.agents/skills/solodev/<owner>/<repo>/<slug>/`. Your branch holds only code, tests and docs, and any session can
-  resume with `solodev status`.
+  `~/.agents/solodev/<owner>/<repo>/<slug>/`. Your branch holds only code, tests and docs, and any session can resume
+  with `solodev status`.
 - **Short instructions, loaded when needed.** Each role is a skill of a few dozen lines; detail sits in references read
   only when a step needs it.
 - **You stay in charge.** solodev opens the PR and marks it ready. It never merges.
@@ -250,7 +250,7 @@ dispatch: auto # orca: run every shadow as an Orca worker, even on the home tool
 Outside every repo, whatever the install scope (`SOLODEV_STATE` overrides the root):
 
 ```text
-~/.agents/skills/solodev/<owner>/<repo>/   origin's path, or the checkout's folder name without an origin
+~/.agents/solodev/<owner>/<repo>/   origin's path, or the checkout's folder name without an origin
   <feature>/
     spec.md                     what and why, with @S<n> acceptance scenarios
     plan.md                     approach and journeys (one test file each)
