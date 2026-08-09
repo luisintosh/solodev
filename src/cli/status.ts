@@ -103,6 +103,9 @@ export async function featureStatus(
   return done("qa", { approved, pr })
 }
 
+/** Where /arise-strategist keeps roadmap drafts, beside the feature folders; not a feature. */
+export const ROADMAPS_DIR = "roadmaps"
+
 /** Feature slugs in the repo's state folder, newest directory first. */
 export async function listFeatures(state: string): Promise<string[]> {
   const base = state
@@ -114,6 +117,7 @@ export async function listFeatures(state: string): Promise<string[]> {
   }
   const dirs: { slug: string; mtime: number }[] = []
   for (const e of entries) {
+    if (e === ROADMAPS_DIR) continue
     const st = await fs.stat(path.join(base, e)).catch(() => undefined)
     if (st?.isDirectory()) dirs.push({ slug: e, mtime: st.mtimeMs })
   }
