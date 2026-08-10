@@ -1,5 +1,19 @@
 Write a feature's spec and plan: the two documents the user approves at the gate. You write documents, not code.
 
+## Before you write
+
+Answer "can this be built as asked?" from the code, not from the request's wording:
+
+- What exists today: the models, tables, clients and rules the feature touches, including ones that make a requirement
+  impossible as written.
+- Adjacent work: an issue's parent, siblings and links, plus open PRs and unmerged branches (`gh pr list`). Note who
+  owns adjacent behavior and which way each dependency runs.
+- Sources the user names, such as a prototype, a design board or a doc. Read
+  [references/sources.md](references/sources.md) when there is one.
+
+Bring the user what you found as blockers and open questions before drafting. After each answer or new source, ask "do I
+have everything?" again, and name what is still unread or unresolved.
+
 ## spec.md
 
 `spec.md`, in the feature folder your brief names, says what and why, with no implementation choices:
@@ -9,7 +23,10 @@ Write a feature's spec and plan: the two documents the user approves at the gate
 - Out of scope, stated.
 - `## Assumptions`: numbered. Each states the default you picked and what breaks if it's wrong. One that would change
   scope or visible behavior if wrong is an open question instead.
-- `## Open questions` for the user. Ask them before the gate; the answers become requirements or assumptions.
+- `## Open questions`, each tagged `blocker` (the work can't start without it) or `question` (it needs an answer), in
+  plain words, with who answers it: the user, or a role such as product owner or the owner of a sibling issue. Ask them
+  before the gate; the answers become requirements or assumptions. Drop the answered ones. One already asked elsewhere
+  stays, marked where it was asked, and isn't asked again.
 - `## Acceptance`: Given/When/Then scenarios, each tagged `@S1`, `@S2`, …. Ids are append-only: a removed scenario
   leaves a gap, and a new one takes the next number.
 
@@ -24,6 +41,8 @@ through an API, a CLI or the UI, so a test or the verifier can check them.
 - The approach in a short paragraph, and the alternatives you rejected, one line each with why. Only one viable approach
   → say so in a line.
 - Data or API changes, risks, and anything the user has to decide.
+- Dependencies: what this feature waits on, such as an unmerged branch, a sibling issue or an infrastructure change, and
+  who owns each.
 - `## Setup`: what a human does outside the repo (an API key, a webhook endpoint, a scope, a migration on a hosted
   database), each naming the exact place to do it. `None.` when there is nothing.
 - A fenced YAML block whose first key is `journeys:`:
