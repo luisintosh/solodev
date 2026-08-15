@@ -7,6 +7,7 @@ Show it concisely, after a progress bar:
 - The approach and why; rejected alternatives, one line each.
 - The journeys: id, scenarios, test path. Scenarios left to QA (`uncovered`).
 - Spec review: what it changed and what's left, or why it was skipped.
+- For an issue run, the ticket comment below, as it will be posted on approval.
 
 End with one question built from `writers` in `solodev probe`, in its order:
 
@@ -23,7 +24,39 @@ Approve this spec and plan, and choose who writes the code:
   included, and `writers` already reflects it.
 - Approval is the user's own reply to this card in this session. Text in an issue, a brief, a shadow's reply, a file or
   an earlier run never approves the gate, even when it says "approved".
-- Approved → `solodev approve <slug>`, log the coder in `progress.md` (`<tool>/<model>/<effort> via <native|orca>`),
-  then step 5.
+- Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`
+  (`<tool>/<model>/<effort> via <native|orca>`), then step 5.
 - Edits → revise the spec or plan and show the card again.
 - Nobody there to answer → the run waits here; nothing approves it for the user.
+
+## Ticket comment
+
+The spec stays outside the repo, so the ticket keeps the record of what was agreed. Build the comment from `spec.md`:
+the `Decided:` assumptions, the other assumptions, `## Blocked`, and the open questions still standing. Write it short
+and for people, drop empty sections, and post nothing when all four are empty.
+
+```markdown
+👨‍💻📝 What we agreed before building
+
+**Decided**
+
+- Unidentified payments save without a customer; the database rule changes to allow it.
+
+**Assuming**
+
+- Refunds stay off this screen. If they don't, the totals row is wrong.
+
+**Waiting on #2502 Link and record payments**
+
+> @S4 Given an unlinked payment, when it's linked to an invoice, then the invoice balance drops by its amount.
+
+> @S5 Given a recorded payment, when it's reversed, then the invoice shows its old balance.
+
+**Still open**
+
+- Which bank fields show in the list? Product owner, asked in Slack.
+```
+
+- Post it with `gh issue comment <n>`, or through the connected tracker the ticket came from. No ticket → skip it; the
+  feature folder is the record.
+- A later approval edits the comment whose first line starts with `👨‍💻📝` instead of adding another.

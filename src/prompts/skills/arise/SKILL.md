@@ -64,8 +64,8 @@ tests and docs. Every brief names the folder's absolute path.
    or a migration, touches auth or security, or the user asks. The reviewer judges the spec against `progress.md`'s
    request. Otherwise tell the user you skipped it and why.
 4. **Gate.** Show the gate card from [references/gate.md](references/gate.md) and wait. On approval run
-   `solodev approve <slug>` and log the coder choice in `progress.md`. No code before that line. An edit to the spec or
-   plan after the gate reopens it: back to the user for a new approval.
+   `solodev approve <slug>`, post the ticket comment for an issue run, and log the coder choice in `progress.md`. No
+   code before that line. An edit to the spec or plan after the gate reopens it: back to the user for a new approval.
 5. **Implement.** Brief the coder with the slug and the journeys. It writes each journey's failing test, then the code,
    and runs `solodev check <slug> --for implement` before replying. Run the check yourself, then commit its work. A C4
    warning means you show the user the diff it names and ask.
