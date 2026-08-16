@@ -1,5 +1,5 @@
 {
-  "skill_name": "arise-strategist",
+  "skill_name": "solodev-roadmap",
   "evals": [
     {
       "id": 1,
@@ -24,7 +24,7 @@
         "Work item titles have the shape F<n>: <outcome-oriented title>",
         "A fresh-context adversarial product-owner review of the drafted work items ran before the user was shown them",
         "The work items shown to the user came with a review summary of findings applied and rejected",
-        "The handoff points each feature at /arise, one at a time, and prints `/arise #<n>` for wave 1's first feature when issues were filed"
+        "The handoff points each feature at /solodev-mission, one at a time, and prints `/solodev-mission #<n>` for wave 1's first feature when issues were filed"
       ]
     }
   ]

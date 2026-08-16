@@ -67,13 +67,13 @@ function permissionValues(node: unknown, at: string[] = []): [string, string][] 
 
 const SHADOWS = ["shadow-coder", "shadow-reviewer"]
 const SKILLS = [
-  "arise",
-  "arise-architect",
-  "arise-coder",
-  "arise-reviewer",
-  "arise-verifier",
-  "arise-strategist",
-  "arise-scout",
+  "solodev-mission",
+  "solodev-plan",
+  "solodev-code",
+  "solodev-review",
+  "solodev-verify",
+  "solodev-roadmap",
+  "solodev-scout",
 ]
 /** Claude Code ignores any other `experimental.cacheTtl`, so a typo would silently fall back to the 5m default. */
 const CACHE_TTLS = new Set(["5m", "1h"])
@@ -142,16 +142,16 @@ if (catalog) {
 // 2. Prompt rules, on the rendered source (includes resolved).
 if (catalog) {
   const contracts: Record<string, string[]> = {
-    arise: ["## When to use this skill", "`/plan`", "solodev approve", "solodev check", "never merge"],
-    "arise-architect": ["journeys:", "uncovered", "@S1"],
-    "arise-coder": [
+    "solodev-mission": ["## When to use this skill", "`/plan`", "solodev approve", "solodev check", "never merge"],
+    "solodev-plan": ["journeys:", "uncovered", "@S1"],
+    "solodev-code": [
       "solodev check <slug> --for implement",
       "fails because the behavior is missing",
       "references/docs.md",
     ],
-    "arise-reviewer": ["review.md", "deferred", "rebutted"],
-    "arise-verifier": ["qa.md", "agent-browser"],
-    "arise-scout": ["## Commands", "test_file"],
+    "solodev-review": ["review.md", "deferred", "rebutted"],
+    "solodev-verify": ["qa.md", "agent-browser"],
+    "solodev-scout": ["## Commands", "test_file"],
   }
   for (const [name, skill] of Object.entries(catalog.skills ?? {})) {
     let body: string

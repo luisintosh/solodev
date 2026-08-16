@@ -26,7 +26,7 @@
       "install": "local",
       "home": "claude",
       "writer": "claude",
-      "suffix": "Run arise-verifier for every scenario, not only the uncovered ones.",
+      "suffix": "Run solodev-verify for every scenario, not only the uncovered ones.",
       "note": "verifier always vs conditional"
     },
     {

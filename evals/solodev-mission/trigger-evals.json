@@ -20,7 +20,7 @@
     "should_trigger": true
   },
   {
-    "query": "/arise #42",
+    "query": "/solodev-mission #42",
     "should_trigger": true
   },
   {

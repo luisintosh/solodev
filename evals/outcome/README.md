@@ -15,7 +15,7 @@ never judged by the agent's own tests.
 
 ```bash
 node tools/eval.ts validate                            # no agents: held-out tests fail on the fixture, pass on the reference
-node tools/eval.ts run --config v2-claude --repeat 3   # runs /arise headless per task, scores, appends results
+node tools/eval.ts run --config v2-claude --repeat 3   # runs /solodev-mission headless per task, scores, appends results
 node tools/eval.ts report                              # mean ± spread per config, and the release bar
 ```
 

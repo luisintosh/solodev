@@ -46,8 +46,8 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   approval line live in its folder outside the repo (`~/.agents/solodev/<repo>/<slug>/`), the code in git, and
   `solodev status` derives the stage from both. Nothing harness-related is committed to the user's repo.
 - **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
-- **The user decides.** New pauses for the user go in `/arise`'s "ask the user only at" list; nothing approves the gate
-  or merges for them.
+- **The user decides.** New pauses for the user go in `/solodev-mission`'s "ask the user only at" list; nothing approves
+  the gate or merges for them.
 - **No new stage or agent** unless an outcome eval shows it pays for itself. Two shadows, two profiles, three hosts.
 
 ## Checked artifacts
