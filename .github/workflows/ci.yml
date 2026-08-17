@@ -75,7 +75,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Held-out tests fail on the fixture and pass on each reference
+      - run: pnpm run build
+      - name: Held-out tests fail on the fixture and pass on each reference; stage starting points hold
         run: pnpm run eval:validate
 
   e2e-install:

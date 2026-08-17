@@ -1,0 +1,56 @@
+{
+  "tier": "smoke",
+  "skill": "solodev-mission",
+  "covers": ["solodev-mission"],
+  "prompt": "/solodev-mission fix the typo 'Helo' in src/index.js",
+  "maxTurns": 6,
+  "checks": [
+    {
+      "expect": "It suggests /plan or making the change directly",
+      "reply": "/plan|directly|direct edit"
+    },
+    {
+      "expect": "It names the request as a trivial or single-line change",
+      "reply": "trivial|single[- ](line|word)|one[- ](line|word)|too (much|heavy)|overkill"
+    },
+    {
+      "expect": "It offers to run the full workflow anyway",
+      "judge": true
+    },
+    {
+      "expect": "No feature branch was cut",
+      "git": ["branch", "--list", "feat/*"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "No feature folder was created",
+      "features": true,
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "Nothing was committed",
+      "git": ["log", "--oneline", "{base}..HEAD"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "No file was edited",
+      "git": ["status", "--porcelain"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "No shadow started",
+      "tool": "Agent",
+      "count": {
+        "max": 0
+      }
+    }
+  ]
+}

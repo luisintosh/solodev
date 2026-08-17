@@ -1,0 +1,51 @@
+{
+  "tier": "smoke",
+  "skill": "solodev-roadmap",
+  "covers": ["solodev-roadmap"],
+  "prompt": "Idea: let users schedule the greeting to print at a set time every day. Plan it as a product and file the issues if I say yes.",
+  "maxTurns": 25,
+  "checks": [
+    {
+      "expect": "It read the code before asking, and cites it",
+      "reply": "src/index\\.js"
+    },
+    {
+      "expect": "The first round asks at most 5 questions",
+      "reply": "\\?\\**\\s*$",
+      "final": true,
+      "count": {
+        "max": 5
+      }
+    },
+    {
+      "expect": "Routine choices appear as numbered assumptions",
+      "reply": "assumption",
+      "final": true
+    },
+    {
+      "expect": "Nothing was committed",
+      "git": ["log", "--oneline", "{base}..HEAD"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "Nothing was written to the repo",
+      "git": ["status", "--porcelain"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "No drafts yet: they come only after approval",
+      "file": "{state}/roadmaps",
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "Its questions would change scope, sequencing or acceptance, not routine details",
+      "judge": true
+    }
+  ]
+}

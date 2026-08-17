@@ -17,3 +17,6 @@ node_modules/
 # release.json names.
 /dist/
 /manifest.txt
+
+# Stage eval results stay local
+/evals/stages/results/*.jsonl
