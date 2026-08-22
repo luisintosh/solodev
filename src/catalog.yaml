@@ -62,7 +62,7 @@ shadows:
 
 skills:
   solodev-mission:
-    budget: 150
+    budget: 125
     # Claude Code skills can set the session model while they run; Codex and Cursor use the session's model.
     profile: think
     description: >-
@@ -86,7 +86,7 @@ skills:
       Independent review of a spec and plan, or of a feature diff against its scenarios: contract, health and structure
       in one pass, findings in review.md. Used by /solodev-mission in a fresh context, or by the user on any branch.
   solodev-verify:
-    budget: 80
+    budget: 52
     description: >-
       Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
       scenario in qa.md. Loaded by shadow-reviewer for a /solodev-mission run.

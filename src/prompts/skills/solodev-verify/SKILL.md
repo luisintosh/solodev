@@ -9,18 +9,12 @@ Their Given/When/Then is in `spec.md`. The `dev` command starts the app.
 
 ## Checking a scenario
 
-Exercise the real path and capture evidence that its Then holds at each step:
-
-- **UI:** agent-browser (`open`, `snapshot`, `click` and `fill` by ref, a screenshot per step). If
-  `command -v agent-browser` finds nothing, stop and give the commander the install step
-  (`npm install -g agent-browser && agent-browser install`) instead of installing it.
-- **API:** the request (method, path, body) and the response (status, body up to 20 lines).
-- **CLI:** the exact invocation, its output and its exit code.
-- **Config, database, logs:** the command that validates it and its output.
-
-Use throwaway data, dry runs and a local dev server; nothing destructive. Keep screenshots and outputs under
-`/tmp/qa-<slug>/`. A scenario you can't automate (an external service, a missing secret) gets `manual`, with the steps a
-person would follow as its evidence; the commander takes it to the user.
+Exercise the real path and capture, at each step, evidence a reader could replay: for UI, agent-browser with a
+screenshot per step (no `agent-browser` on PATH → stop and give the commander
+`npm install -g agent-browser && agent-browser install`); for an API, the request and the response (status, body up to
+20 lines); for a CLI, the invocation, output and exit code; for config, data or logs, the command that validates it. Use
+throwaway data and a local dev server, nothing destructive, and keep outputs under `/tmp/qa-<slug>/`. A scenario you
+can't automate gets `manual`, with the steps a person would follow as its evidence; the commander takes it to the user.
 
 ## qa.md
 
