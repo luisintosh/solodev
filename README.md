@@ -189,9 +189,10 @@ Budgets: two attempts per journey (a failing test or build command at the PR ste
 budget), one review fix round and one re-review, two QA cycles; a spent budget asks you instead of thrashing.
 
 You're asked only at the spec questions, the gate, findings left after the re-review, a shadow's question or blocker, a
-QA scenario that needs a person, a spent budget, a failed Orca worker, and the ready PR. The draft PR links the spec,
-plan and `progress.md`, and at the finish its `## Follow-ups` section lists what was left open: deferred findings, open
-minors and waived scenarios, each with why. The finish card repeats them as tickets ready to paste.
+QA scenario that needs a person, a spent budget, a failed Orca worker, and the ready PR. The draft PR carries what a
+reviewer needs from the spec and plan, and its footer links the decisions agreed on the ticket. At the finish its
+`## Follow-ups` section lists what was left open: deferred findings, open minors and waived scenarios, each with why.
+The finish card repeats them as tickets ready to paste.
 
 ### The `solodev` CLI
 
