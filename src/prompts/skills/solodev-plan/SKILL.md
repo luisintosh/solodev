@@ -11,8 +11,21 @@ Answer "can this be built as asked?" from the code, not from the request's wordi
 - Sources the user names, such as a prototype, a design board or a doc. Read
   [references/sources.md](references/sources.md) when there is one.
 
-Bring the user what you found as blockers and open questions before drafting. After each answer or new source, ask "do I
-have everything?" again, and name what is still unread or unresolved.
+## Interview
+
+Once you have explored, interview the user in rounds, starting with the blockers you found. A round asks every open
+decision whose prerequisites are settled, numbered, each with your recommended answer and worded so "yes" accepts it; a
+question that depends on another one still open waits for the next round:
+
+```text
+Q1. <title>: <the question, with the options when there are several>
+    -> <your recommended answer>
+```
+
+Look facts up yourself and ask only for decisions. A question no one can answer without seeing something (a layout, a
+flow's feel) gets a source or a throwaway sketch instead of more questions. Stop when nothing is left silently assumed,
+and name what is still unread or unresolved. Accepted recommendations become assumptions; settled choices become
+`Decided:`. When the questions keep multiplying, suggest splitting the feature with solodev-roadmap.
 
 ## spec.md
 

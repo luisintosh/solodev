@@ -43,8 +43,8 @@ tests and docs. Every brief names the folder's absolute path.
    `F<n>: <name>` title (`gh issue view <n>`). Cut `feat/<slug>` from the default branch (adopt it if you're already on
    it) and create the folder's `progress.md`, starting with a `## Request` section that holds the request verbatim (the
    issue's title and body for an issue run).
-2. **Spec.** Load solodev-plan and write `spec.md` and `plan.md` yourself. Ask the user what the code can't answer, in
-   one batch, with numbered assumptions they can veto.
+2. **Spec.** Load solodev-plan and write `spec.md` and `plan.md` yourself. Interview the user in rounds as solodev-plan
+   says.
 3. **Spec review** runs when the plan has more than one journey, adds a dependency, changes a public API, a data schema
    or a migration, touches auth or security, or the user asks. The reviewer judges the spec against `progress.md`'s
    request. Otherwise tell the user you skipped it and why.

@@ -16,8 +16,17 @@ from `solodev probe` (`<repo>/.agents/bin/solodev.mjs`, or `~/.agents/bin/solode
 - **Code first.** Before asking anything, read `AGENTS.md` and `docs/ARCHITECTURE.md` when present, and the relevant
   code, and settle every question the code can answer (stack, patterns, integrations, what's already built). Keep those
   as facts, citing `file:line` where it helps.
-- **Few questions.** Ask in rounds of at most five, and only what would change scope, sequencing or acceptance criteria.
+- **Few questions, in rounds.** A round asks at most five open decisions whose prerequisites are settled, and only ones
+  that would change scope, sequencing or acceptance criteria; a question that depends on another one still open waits
+  for the next round. Number each, give your recommended answer and word it so "yes" accepts it:
+
+  ```text
+  Q1. <title>: <the question, with the options when there are several>
+      -> <your recommended answer>
+  ```
+
   Everything routine becomes a numbered assumption with its default, which the user can veto by number.
+
 - **Checkpoints.** The goal, the approach, the data model and the roadmap are each approved by the user before the next
   begins.
 - **Vertical slices.** One feature per user-visible outcome, each demoable on its own; never a horizontal layer.
@@ -31,7 +40,7 @@ from `solodev probe` (`<repo>/.agents/bin/solodev.mjs`, or `~/.agents/bin/solode
 1. **Ground.** The user names an epic (`#<n>` or URL) → read it with `gh issue view` and revise it; a local roadmap →
    read it from the roadmaps folder. Otherwise kebab-case the idea into a slug; if its folder exists, ask whether to
    revise it or pick a new slug. Explore, then list the questions the idea raises and strike the ones the code answered.
-2. **Ask.** Batched rounds until nothing high-leverage is open (target users, the problem, hard constraints, the success
+2. **Ask.** Rounds until nothing high-leverage is open (target users, the problem, hard constraints, the success
    horizon, what must not break). The rest goes into the assumptions ledger.
 3. **Goal.** One paragraph, two to four measurable success criteria, and explicit non-goals. ⏸ The user confirms or
    corrects it.
