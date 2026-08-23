@@ -108,7 +108,8 @@ describe("probe", () => {
 describe("personal defaults", () => {
   const withDefaults = (yaml: string, over: Partial<ProbeDeps> = {}) =>
     deps({
-      read: async (file) => (file.endsWith("AGENTS.md") ? AGENTS : file.endsWith("solodev.yaml") ? yaml : undefined),
+      read: async (file) =>
+        file.endsWith("AGENTS.md") ? AGENTS : file.endsWith("solodev-conf.yaml") ? yaml : undefined,
       ...over,
     })
 

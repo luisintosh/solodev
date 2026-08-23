@@ -250,9 +250,9 @@ if (catalog) {
   }
 }
 
-const solodevBin = await readOr(path.join(root, "dist", "bin", "solodev.mjs"))
-if (!solodevBin) fail("dist/bin/solodev.mjs missing — run pnpm run build")
-else if (!solodevBin.startsWith("#!/usr/bin/env node\n")) fail("dist/bin/solodev.mjs missing node shebang")
+const solodevBin = await readOr(path.join(root, "dist", "bin", "solodev-cli.mjs"))
+if (!solodevBin) fail("dist/bin/solodev-cli.mjs missing — run pnpm run build")
+else if (!solodevBin.startsWith("#!/usr/bin/env node\n")) fail("dist/bin/solodev-cli.mjs missing node shebang")
 for (const stale of ["quest-state.mjs", "quest-state", "quest-state.js"]) {
   if (await stat(path.join(root, "dist", "bin", stale)).catch(() => undefined)) {
     fail(`dist/bin/${stale} is the v1 state CLI — delete it`)
@@ -301,7 +301,7 @@ async function expectedManifestEntries() {
     ...(await walkFiles(path.join(root, "dist", "claude"))),
     ...(await walkFiles(path.join(root, "dist", "codex"))),
     ...(await walkFiles(path.join(root, "dist", "agents"))),
-    path.join(root, "dist", "bin", "solodev.mjs"),
+    path.join(root, "dist", "bin", "solodev-cli.mjs"),
   ]
   const entries: [string, string][] = []
   for (const abs of files.sort()) {

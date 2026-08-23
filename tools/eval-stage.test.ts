@@ -11,7 +11,7 @@ const assistant = (content: unknown[], parent: string | null = null) =>
 
 const stream = [
   line({ type: "system", subtype: "init" }),
-  assistant([{ type: "tool_use", name: "Bash", input: { command: ".agents/bin/solodev.mjs status greet" } }]),
+  assistant([{ type: "tool_use", name: "Bash", input: { command: ".agents/solodev/solodev-cli.mjs status greet" } }]),
   assistant([{ type: "tool_use", name: "Read", input: { file_path: "/x/greet/progress.md" } }]),
   assistant([{ type: "text", text: "spec ✓ · gate ✓ · implement ✓ · **review** · pr" }]),
   assistant([{ type: "tool_use", name: "Agent", input: { subagent_type: "shadow-reviewer" } }]),
@@ -57,7 +57,7 @@ describe("grade", () => {
     const base = sh("git", ["rev-parse", "HEAD"], ws).stdout.trim()
     const graded = await grade(
       [
-        { expect: "status before Agent", tool: "Bash", input: "solodev(\\.mjs)? status", before: "Agent" },
+        { expect: "status before Agent", tool: "Bash", input: "solodev(-cli)?(\\.mjs)? status", before: "Agent" },
         { expect: "Edit before Agent", tool: "Edit", before: "Agent" },
         { expect: "no coder", tool: "Agent", input: "shadow-coder", count: { max: 0 } },
         { expect: "major on --name", file: "{feature}/review.md", matches: "^(?=.*\\bmajor\\b)(?=.*--name).*\\|" },

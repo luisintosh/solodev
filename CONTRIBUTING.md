@@ -75,7 +75,7 @@ Three tiers, cheapest first. Run the cheapest one that covers your change:
 | ----------------------------- | ---------------------------------------------------------------------- |
 | `node tools/transpile.ts`     | `src/` → `dist/{claude,cursor,codex}` + `dist/agents/skills`           |
 | `node tools/install.ts`       | installer source (Clack + copy); emitted as `bin/install.js`           |
-| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/solodev.mjs`                               |
+| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/solodev-cli.mjs`                           |
 | `node tools/build-install.ts` | `tools/install.ts` → `bin/install.js` (esbuild, Node ESM for npx/bunx) |
 | `node tools/gen-manifest.ts`  | `manifest.txt` from `dist/`                                            |
 | `node tools/check.ts`         | hygiene                                                                |

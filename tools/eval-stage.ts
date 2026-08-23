@@ -97,7 +97,7 @@ async function loadStages(): Promise<Stage[]> {
 }
 
 const solodev = (ws: string, state: string, args: string[]) =>
-  sh(process.execPath, [path.join(ws, ".agents", "bin", "solodev.mjs"), ...args], ws, {
+  sh(process.execPath, [path.join(ws, ".agents", "solodev", "solodev-cli.mjs"), ...args], ws, {
     env: { SOLODEV_STATE: state, SOLODEV_HOME: "claude" },
     timeoutMs: 300_000,
   })

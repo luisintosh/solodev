@@ -196,8 +196,8 @@ The finish card repeats them as tickets ready to paste.
 
 ### The `solodev` CLI
 
-Installed at `.agents/bin/solodev.mjs`. It holds no state and commits nothing: everything is worked out from git and the
-feature folder.
+Installed at `.agents/solodev/solodev-cli.mjs`. It holds no state and commits nothing: everything is worked out from git
+and the feature folder.
 
 ```text
 solodev probe                          coding tools, models, Orca, gh, the AGENTS.md commands (JSON)
@@ -240,7 +240,7 @@ on Codex and Cursor, start the session on the `think` model yourself. CI checks 
 
 With [Orca](https://github.com/stablyai/orca) running and its `orchestration` skill installed, the gate offers a coder
 on another tool you're logged in to, for example Codex coding while Claude Code commands. Orca starts it as a supervised
-worker in its own terminal, so you can watch it. Set personal defaults in `~/.agents/solodev.yaml`:
+worker in its own terminal, so you can watch it. Set personal defaults in `~/.agents/solodev/solodev-conf.yaml`:
 
 ```yaml
 writer: ask # or claude | codex | cursor
