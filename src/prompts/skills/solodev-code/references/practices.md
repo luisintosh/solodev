@@ -1,5 +1,5 @@
-# Before you reply
+# Practices
 
-Check your own diff against these, the same lists the reviewer uses. What you leave comes back as a fix round.
+What you leave comes back as a fix round.
 
 {{include:fragments/practices.md}}

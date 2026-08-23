@@ -7,8 +7,8 @@ tested, documented pull request, on [Claude Code](https://code.claude.com),
 [Codex](https://developers.openai.com/codex), or [Cursor](https://cursor.com).
 
 solodev installs a set of short role skills, two agents that play them (the shadows), and a small `solodev` CLI that
-checks the work. Your main session writes the spec and plan with you; one coder writes the code, test first; a reviewer
-with a fresh context checks it. You approve the spec at the gate and merge the PR.
+checks the work. Your main session writes the spec and plan with you; one coder writes the code and tests proven to fail
+first; a reviewer with a fresh context checks it. You approve the spec at the gate and merge the PR.
 
 ```text
 /solodev-mission Add CSV export to the accounts page
@@ -29,8 +29,8 @@ things they can't give themselves:
 
 - **One approved spec.** Requirements and `@S<n>` acceptance scenarios, plus a plan of at most three journeys (one test
   file each), approved by you before any code.
-- **Failing test first, proven.** `solodev check` runs each journey test against the code before the feature (it must
-  fail) and against the branch (it must pass), and flags a test that was skipped, deleted or loosened.
+- **Journey tests proven to fail first.** `solodev check` runs each journey test against the code before the feature (it
+  must fail) and against the branch (it must pass), and flags a test that was skipped, deleted or loosened.
 - **Independent eyes.** The agent that wrote the code never signs off on it. Pick a coder on another tool and every PR
   also gets a review from a different model family.
 - **Nothing extra in your repo.** A feature's spec, plan, reports and approval live in one folder outside it,
@@ -136,7 +136,7 @@ flowchart TD
   ask{{"questions the code<br/>can't answer"}}:::human
   sreview["spec review · solodev-review<br/>only for multi-journey or risky plans"]:::review
   gate{{"⏸ spec gate<br/>approve + pick the coder"}}:::human
-  impl["implement · solodev-code<br/>per journey: failing test → code<br/>then docs beside the code"]:::writer
+  impl["implement · solodev-code<br/>journey tests + code, in the order it picks<br/>then docs beside the code"]:::writer
   stuck{{"stuck after 2 attempts<br/>retry · second opinion · take over"}}:::human
   review["code review · solodev-review<br/>fresh shadow-reviewer"]:::review
   fix["fix round · same coder"]:::writer
@@ -185,8 +185,9 @@ run only when they add something.
 Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
 security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
 [agent-browser](https://github.com/vercel-labs/agent-browser); one it can't automate comes to you to check or waive.
-Budgets: two attempts per journey (a failing test or build command at the PR step gets a fix round from the same
-budget), one review fix round and one re-review, two QA cycles; a spent budget asks you instead of thrashing.
+Budgets: two attempts to get the implement check passing (a failing test or build command at the PR step gets a fix
+round from the same budget), one review fix round and one re-review, two QA cycles; a spent budget asks you instead of
+thrashing.
 
 You're asked only at the spec questions, the gate, findings left after the re-review, a shadow's question or blocker, a
 QA scenario that needs a person, a spent budget, a failed Orca worker, and the ready PR. The draft PR carries what a

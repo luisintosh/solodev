@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "Add a greet(name) function in a new module that returns \"Hello, <name>!\", and make `npm run dev -- --name Ada` print it. Take it through /solodev-mission; I approve the spec as soon as you present it, and the coder can be this tool.",
-      "expected_output": "Run in a copy of test/fixture-repo. One spec and plan in the feature folder under `solodev probe`'s state.dir, one gate, an approval line in progress.md, one coder writing a failing test then code, one fresh review, and a ready, unmerged PR.",
+      "expected_output": "Run in a copy of test/fixture-repo. One spec and plan in the feature folder under `solodev probe`'s state.dir, one gate, an approval line in progress.md, one coder writing the journey test and code, proven red on the base and green on the branch, one fresh review, and a ready, unmerged PR.",
       "files": ["test/fixture-repo"],
       "expectations": [
         "spec.md has @S<n> scenarios and plan.md has a fenced journeys: block with at most 3 journeys",

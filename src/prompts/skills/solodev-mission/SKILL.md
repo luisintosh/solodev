@@ -50,19 +50,21 @@ tests and docs. Every brief names the folder's absolute path.
 4. **Gate.** Show the gate card from [references/gate.md](references/gate.md) and wait. On approval run
    `solodev approve <slug>`, post the ticket comment for an issue run, and log the coder choice in `progress.md`. No
    code before that line. An edit to the spec or plan after the gate reopens it: back to the user for a new approval.
-5. **Implement.** Brief the coder with the slug, the journeys, the files you read that the change touches and the
+5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
-   build it. It writes each journey's failing test, then the code, and runs `solodev check <slug> --for implement`
-   before replying. Run the check yourself, then commit its work. A C4 warning means you show the user the diff it names
-   and ask.
+   build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, then commit its work. A C1
+   failure only in files the change didn't touch isn't an attempt: tell the user and go on. A C4 warning means you show
+   the user the diff it names and ask; a C3 warning goes to the reviewer with the rest of the output.
 6. **Code review.** Brief a fresh reviewer with the slug, the base (`git merge-base <default branch> HEAD`) and the C3
-   output from the implement check. Blocker or major → one fix round with the same coder, which replies per finding id,
-   then one re-review by a new reviewer whose brief carries the coder's per-finding replies and the commit the last
-   review saw. Blockers and majors still open go to the user: another fix round, `deferred` or `dropped`. Write the
-   decision into `review.md`. Spec or plan gaps in the reviewer's `notes` go to the user too.
+   output from your implement check (rerun it on a resumed run). Blocker or major → one fix round with the same coder,
+   which replies per finding id, then one re-review by a new reviewer whose brief carries the coder's per-finding
+   replies and the commit the last review saw. Blockers and majors still open go to the user: another fix round,
+   `deferred` or `dropped`. Write the decision into `review.md`. Spec or plan gaps in the reviewer's `notes` go to the
+   user too.
 7. **PR.** Run `solodev check <slug> --for pr`, plus any typecheck, lint, test or build C1 skipped as unlisted. A
    failing command (C1 or one you ran) goes to the coder as a fix round with its output, inside the same two-attempt
-   budget; it adds no new acceptance test. Then push and open a draft PR as [references/pr.md](references/pr.md) says.
+   budget; it adds no new acceptance test. A C4 warning goes to the user as in step 5. Then push and open a draft PR as
+   [references/pr.md](references/pr.md) says.
 8. **QA.** The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none are, the journey tests are
    the QA and no agent starts. A QA failure in code goes to the coder as a fix round; a spec gap goes to the user. A
    `manual` verdict goes to the user: they check it and you record `pass` with their words as evidence, or they waive it
@@ -88,16 +90,16 @@ reply. Keep it short; the role skill and the feature files hold the rest.
   id.
 - **Another coding tool, or `dispatch: orca`:** read [references/orca.md](references/orca.md).
 
-One coder serves the whole feature: continue it for later journeys and fix rounds. Reviewers and verifiers always start
-fresh. You never edit source or tests yourself.
+One coder serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start fresh. You never
+edit source or tests yourself.
 
 ## Keeping the user in the loop
 
 Before each delegation, one line naming who, on what, and why:
-`→ solodev-code (Codex · gpt-6.1-sol medium): J1, failing test then code for @S1–@S3`. After it, one result line with
+`→ solodev-code (Codex · gpt-6.1-sol medium): J1–J2, journey tests and code for @S1–@S5`. After it, one result line with
 the numbers that matter (files changed, journeys passing, findings by severity). Start every report with a progress bar:
-`spec ✓ · gate ✓ · **implement (J1 ✓, J2 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate
-in a few words the first time you use them.
+`spec ✓ · gate ✓ · **implement (attempt 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate in
+a few words the first time you use them.
 
 Ask the user only at: a slug that already has a folder (resume or start over); questions while writing the spec; the
 gate; findings left after the re-review; a shadow's `question` or `blocked` reply; a `manual` QA verdict; stuck after
@@ -106,8 +108,8 @@ natively, or wait); the ready PR. Between those, keep going.
 
 ## Budgets
 
-Two attempts per journey to get from failing to passing; one fix round and one re-review; two QA cycles. A spent budget
-means asking the user, not resetting the tree.
+Two attempts to get the implement check passing, an attempt being one coder reply after which your check fails; one fix
+round and one re-review; two QA cycles. A spent budget means asking the user, not resetting the tree.
 
 ## Done when
 
