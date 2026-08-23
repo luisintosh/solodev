@@ -18,14 +18,17 @@ from `solodev probe` (`<repo>/.agents/bin/solodev.mjs`, or `~/.agents/bin/solode
   as facts, citing `file:line` where it helps.
 - **Few questions, in rounds.** A round asks at most five open decisions whose prerequisites are settled, and only ones
   that would change scope, sequencing or acceptance criteria; a question that depends on another one still open waits
-  for the next round. Number each, give your recommended answer and word it so "yes" accepts it:
+  for the next round. Number each, give your recommended answer and word it so "yes" accepts it. A bare "yes" accepts
+  every recommendation in the round, and the user can answer by number. Everything routine becomes a numbered assumption
+  with its default, which the user can veto by number. A round looks like this, in this exact shape:
 
   ```text
   Q1. <title>: <the question, with the options when there are several>
       -> <your recommended answer>
-  ```
 
-  Everything routine becomes a numbered assumption with its default, which the user can veto by number.
+  Assumptions (veto by number):
+  1. <assumption> - default: <value>
+  ```
 
 - **Checkpoints.** The goal, the approach, the data model and the roadmap are each approved by the user before the next
   begins.
@@ -40,8 +43,8 @@ from `solodev probe` (`<repo>/.agents/bin/solodev.mjs`, or `~/.agents/bin/solode
 1. **Ground.** The user names an epic (`#<n>` or URL) → read it with `gh issue view` and revise it; a local roadmap →
    read it from the roadmaps folder. Otherwise kebab-case the idea into a slug; if its folder exists, ask whether to
    revise it or pick a new slug. Explore, then list the questions the idea raises and strike the ones the code answered.
-2. **Ask.** Rounds until nothing high-leverage is open (target users, the problem, hard constraints, the success
-   horizon, what must not break). The rest goes into the assumptions ledger.
+2. **Ask.** Rounds in the shape above until nothing high-leverage is open (target users, the problem, hard constraints,
+   the success horizon, what must not break). The rest goes into the assumptions ledger.
 3. **Goal.** One paragraph, two to four measurable success criteria, and explicit non-goals. ⏸ The user confirms or
    corrects it.
 4. **Approaches.** Two or three genuinely different options (build, buy or extend; architecture shape; phasing), each
