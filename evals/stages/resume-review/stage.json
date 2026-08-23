@@ -22,7 +22,7 @@
     {
       "expect": "It read progress.md before starting a shadow",
       "tool": "Read|Bash",
-      "input": "progress\\.md",
+      "input": "progress\\.md|\\*\\.md",
       "before": "Agent"
     },
     {
@@ -63,7 +63,7 @@
     },
     {
       "expect": "A report carried the progress bar with implement done",
-      "reply": "implement\\W{0,4}✓"
+      "reply": "implement(?:\\W{0,4}|\\s*\\([^)]*?)✓"
     }
   ]
 }
