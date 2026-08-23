@@ -1,5 +1,6 @@
 /** Shared by the outcome evals (eval.ts) and the stage evals (eval-stage.ts): throwaway repos, install, headless runs. */
 import { spawnSync } from "node:child_process"
+import * as fsSync from "node:fs"
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
@@ -65,6 +66,68 @@ export function install(ws: string, source: string) {
   if (r.code !== 0) throw new Error(`install of ${source} failed: ${r.stderr.slice(-500)}`)
   sh("git", ["add", "-A"], ws)
   sh("git", ["commit", "-q", "-m", "chore: install solodev"], ws)
+}
+
+const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const
+
+function alive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (err) {
+    return (err as NodeJS.ErrnoException).code === "EPERM"
+  }
+}
+
+/**
+ * Claude Code prefers a user-level skill over a project one with the same name, so `~/.claude/skills/solodev-*` would
+ * shadow the workspace's skills under test. Moves them to `~/.claude/solodev-eval-aside/<pid>/` for the run and returns
+ * the restore, which also runs on exit and on SIGINT, SIGTERM or SIGHUP. A folder left by a killed run is restored first;
+ * another live run holding the skills aside is an error, since its restore would unshadow this run midway.
+ */
+export function moveUserSkillsAside(home = os.homedir()): () => void {
+  const skills = path.join(home, ".claude", "skills")
+  const asideRoot = path.join(home, ".claude", "solodev-eval-aside")
+  const list = (dir: string) => (fsSync.existsSync(dir) ? fsSync.readdirSync(dir) : [])
+  const putBack = (from: string) => {
+    fsSync.mkdirSync(skills, { recursive: true })
+    for (const name of list(from)) {
+      const to = path.join(skills, name)
+      if (fsSync.existsSync(to))
+        throw new Error(`can't restore ${path.join(from, name)}: ${to} exists; merge them by hand`)
+      fsSync.renameSync(path.join(from, name), to)
+    }
+    fsSync.rmSync(from, { recursive: true, force: true })
+  }
+
+  for (const pid of list(asideRoot)) {
+    if (alive(Number(pid))) throw new Error(`another eval run (pid ${pid}) has the user-level solodev skills aside`)
+    putBack(path.join(asideRoot, pid))
+    console.log(`eval: restored user-level skills left aside by run ${pid}`)
+  }
+  const names = list(skills).filter((n) => n.startsWith("solodev-"))
+  if (!names.length) return () => {}
+
+  const aside = path.join(asideRoot, String(process.pid))
+  fsSync.mkdirSync(aside, { recursive: true })
+  for (const name of names) fsSync.renameSync(path.join(skills, name), path.join(aside, name))
+  console.log(`eval: moved ${names.length} user-level solodev skills aside for this run (${aside})`)
+
+  const onSignal = (signal: NodeJS.Signals) => {
+    restore()
+    process.exit(128 + (os.constants.signals[signal] ?? 1))
+  }
+  const restore = () => {
+    process.removeListener("exit", restore)
+    for (const s of SIGNALS) process.removeListener(s, onSignal)
+    if (!fsSync.existsSync(aside)) return
+    putBack(aside)
+    if (!list(asideRoot).length) fsSync.rmSync(asideRoot, { recursive: true, force: true })
+    console.log("eval: restored the user-level solodev skills")
+  }
+  process.on("exit", restore)
+  for (const s of SIGNALS) process.on(s, onSignal)
+  return restore
 }
 
 /** The workspace's feature-folder root, kept out of git. */

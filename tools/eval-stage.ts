@@ -11,7 +11,19 @@ import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
 import { z } from "zod"
-import { CLAUDE_ALLOWED, copyDir, install, isDir, root, STATE_DIR, sh, stateIn, usage, workspace } from "./eval-lib.ts"
+import {
+  CLAUDE_ALLOWED,
+  copyDir,
+  install,
+  isDir,
+  moveUserSkillsAside,
+  root,
+  STATE_DIR,
+  sh,
+  stateIn,
+  usage,
+  workspace,
+} from "./eval-lib.ts"
 
 const stagesDir = path.join(root, "evals", "stages")
 const resultsDir = path.join(stagesDir, "results")
@@ -404,7 +416,14 @@ function flag(args: string[], name: string): string | undefined {
 async function main(argv: string[]): Promise<number> {
   const [command, ...args] = argv
   if (command === "validate") return validate()
-  if (command === "run") return runStages(args)
+  if (command === "run") {
+    const restore = moveUserSkillsAside()
+    try {
+      return await runStages(args)
+    } finally {
+      restore()
+    }
+  }
   console.error(
     "Usage: node tools/eval-stage.ts validate | run [--tier smoke|stage] [--stage <id>] [--changed [<ref>]] [--judge] [--keep]",
   )
