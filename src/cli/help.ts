@@ -39,7 +39,8 @@ export const HELP: Record<string, CommandHelp> = {
     summary: "Run the checks that must pass before implement → review, PR, or PR ready.",
     detail: [
       "Prints one line per check and exits 1 if any fails, naming what to fix. --for implement proves each",
-      "journey's test fails against the code before the feature and passes now (C3), the gate held (C5) and every",
+      "journey's test fails against the code before the feature and passes now (C3; it warns when the test only",
+      "failed to load something the feature doesn't touch), the gate held (C5) and every",
       "new env var is documented (C9); pr adds the full commands, a clean tree and a settled review; done adds QA",
       "verdicts. Without --for: the set for the stage. C1 commands · C2 coverage · C3 fail then pass · C4 tests not",
       "weakened (a warning: ask the user) · C5 gate held · C6 reports only · C7 review settled · C8 QA verdicts",

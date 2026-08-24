@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
-import { run, shell, tail } from "./exec.ts"
+import { type ExecResult, run, shell, tail } from "./exec.ts"
 import {
   currentApproval,
   exists,
@@ -154,6 +154,42 @@ const c2 = (ctx: CheckContext) => coverage(ctx.root, ctx.dir, true)
 /** Dependency folders a temporary worktree borrows from the checkout instead of reinstalling. */
 const DEPENDENCY_DIRS = ["node_modules", ".venv", "venv", "vendor"]
 
+/** Lines where a runner says the test never loaded: node, vitest, jest, mocha, pytest and go. */
+const LOAD_ERROR =
+  /Cannot find module|ERR_MODULE_NOT_FOUND|Failed to (?:load|resolve import)|does not provide an export named|ModuleNotFoundError|No module named|ImportError|cannot import name|SyntaxError|error collecting|No test files? found|no tests ran|collected 0 items|cannot find package|\[(?:build|setup) failed\]/i
+
+export type BaseFailure =
+  | { kind: "behavior" }
+  | { kind: "new"; file: string }
+  | { kind: "load"; line: string }
+  | { kind: "broken"; line: string }
+
+/**
+ * Why a journey test failed against the code before the feature. `changed` holds the files the feature adds or edits,
+ * journey tests excluded: a load error naming one of them is expected (the test imports new code), one naming none
+ * means the test may never have run for a reason unrelated to the feature.
+ */
+export function baseFailure(r: ExecResult, changed: string[]): BaseFailure {
+  if (r.code === null || r.code === 126 || r.code === 127) return { kind: "broken", line: tail(r, 1)[0]?.trim() ?? "" }
+  const loads = `${r.stdout}\n${r.stderr}`.split("\n").filter((l) => LOAD_ERROR.test(l))
+  if (!loads.length) return { kind: "behavior" }
+  for (const line of loads) {
+    const file = changed.find((f) => moduleNames(f).some((n) => n.test(line)))
+    if (file) return { kind: "new", file }
+  }
+  // Node prints the throwing source line first; the line that quotes a path or name says more.
+  return { kind: "load", line: (loads.find((l) => /['"`]/.test(l)) ?? loads[0]!).trim() }
+}
+
+/** How an import names `file`: as is, without its extension or index file, and as a dotted Python module. */
+function moduleNames(file: string): RegExp[] {
+  const bare = file.replace(/\.[^./]+$/, "").replace(/\/(?:index|__init__)$/, "")
+  const literal = (n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return [...new Set([file, bare, bare.replaceAll("/", ".")])].map(
+    (n) => new RegExp(`(?<![\\w-])${literal(n)}(?![\\w-])`),
+  )
+}
+
 async function c3(ctx: CheckContext): Promise<CheckResult> {
   const base = await baseOf(ctx)
   if (!base) return result("C3", "fail", NO_BASE)
@@ -164,54 +200,87 @@ async function c3(ctx: CheckContext): Promise<CheckResult> {
     return result("C3", "fail", (err as Error).message)
   }
   if (!plan.journeys.length) return result("C3", "pass", "no journey tests to prove")
-  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-c3-"))
-  const worktree = path.join(tmp, "base")
   const details: string[] = []
   const evidence: string[] = []
-  const parts: string[] = []
-  let failed = false
-  try {
-    await git(ctx.root, ["worktree", "add", "--detach", "--quiet", worktree, base])
-    for (const dir of DEPENDENCY_DIRS) {
-      const from = path.join(ctx.root, dir)
-      if ((await exists(from)) && !(await exists(path.join(worktree, dir)))) {
-        await fs.symlink(from, path.join(worktree, dir))
-      }
+  const parts = new Map<string, string>()
+  let status: CheckStatus = "pass"
+  // HEAD first: a journey that fails now needs no base run, and a fix loop is mostly that case.
+  const green: typeof plan.journeys = []
+  for (const j of plan.journeys) {
+    const after = await shell(j.command, ctx.root, ctx.timeoutMs)
+    if (after.code === 0) {
+      green.push(j)
+      continue
     }
-    for (const j of plan.journeys) {
-      const dest = path.join(worktree, j.test)
-      await fs.mkdir(path.dirname(dest), { recursive: true })
-      await fs.copyFile(path.join(ctx.root, j.test), dest)
-    }
-    for (const j of plan.journeys) {
-      const before = await shell(j.command, worktree, ctx.timeoutMs)
-      const after = await shell(j.command, ctx.root, ctx.timeoutMs)
-      if (before.code === 0) {
-        failed = true
-        parts.push(`${j.id} passes at base`)
-        details.push(
-          `${j.id}: \`${j.command}\` passes against the code before the feature, so it doesn't prove the change`,
-        )
-      } else if (after.code !== 0) {
-        failed = true
-        parts.push(`${j.id} FAILS now`)
-        details.push(`${j.id}: \`${j.command}\` fails at HEAD:`, ...tail(after).map((l) => `  ${l}`))
-      } else {
-        parts.push(`${j.id} red→green`)
-        // The reviewer judges whether the test failed for the right reason (missing behavior, not a broken test).
-        evidence.push(`${j.id} failed before the feature with:`, ...tail(before, 8).map((l) => `  ${l}`))
-      }
-    }
-  } catch (err) {
-    failed = true
-    details.unshift((err as Error).message)
-    parts.push("could not run")
-  } finally {
-    await run("git", ["worktree", "remove", "--force", worktree], { cwd: ctx.root })
-    await fs.rm(tmp, { recursive: true, force: true })
-    await run("git", ["worktree", "prune"], { cwd: ctx.root })
+    status = "fail"
+    parts.set(j.id, `${j.id} FAILS now`)
+    details.push(`${j.id}: \`${j.command}\` fails at HEAD:`, ...tail(after).map((l) => `  ${l}`))
   }
-  return { ...result("C3", failed ? "fail" : "pass", parts.join(" · "), details), evidence }
+  if (green.length) {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-c3-"))
+    const worktree = path.join(tmp, "base")
+    try {
+      const journeyTests = new Set(plan.journeys.map((j) => j.test))
+      const changed = [
+        ...(await git(ctx.root, ["diff", "--name-only", base])).split("\n"),
+        ...(await git(ctx.root, ["ls-files", "--others", "--exclude-standard"])).split("\n"),
+      ].filter((f) => f && !journeyTests.has(f))
+      await git(ctx.root, ["worktree", "add", "--detach", "--quiet", worktree, base])
+      for (const dir of DEPENDENCY_DIRS) {
+        const from = path.join(ctx.root, dir)
+        if ((await exists(from)) && !(await exists(path.join(worktree, dir)))) {
+          await fs.symlink(from, path.join(worktree, dir))
+        }
+      }
+      for (const j of plan.journeys) {
+        const dest = path.join(worktree, j.test)
+        await fs.mkdir(path.dirname(dest), { recursive: true })
+        await fs.copyFile(path.join(ctx.root, j.test), dest)
+      }
+      for (const j of green) {
+        const before = await shell(j.command, worktree, ctx.timeoutMs)
+        if (before.code === 0) {
+          status = "fail"
+          parts.set(j.id, `${j.id} passes at base`)
+          details.push(
+            `${j.id}: \`${j.command}\` passes against the code before the feature, so it doesn't prove the change`,
+          )
+          continue
+        }
+        const why = baseFailure(before, changed)
+        if (why.kind === "broken") {
+          status = "fail"
+          parts.set(j.id, `${j.id} never ran at base`)
+          details.push(
+            `${j.id}: \`${j.command}\` couldn't run against the code before the feature (${why.line}), so it doesn't prove the change`,
+          )
+          continue
+        }
+        if (why.kind === "load") {
+          if (status === "pass") status = "warn"
+          parts.set(j.id, `${j.id} didn't load at base`)
+          details.push(
+            `${j.id}: before the feature the test failed to load on \`${why.line}\`, which names nothing the feature adds or changes: a generated or ignored file, a typo'd import or a broken test?`,
+          )
+        } else {
+          parts.set(j.id, why.kind === "new" ? `${j.id} red (new ${why.file})→green` : `${j.id} red→green`)
+        }
+        // The reviewer judges whether the test failed for the right reason (missing behavior, not a broken test).
+        const reason = why.kind === "new" ? " loading new code, so no assertion ran" : ""
+        evidence.push(`${j.id} failed before the feature${reason}:`, ...tail(before, 8).map((l) => `  ${l}`))
+      }
+    } catch (err) {
+      status = "fail"
+      details.unshift((err as Error).message)
+      parts.set("", "could not run")
+    } finally {
+      await run("git", ["worktree", "remove", "--force", worktree], { cwd: ctx.root })
+      await fs.rm(tmp, { recursive: true, force: true })
+      await run("git", ["worktree", "prune"], { cwd: ctx.root })
+    }
+  }
+  const summary = [...plan.journeys.map((j) => parts.get(j.id)), parts.get("")].filter(Boolean).join(" · ")
+  return { ...result("C3", status, summary, details), evidence }
 }
 
 // Heuristics (spike 7): markers that skip or focus a test, and the common assertion forms of JS, Python and Go runners.

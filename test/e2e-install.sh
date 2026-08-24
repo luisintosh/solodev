@@ -256,7 +256,7 @@ check_out="$(cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for impl
 check_rc=$?
 set -e
 assert_eq "$check_rc" "0" "solodev check --for implement passes a red-then-green journey"
-assert_grep 'J1 red→green' "$check_out" "C3 proves the journey failed before the feature and passes now"
+assert_grep 'J1 red (new src/hello.mjs)→green' "$check_out" "C3 proves the journey failed before the feature and passes now"
 set +e
 (cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for pr >/dev/null 2>&1)
 pr_rc=$?
