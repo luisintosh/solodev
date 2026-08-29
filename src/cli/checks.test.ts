@@ -44,8 +44,8 @@ ${uncovered ? `uncovered: [${uncovered}]\n` : ""}\`\`\`
 
 const TEST = `import assert from "node:assert"
 import { hello } from "../src/hello.js"
-assert.strictEqual(hello(), "hello")
-assert.strictEqual(hello("ana"), "hello ana")
+assert.strictEqual(hello(), "hello") // @S1
+assert.strictEqual(hello("ana"), "hello ana") // @S2
 `
 
 const IMPL = `export const hello = (name) => (name ? \`hello \${name}\` : "hello")\n`
@@ -182,6 +182,16 @@ describe("checks", () => {
     const r = await check("C2")
     expect(r.status).toBe("fail")
     expect(r.summary).toContain("test file test/hello.test.js does not exist")
+  })
+
+  test("C2 requires each claimed scenario's tag in its journey test", async () => {
+    await gate()
+    write("test/hello.test.js", TEST.replace(" // @S2", " // @S20"))
+    const r = await check("C2")
+    expect(r.status).toBe("fail")
+    expect(r.summary).toBe("J1: test/hello.test.js has no @S2; tag the test or assertion that proves each")
+    write("test/hello.test.js", TEST)
+    expect((await check("C2")).status).toBe("pass")
   })
 
   test("C3 fails a test that already passes before the feature", async () => {

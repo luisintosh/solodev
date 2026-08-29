@@ -208,17 +208,17 @@ solodev check <slug> [--for implement|pr|done]   the checks that gate the next s
 solodev help [<command>]               what each command does
 ```
 
-| Check | Proves                                                                                                                                       |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1    | typecheck, lint, test and build from the AGENTS.md commands pass; unlisted ones are skipped                                                  |
-| C2    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists                                    |
-| C3    | each journey test fails against the code before the feature and passes now; warns when it failed only to load code the feature doesn't touch |
-| C4    | no test was skipped, deleted or lost assertions: journey tests since first committed, others since the base                                  |
-| C5    | the spec and plan are approved as they stand, and no code was committed before the approval                                                  |
-| C6    | nothing is left uncommitted in the repo (a reviewer or verifier touches only its report)                                                     |
-| C7    | `review.md` has no open blocker or major                                                                                                     |
-| C8    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                                                                |
-| C9    | every env var the code reads since the base is named in a README, `docs/` or `.env.example`                                                  |
+| Check | Proves                                                                                                                                                   |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1    | typecheck, lint, test and build from the AGENTS.md commands pass; unlisted ones are skipped                                                              |
+| C2    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists and tags every scenario it claims with `@S<n>` |
+| C3    | each journey test fails against the code before the feature and passes now; warns when it failed only to load code the feature doesn't touch             |
+| C4    | no test was skipped, deleted or lost assertions: journey tests since first committed, others since the base                                              |
+| C5    | the spec and plan are approved as they stand, and no code was committed before the approval                                                              |
+| C6    | nothing is left uncommitted in the repo (a reviewer or verifier touches only its report)                                                                 |
+| C7    | `review.md` has no open blocker or major                                                                                                                 |
+| C8    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                                                                            |
+| C9    | every env var the code reads since the base is named in a README, `docs/` or `.env.example`                                                              |
 
 ## Models
 
