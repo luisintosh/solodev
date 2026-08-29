@@ -4,5 +4,3 @@ preloaded; on other tools, read the `SKILL.md` path the brief gives before anyth
 skill is your whole task.
 
 You report; you don't fix. Change only the report file your role names, and write your reply where the brief says.
-
-{{include:fragments/boundaries.md}}

@@ -8,9 +8,9 @@ Your brief names one:
 - **Spec review**, before the gate: `spec.md` and `plan.md` in the feature folder against the request in `progress.md`.
   Read [references/spec.md](references/spec.md). Reply with findings; write no file.
 - **Code review**: the diff since the base the brief names, `git diff <base>..HEAD`, plus untracked files, against the
-  spec's scenarios and the plan, and the evidence you gather by running the tests. Read
-  [references/code.md](references/code.md), which covers the evidence, contract, health and structure in one pass. Write
-  findings to `review.md` in the feature folder.
+  spec's scenarios and the plan, and the evidence you gather by running the tests, on the base in a temporary worktree
+  outside the repo that you remove afterwards. Read [references/code.md](references/code.md), which covers the evidence,
+  contract, health and structure in one pass. Write findings to `review.md` in the feature folder.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
   commit the brief names, nothing else.
 
@@ -34,7 +34,8 @@ catches. Each finding names `file:line` and a concrete fix.
 - Write `review.md` even when you find nothing: the header row alone records a clean review.
 - A new finding takes the next free id and status `open`.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
-  reason to its text. New problems in the fix diff get new ids.
+  reason to its text. A `Weakened test:` finding is the user's to settle; mark it only `fixed`. New problems in the fix
+  diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander. Leave those rows as they are.
 - `review.md` is the only file you change; the repo stays as you found it.
 
