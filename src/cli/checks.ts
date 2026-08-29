@@ -1,6 +1,7 @@
 import * as path from "node:path"
 import { run } from "./exec.ts"
 import {
+  type Approval,
   currentApproval,
   parsePlan,
   parseQa,
@@ -118,25 +119,32 @@ export async function coverage(root: string, dir: string, requireTests: boolean)
 const c1 = (ctx: CheckContext) => coverage(ctx.root, ctx.dir, true)
 
 async function c2(ctx: CheckContext): Promise<CheckResult> {
-  const { approval, matches } = await currentApproval(ctx.dir)
+  const { approval, approvals, matches } = await currentApproval(ctx.dir)
   if (!approval) return result("C2", "fail", "not approved — run solodev approve at the spec gate")
   if (!matches)
     return result("C2", "fail", "spec.md or plan.md changed since approval — show the user and approve again")
   const base = await baseOf(ctx)
   if (!base) return result("C2", "fail", NO_BASE)
-  const ancestor = await run("git", ["merge-base", "--is-ancestor", approval.at, "HEAD"], { cwd: ctx.root })
-  if (ancestor.code !== 0) {
+  // The gate is the earliest approval still in this branch: no code before it. Later ones re-agree an edited spec.
+  let gate: Approval | undefined
+  for (const a of approvals) {
+    if ((await run("git", ["merge-base", "--is-ancestor", a.at, "HEAD"], { cwd: ctx.root })).code === 0) {
+      gate = a
+      break
+    }
+  }
+  if (!gate) {
     return result(
       "C2",
       "fail",
       `approved at ${approval.at}, which isn't in this branch — it was rewritten; approve again`,
     )
   }
-  const early = (await git(ctx.root, ["log", "--format=%h %s", `${base}..${approval.at}`])).split("\n").filter(Boolean)
+  const early = (await git(ctx.root, ["log", "--format=%h %s", `${base}..${gate.at}`])).split("\n").filter(Boolean)
   if (early.length) {
     return result("C2", "fail", `${early.length} commit(s) before the approval`, early.slice(0, 20))
   }
-  return result("C2", "pass", `approved ${approval.date} at ${approval.at.slice(0, 7)}, no code before it`)
+  return result("C2", "pass", `approved ${approval.date} at ${approval.at.slice(0, 7)}, no code before the gate`)
 }
 
 async function c3(ctx: CheckContext): Promise<CheckResult> {

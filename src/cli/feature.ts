@@ -43,15 +43,21 @@ export function parseTools(progress: string): string | undefined {
   return [...progress.matchAll(/^- tools: (.+?)\s*$/gm)].at(-1)?.[1]
 }
 
-/** The approval in force, and whether spec.md and plan.md still match it. */
-export async function currentApproval(dir: string): Promise<{ approval?: Approval; matches: boolean }> {
+/**
+ * The approval in force, whether spec.md and plan.md still match it, and every approval oldest first. A later one
+ * re-agrees an edited spec, so code may already exist before it.
+ */
+export async function currentApproval(
+  dir: string,
+): Promise<{ approval?: Approval; approvals: Approval[]; matches: boolean }> {
   const [spec, plan, progress] = await Promise.all(
     ["spec.md", "plan.md", "progress.md"].map((f) => readIfExists(path.join(dir, f))),
   )
-  const approval = parseApprovals(progress ?? "").at(-1)
+  const approvals = parseApprovals(progress ?? "")
+  const approval = approvals.at(-1)
   const matches =
     approval !== undefined && spec !== undefined && plan !== undefined && specHash(spec, plan) === approval.spec
-  return { approval, matches }
+  return { approval, approvals, matches }
 }
 
 export async function readIfExists(file: string): Promise<string | undefined> {

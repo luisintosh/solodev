@@ -48,7 +48,7 @@ export const HELP: Record<string, CommandHelp> = {
     usage: "npx -y github:luisintosh/solodev [install] [--dry-run] [--doctor] [--yes]",
     summary: "Install or update solodev for Claude Code, Codex and Cursor.",
     detail: [
-      "Runs from the published package, which carries the files it installs. Scope and hosts are asked, or set",
+      "Downloads the release payload, checks its sha256, and installs it. Scope and hosts are asked, or set",
       "with INSTALL_SCOPE=project|global and INSTALL_TARGET=all|claude,codex,cursor.",
     ],
     example: "npx -y github:luisintosh/solodev",
@@ -68,7 +68,7 @@ export function helpText(command?: string): string {
   }
   const width = Math.max(...Object.keys(HELP).map((k) => k.length))
   return [
-    "solodev: checks and evidence for a /solodev-mission feature run. Reads git and the feature folder; commits nothing.",
+    "solodev: checks for a /solodev-mission feature run. Reads git and the feature folder; commits nothing.",
     "",
     ...Object.entries(HELP).map(([name, h]) => `  ${name.padEnd(width)}  ${h.summary}`),
   ].join("\n")

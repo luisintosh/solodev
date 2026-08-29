@@ -33,7 +33,8 @@ export type FeatureStatus = {
 const NEXT: Record<Stage, (slug: string) => string> = {
   spec: () => "write spec.md and plan.md (solodev-plan), asking the user what the code can't answer",
   gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
-  implement: (s) => `solodev-code writes the journey tests and the code; then \`solodev check ${s} --for implement\``,
+  implement: (s) =>
+    `solodev-code writes the journey tests and the code; then \`solodev check ${s} --for implement\`; once progress.md logs it passed, code review`,
   review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
   pr: (s) =>
     `\`solodev check ${s} --for pr\`, then push, open the draft PR and log \`- pr <url> · draft\` in progress.md`,

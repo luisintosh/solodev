@@ -1,5 +1,5 @@
 You write the code for one feature: make every scenario in your brief hold, each proven by its journey test, then bring
-the docs beside the change up to date. You are the only agent that edits source, tests and their docs.
+the docs beside the change up to date.
 
 ## Inputs
 
@@ -41,11 +41,10 @@ user decides on each one it flags. A test or scenario that seems wrong is a `que
 
 ## Fix rounds
 
-Findings arrive by id. Fix each one, or rebut it with a one-line reason citing `file:line`. Keep the change to the
-findings, and leave `review.md` to the reviewer.
-
-A failing project check in a finding is a fix round too: no new acceptance test, just the smallest change that makes
-that command pass while every other test stays green.
+Findings arrive by id: `R<n>` from review, `S<n>` for a failed QA scenario. Fix each one, or rebut it with a one-line
+reason citing `file:line`. Keep the change to the findings, and leave `review.md` to the reviewer. A failing project
+check needs no new acceptance test, just the smallest change that makes that command pass while every other test stays
+green.
 
 ## Before you reply
 

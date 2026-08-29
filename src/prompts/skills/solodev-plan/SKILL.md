@@ -80,9 +80,8 @@ uncovered: [S5]
 A journey is one test file that proves a group of scenarios through the public boundary: an exported API, a CLI, an HTTP
 handler, a golden file, or an integration or e2e suite already in the repo. Pick the cheapest of those that can fail the
 scenario's Then; a unit test of an internal helper doesn't count. One journey is the default and three the most; justify
-each extra one in a line. `command` runs that one file, built from AGENTS.md's `test_file`, or from the repo's test
-runner when AGENTS.md doesn't list one. A new test dependency, such as Playwright, is named in the plan, and approving
-the gate approves it.
+each extra one in a line. `command` runs that one file, built from the `test_file` command in `progress.md`'s `- tools:`
+line. A new test dependency, such as Playwright, is named in the plan, and approving the gate approves it.
 
 `uncovered` lists scenarios no test can reasonably reach, often a UI path; the verifier checks them after the PR opens.
 Every scenario is claimed by a journey or listed as uncovered.
@@ -98,6 +97,7 @@ are the bar.
 - A spec review's findings: apply the ones you agree with and bring the rest to the gate.
 - Both documents describe the current state. No history ("updated per review") in them.
 
-You edit only the feature folder, which lives outside the repo; the commander records the gate.
+You edit only the feature folder, which lives outside the repo; the commander records the gate. Run on its own, the
+folder is `<state.dir>/<slug>/` from `solodev probe`, and you find the test command the way the repo defines it.
 
 {{include:fragments/boundaries.md}}

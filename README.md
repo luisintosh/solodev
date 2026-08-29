@@ -112,7 +112,7 @@ Run `/solodev-roadmap` and describe the idea. It explores the codebase, turns th
 data model with you, and drafts a roadmap with dependency-ordered waves and one work item per feature, each reviewed by
 an adversarial subagent. It files the roadmap in your tracker as an epic with one ticket per feature, wired with
 `Blocked by` links; the tracker is the source of truth. Without one, the drafts in
-`~/.agents/solodev/<repo>/roadmaps/<slug>/` are the record. Nothing is written to your repo.
+`~/.agents/solodev/<owner>/<repo>/roadmaps/<slug>/` are the record. Nothing is written to your repo.
 
 ### 4. Build a feature with `/solodev-mission`
 
@@ -186,15 +186,15 @@ run only when they add something.
 Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
 security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
 [agent-browser](https://github.com/vercel-labs/agent-browser); one it can't automate comes to you to check or waive.
-Budgets: two attempts to get the implement check passing (a failing test or build command at the PR step gets a fix
-round from the same budget), one review fix round and one re-review, two QA cycles; a spent budget asks you instead of
-thrashing.
+Budgets: two attempts to get the implement check passing, one review fix round and one re-review, two QA cycles; a spent
+budget asks you instead of thrashing.
 
-You're asked only at the spec questions, the gate, findings left after the re-review, a shadow's question or blocker, a
-QA scenario that needs a person, a spent budget, a failed Orca worker, and the ready PR. The draft PR carries what a
-reviewer needs from the spec and plan, and its footer links the decisions agreed on the ticket. At the finish its
-`## Follow-ups` section lists what was left open: deferred findings, open minors and waived scenarios, each with why.
-The finish card repeats them as tickets ready to paste.
+You're asked only at: a slug that already has a feature folder, conflicting tools or commands at the start, no tool for
+the forge or tracker, the spec questions, the gate, findings left after the re-review, a weakened test, a spec gap from
+review or QA, a shadow's question or blocker, a QA scenario that needs a person, a spent budget, a failed Orca worker,
+and the ready PR. The draft PR carries what a reviewer needs from the spec and plan, and its footer links the decisions
+agreed on the ticket. At the finish its `## Follow-ups` section lists what was left open: deferred findings, open minors
+and waived scenarios, each with why. The finish card repeats them as tickets ready to paste.
 
 ### The `solodev` CLI
 
@@ -213,7 +213,7 @@ solodev help [<command>]               what each command does
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | C1    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists and tags every scenario it claims with `@S<n>` |
 | C2    | the spec and plan are approved as they stand, and no code was committed before the approval                                                              |
-| C3    | nothing is left uncommitted in the repo (a reviewer or verifier touches only its report)                                                                 |
+| C3    | no uncommitted change to tracked files (a reviewer or verifier touches only its report)                                                                  |
 | C4    | `review.md` has no open blocker or major                                                                                                                 |
 | C5    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                                                                            |
 
@@ -302,9 +302,3 @@ Prompts are written once and transpiled into each host's format by `pnpm run bui
   commands, so it holds for any forge; use branch protection as your hard backstop.
 - `solodev approve` refuses to record the gate while anything is staged, and `solodev check` fails a branch that
   committed code before the approval or whose spec changed since.
-
-## OpenCode
-
-OpenCode and open-weight models are no longer supported. Pin the last release that ships them,
-`npx -y github:luisintosh/solodev#v2.1.1`. Re-running a current installer over an old install removes the OpenCode files
-it wrote (only those listed in `.opencode/.harness-manifest`).

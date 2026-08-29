@@ -14,7 +14,8 @@
 - **Security:** authorization on every newly reachable path, validation where input crosses a trust boundary, no secrets
   or tokens in code or logs.
 - **Test quality:** tests assert behavior, not implementation; none passes only because a mock was called or relies on
-  another test's order or leftovers. Any existing test skipped, deleted or loosened to get green is a `blocker`.
+  another test's order or leftovers. Any test skipped, deleted or loosened to get green is a `major` whose text starts
+  `Weakened test:`; the user decides it.
 - **Docs, minimal:** a new module's entry file opens with one or two lines on what it owns. Each new or changed export
   gets a one-line doc comment in the repo's idiom saying what it's for, plus a line only for what the signature can't
   show: errors, side effects, units, or why it exists. A constraint that would cost someone an hour gets one line where

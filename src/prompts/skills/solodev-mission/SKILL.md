@@ -38,14 +38,15 @@ tests and docs. Every brief names the folder's absolute path.
 | 9 finish      | you                                                      | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** On "continue": check out the feature's branch, run `solodev status`, read `progress.md` (reuse its
-   `- tools:` line), and continue at the step it names. Fresh run: `solodev probe`; `state.writable` false → tell the
-   user to allow `state.dir` in their tool's sandbox, and stop. A slug that already has a folder → show its stage and
-   ask: resume it, or start over under the next free slug (`<slug>-2`). Derive the slug from the request, or from a
-   ticket's `F<n>: <name>` title. Cut `feat/<slug>` from the default branch (adopt it if you're already on it) and
-   create the folder's `progress.md`, starting with a `## Request` section that holds the request verbatim (the ticket's
-   title and body for a ticket run). Then log the toolbox as one line for the whole run, `n/a` where the repo has none:
-   `- tools: forge gitlab (glab) · tracker linear (mcp) · dev … · test … · lint … · typecheck … · build …`. Commands
-   come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
+   `- tools:` line), and continue at the step it names; at `implement` with an implement check logged as passed, go to
+   code review. Fresh run: `solodev probe`; `state.writable` false → tell the user to allow `state.dir` in their tool's
+   sandbox, and stop. A slug that already has a folder → show its stage and ask: resume it, or start over under the next
+   free slug (`<slug>-2`). Derive the slug from the request, or from a ticket's `F<n>: <name>` title. Cut `feat/<slug>`
+   from the default branch (adopt it if you're already on it) and create the folder's `progress.md`, starting with a
+   `## Request` section that holds the request verbatim (the ticket's title and body for a ticket run). Then log the
+   toolbox as one line for the whole run, `n/a` where the repo has none:
+   `- tools: forge glab · tracker linear (mcp) · install … · dev … · test … · test_file … · lint … · typecheck … · build …`.
+   Commands come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
 2. **Spec.** Load solodev-plan, interview the user in rounds as it says, then write `spec.md` and `plan.md` yourself.
 3. **Spec review** runs when the plan has more than one journey, adds a dependency, changes a public API, a data schema
    or a migration, touches auth or security, or the user asks. The reviewer judges the spec against `progress.md`'s
@@ -55,7 +56,7 @@ tests and docs. Every brief names the folder's absolute path.
    code before that line. An edit to the spec or plan after the gate reopens it: back to the user for a new approval.
 5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
-   build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, then commit its work.
+   build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
 6. **Code review.** Brief a fresh reviewer with the slug and the base (`git merge-base <default branch> HEAD`). It runs
    the journey tests on the base and at HEAD and the project's checks. A `Weakened test:` finding goes straight to the
    user, who picks a fix round, `rebutted` or `deferred`. Any other blocker or major → one fix round with the same
@@ -66,28 +67,26 @@ tests and docs. Every brief names the folder's absolute path.
 7. **PR.** Run `solodev check <slug> --for pr`, push, open a draft PR ([references/pr.md](references/pr.md)), and log
    `- pr <url> · draft` in `progress.md`.
 8. **QA.** The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none are, the journey tests are
-   the QA and no agent starts. A QA failure in code goes to the coder as a fix round; a spec gap goes to the user. A
-   `manual` verdict goes to the user: they check it and you record `pass` with their words as evidence, or they waive it
-   and you record `waived`.
+   the QA and no agent starts. A QA failure in code goes to the coder as a fix round, the scenario ids as finding ids,
+   then a re-review as in step 6 and a recheck of those rows; a spec gap goes to the user. A `manual` verdict goes to
+   the user: they check it and you record `pass` with their words as evidence, or they waive it and you record `waived`.
 9. **Finish.** Run `solodev check <slug> --for done`, mark the PR ready, log `- pr <url> · ready`, and show the finish
    card ([references/pr.md](references/pr.md)).
 
-After every reviewer or verifier run, `git status` shows nothing new; revert anything it changed and tell the user.
-Commit after each step with a plain Conventional Commit, and push each commit once the PR exists. Log the coder choice,
-each attempt, skipped stages and the user's decisions in `progress.md`, so a resumed run knows what's spent.
+After a reviewer or verifier run, revert anything `git status` shows it changed and tell the user. Commit the coder's
+work after each passing check with a plain Conventional Commit, and push once the PR exists. Log the coder choice, each
+attempt, skipped stages and the user's decisions in `progress.md`, so a resumed run knows what's spent.
 
 ## Shadows
 
-Write each brief to `briefs/<role>-<n>.md` in the feature folder: the role skill, the slug, the `- tools:` line, what to
-do now, and where to write the reply. Keep it short; the role skill and the feature files hold the rest. One coder
-serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start fresh.
+Write each brief to `briefs/<role>-<n>.md` in the feature folder: the role skill, the slug, the `- tools:` line, the
+`solodev` path, what to do now, and where to write the reply. Keep it short; the role skill and the feature files hold
+the rest. One coder serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start fresh.
 
 - **Claude Code:** the Agent tool with `subagent_type` shadow-coder or shadow-reviewer; their role skills are preloaded.
   Continue the coder with SendMessage.
-- **Codex:** `spawn_agent` with the shadow's name; the brief gives the role skill's absolute `SKILL.md` path. Continue
-  with `send_input`.
-- **Cursor:** the Task tool with the shadow's name; the brief gives the `SKILL.md` path. Resume the coder by its agent
-  id.
+- **Codex:** `spawn_agent` with the shadow's name, continued with `send_input`. **Cursor:** the Task tool with the
+  shadow's name, resumed by agent id. On both, the brief gives the role skill's absolute `SKILL.md` path.
 - **Another coding tool, or `dispatch: orca`:** read [references/orca.md](references/orca.md).
 
 ## Keeping the user in the loop
@@ -100,9 +99,9 @@ a few words the first time you use them.
 
 Ask the user only at: a slug that already has a folder (resume or start over); conflicting tools or commands at the
 start; no tool for the forge or tracker; questions while writing the spec; the gate; findings left after the re-review;
-a weakened-test finding; a shadow's `question` or `blocked` reply; a `manual` QA verdict; stuck after two attempts
-(retry fresh, a second opinion from another tool, or take over); an Orca worker that fails (run that shadow natively, or
-wait); the ready PR. Between those, keep going.
+a weakened-test finding; a spec gap from review or QA; a shadow's `question` or `blocked` reply; a `manual` QA verdict;
+stuck after two attempts (retry fresh, a second opinion from another tool, or take over); an Orca worker that fails (run
+that shadow natively, or wait); the ready PR. Between those, keep going.
 
 ## Budgets
 
