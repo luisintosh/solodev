@@ -57,13 +57,13 @@ tests and docs. Every brief names the folder's absolute path.
 5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
-6. **Code review.** Brief a fresh reviewer with the slug and the base (`git merge-base <default branch> HEAD`). It runs
-   the journey tests on the base and at HEAD and the project's checks. A `Weakened test:` finding goes straight to the
-   user, who picks a fix round, `rebutted` or `deferred`. Any other blocker or major → one fix round with the same
-   coder, which replies per finding id, then one re-review by a new reviewer whose brief carries the coder's per-finding
-   replies and the commit the last review saw. Blockers and majors still open go to the user: another fix round,
-   `deferred` or `dropped`. Write the decision into `review.md`. Spec or plan gaps in the reviewer's `notes` go to the
-   user too.
+6. **Code review.** Brief a fresh reviewer with the slug, the base (`git merge-base <default branch> HEAD`) and the
+   coder's `decisions:` to judge against the spec. It runs the journey tests on the base and at HEAD and the project's
+   checks. A `Weakened test:` finding goes straight to the user, who picks a fix round, `rebutted` or `deferred`. Any
+   other blocker or major → one fix round with the same coder, which replies per finding id, then one re-review by a new
+   reviewer whose brief carries the coder's per-finding replies and the commit the last review saw. Blockers and majors
+   still open go to the user: another fix round, `deferred` or `dropped`. Write the decision into `review.md`. Spec or
+   plan gaps in the reviewer's `notes` go to the user too.
 7. **PR.** Run `solodev check <slug> --for pr`, push, open a draft PR ([references/pr.md](references/pr.md)), and log
    `- pr <url> · draft` in `progress.md`.
 8. **QA.** The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none are, the journey tests are
