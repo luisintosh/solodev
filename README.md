@@ -29,8 +29,9 @@ things they can't give themselves:
 
 - **One approved spec.** Requirements and `@S<n>` acceptance scenarios, plus a plan of at most three journeys (one test
   file each), approved by you before any code.
-- **Journey tests proven to fail first.** `solodev check` runs each journey test against the code before the feature (it
-  must fail) and against the branch (it must pass), and flags a test that was skipped, deleted or loosened.
+- **Journey tests proven to fail first.** The fresh-context reviewer runs each journey test against the code before the
+  feature (it must fail for the missing behavior) and against the branch (it must pass), and flags a test that was
+  skipped, deleted or loosened. It reads the output, so it works with any language, test runner or build tool.
 - **Independent eyes.** The agent that wrote the code never signs off on it. Pick a coder on another tool and every PR
   also gets a review from a different model family.
 - **Nothing extra in your repo.** A feature's spec, plan, reports and approval live in one folder outside it,
@@ -79,8 +80,8 @@ Flags: `--dry-run`, `--doctor`, `--yes`. For CI or scripts, use `INSTALL_SCOPE=p
 
 - [Node.js](https://nodejs.org) 20+, to run the installer and the `solodev` CLI: `brew install node`
 - [Git](https://git-scm.com): `xcode-select --install`
-- [GitHub CLI](https://cli.github.com) (`gh`), to open the PR, or another forge connected through an MCP server, skill
-  or CLI: `brew install gh && gh auth login`
+- A way to reach your forge and tracker, to open the PR and comment on the ticket: a CLI such as `gh` or `glab`, or an
+  MCP server or skill for GitHub, GitLab, Bitbucket, Jira, Linear and the like
 - At least one coding tool, logged in:
   - [Claude Code](https://code.claude.com): `curl -fsSL https://claude.ai/install.sh | bash`
   - [Codex](https://developers.openai.com/codex): `curl -fsSL https://chatgpt.com/codex/install.sh | sh`
@@ -101,17 +102,17 @@ Optional:
 ```
 
 This writes a short `AGENTS.md` and `docs/ARCHITECTURE.md` if they are missing. `AGENTS.md` holds a `## Commands` list
-(install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none) that the `solodev` CLI reads, plus
-only the constraints the code doesn't show. Without it, each `/solodev-mission` run finds the commands itself and
-`solodev check` skips the ones AGENTS.md doesn't list.
+(install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none), plus only the constraints the
+code doesn't show. Without it, each `/solodev-mission` run finds the commands itself and records them, with the forge
+and tracker it will use, in one `- tools:` line in the feature's `progress.md`.
 
 ### 3. Plan a whole product (optional)
 
 Run `/solodev-roadmap` and describe the idea. It explores the codebase, turns the idea into a measurable goal, agrees a
 data model with you, and drafts a roadmap with dependency-ordered waves and one work item per feature, each reviewed by
-an adversarial subagent. It files the roadmap as a GitHub epic with one issue per feature, wired with `Blocked by #N`;
-the tracker is the source of truth. Without one, the drafts in `~/.agents/solodev/<repo>/roadmaps/<slug>/` are the
-record. Nothing is written to your repo.
+an adversarial subagent. It files the roadmap in your tracker as an epic with one ticket per feature, wired with
+`Blocked by` links; the tracker is the source of truth. Without one, the drafts in
+`~/.agents/solodev/<repo>/roadmaps/<slug>/` are the record. Nothing is written to your repo.
 
 ### 4. Build a feature with `/solodev-mission`
 
@@ -197,11 +198,11 @@ The finish card repeats them as tickets ready to paste.
 
 ### The `solodev` CLI
 
-Installed at `.agents/solodev/solodev-cli.mjs`. It holds no state and commits nothing: everything is worked out from git
-and the feature folder.
+Installed at `.agents/solodev/solodev-cli.mjs`. It holds no state, commits nothing and never runs your project's tools:
+everything is worked out from git and the feature folder, so it works the same for any language, forge or tracker.
 
 ```text
-solodev probe                          coding tools, models, Orca, gh, the AGENTS.md commands (JSON)
+solodev probe                          coding tools, models, Orca, the state folder (JSON)
 solodev status [<slug>]                where a feature stands and what comes next
 solodev approve <slug>                 record the gate: a line in progress.md with the spec's hash
 solodev check <slug> [--for implement|pr|done]   the checks that gate the next step
@@ -210,15 +211,15 @@ solodev help [<command>]               what each command does
 
 | Check | Proves                                                                                                                                                   |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1    | typecheck, lint, test and build from the AGENTS.md commands pass; unlisted ones are skipped                                                              |
-| C2    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists and tags every scenario it claims with `@S<n>` |
-| C3    | each journey test fails against the code before the feature and passes now; warns when it failed only to load code the feature doesn't touch             |
-| C4    | no test was skipped, deleted or lost assertions: journey tests since first committed, others since the base                                              |
-| C5    | the spec and plan are approved as they stand, and no code was committed before the approval                                                              |
-| C6    | nothing is left uncommitted in the repo (a reviewer or verifier touches only its report)                                                                 |
-| C7    | `review.md` has no open blocker or major                                                                                                                 |
-| C8    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                                                                            |
-| C9    | every env var the code reads since the base is named in a README, `docs/` or `.env.example`                                                              |
+| C1    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists and tags every scenario it claims with `@S<n>` |
+| C2    | the spec and plan are approved as they stand, and no code was committed before the approval                                                              |
+| C3    | nothing is left uncommitted in the repo (a reviewer or verifier touches only its report)                                                                 |
+| C4    | `review.md` has no open blocker or major                                                                                                                 |
+| C5    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                                                                            |
+
+What needs your stack is judged by the fresh-context reviewer and lands in `review.md`, where C4 gates it: each journey
+test fails on the code before the feature for the missing behavior and passes now, the project's typecheck, lint, test
+and build pass, no test was weakened, and every new env var is documented.
 
 ## Models
 
@@ -297,7 +298,8 @@ Prompts are written once and transpiled into each host's format by `pnpm run bui
 
 ## Safety notes
 
-- solodev never merges its own PR. That rule lives in the prompts, so use branch protection as your hard backstop.
+- solodev never merges its own PR. That rule lives in the prompts, phrased as who owns what rather than a list of
+  commands, so it holds for any forge; use branch protection as your hard backstop.
 - `solodev approve` refuses to record the gate while anything is staged, and `solodev check` fails a branch that
   committed code before the approval or whose spec changed since.
 

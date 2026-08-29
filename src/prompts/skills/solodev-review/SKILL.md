@@ -8,14 +8,11 @@ Your brief names one:
 - **Spec review**, before the gate: `spec.md` and `plan.md` in the feature folder against the request in `progress.md`.
   Read [references/spec.md](references/spec.md). Reply with findings; write no file.
 - **Code review**: the diff since the base the brief names, `git diff <base>..HEAD`, plus untracked files, against the
-  spec's scenarios and the plan. Read [references/code.md](references/code.md), which covers contract, health and
-  structure in one pass. Write findings to `review.md` in the feature folder.
+  spec's scenarios and the plan, and the evidence you gather by running the tests. Read
+  [references/code.md](references/code.md), which covers the evidence, contract, health and structure in one pass. Write
+  findings to `review.md` in the feature folder.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
   commit the brief names, nothing else.
-
-The brief includes the output of `solodev check --for implement`, with how each journey test failed against the code
-before the feature. A journey marked `red (new …)` failed only on loading new code, so check that its assertions pin
-each Then. A C3 warning (`didn't load at base`) whose cause isn't the feature is a `major`.
 
 ## Findings
 
@@ -39,7 +36,7 @@ catches. Each finding names `file:line` and a concrete fix.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
   reason to its text. New problems in the fix diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander. Leave those rows as they are.
-- `review.md` is the only file you change. No repo files at all, no git writes, no builds or test runs.
+- `review.md` is the only file you change; the repo stays as you found it.
 
 A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it
 to the user.
@@ -53,3 +50,5 @@ findings: [] # spec review only: id, severity, location, finding
 notes: <spec or plan gaps, parts of a large diff you didn't reach, or "">
 headline: <one plain sentence for the user>
 ```
+
+{{include:fragments/boundaries.md}}

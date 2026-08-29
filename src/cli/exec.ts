@@ -44,14 +44,3 @@ export function run(cmd: string, args: string[], opts: ExecOptions = {}): Promis
     if (opts.input !== undefined) child.stdin?.end(opts.input)
   })
 }
-
-/** Runs a command line from AGENTS.md through the shell. */
-export function shell(command: string, cwd: string, timeoutMs?: number): Promise<ExecResult> {
-  return run("sh", ["-c", command], { cwd, timeoutMs, env: { CI: "1" } })
-}
-
-/** The last `n` non-empty lines of a command's combined output, where runners print their failures. */
-export function tail(result: ExecResult, n = 15): string[] {
-  const lines = `${result.stdout}\n${result.stderr}`.split("\n").filter((l) => l.trim())
-  return lines.slice(-n)
-}

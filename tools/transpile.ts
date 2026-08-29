@@ -14,8 +14,8 @@ const srcDir = path.join(root, "src")
 const promptsDir = path.join(srcDir, "prompts")
 const distDir = path.join(root, "dist")
 
-/** Hard denies only: `edit` and `bash` maps of pattern → "deny", or a bare "deny" for the whole tool. */
-type Permission = { edit?: unknown; bash?: unknown }
+/** Hard edit denies only: a map of path pattern → "deny", or a bare "deny" for no edits at all. */
+type Permission = { edit?: unknown }
 
 export type Shadow = {
   profile: string
@@ -119,7 +119,7 @@ const denied = (rule: unknown) => rule === "deny"
 function claudeTools(shadow: Shadow): string {
   const tools = ["Read", "Glob", "Grep"]
   if (!denied(shadow.permission?.edit)) tools.push("Edit", "Write")
-  if (!denied(shadow.permission?.bash)) tools.push("Bash")
+  tools.push("Bash")
   return tools.join(", ")
 }
 
@@ -134,11 +134,8 @@ function denyPatterns(rule: unknown): string[] {
 function cursorRestrictions(shadow: Shadow): string {
   const lines: string[] = []
   const edit = shadow.permission?.edit
-  const bash = shadow.permission?.bash
   if (denied(edit)) lines.push("- Do not edit or write any files.")
   else if (denyPatterns(edit).length) lines.push(`- Do not edit: ${denyPatterns(edit).join(", ")}.`)
-  if (denied(bash)) lines.push("- Do not run shell commands.")
-  else if (denyPatterns(bash).length) lines.push(`- Do not run: ${denyPatterns(bash).join(", ")}.`)
   return lines.length ? `\n## Restrictions\n\n${lines.join("\n")}\n` : ""
 }
 

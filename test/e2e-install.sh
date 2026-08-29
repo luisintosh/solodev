@@ -206,19 +206,6 @@ assert_file_exists "${TARGET2}/.agents/solodev/solodev-cli.mjs" "solodev CLI rem
 # (a CommonJS package.json nearby must not break the ESM .mjs)
 SOLODEV="${TARGET}/.agents/solodev/solodev-cli.mjs"
 printf '%s\n' '{"name":"consumer","type":"commonjs"}' >"${TARGET}/package.json"
-cat >"${TARGET}/AGENTS.md" <<'EOF'
-# consumer
-
-## Commands
-
-- install: n/a
-- dev: n/a
-- build: `node -e "process.exit(0)"`
-- test: `node test/hello.test.mjs`
-- test_file: `node {file}`
-- lint: n/a
-- typecheck: n/a
-EOF
 (cd "$TARGET" && git add -A && git commit -q -m "chore: init" && git checkout -q -b feat/hello)
 # feature state lives outside the repo; without an origin it's keyed by the checkout's folder name
 export SOLODEV_STATE="${WORK}/state"
@@ -255,8 +242,8 @@ set +e
 check_out="$(cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for implement 2>&1)"
 check_rc=$?
 set -e
-assert_eq "$check_rc" "0" "solodev check --for implement passes a red-then-green journey"
-assert_grep 'J1 red (new src/hello.mjs)→green' "$check_out" "C3 proves the journey failed before the feature and passes now"
+assert_eq "$check_rc" "0" "solodev check --for implement passes a tagged journey after the gate"
+assert_grep '1 scenarios, 1 journey test' "$check_out" "C1 finds the journey test and its @S1 tag"
 set +e
 (cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for pr >/dev/null 2>&1)
 pr_rc=$?
@@ -275,7 +262,7 @@ assert_eq "$usage_rc" "2" "solodev exits 2 on a usage error"
 # 10. post-install next-step hints
 hints="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=claude node "$INSTALL_JS" 2>&1)"
 assert_grep '/solodev-scout' "$hints" "suggests /solodev-scout"
-if grep -qE 'brew install gh|gh is on PATH|cli.github.com' <<<"$hints"; then ok "suggests gh CLI"; else bad "missing gh CLI hint"; fi
+assert_grep 'Connect your forge and tracker' "$hints" "suggests connecting a forge and tracker"
 
 # 11. missing dist fails (no client-side build)
 EMPTY_SOURCE="${WORK}/empty-source"

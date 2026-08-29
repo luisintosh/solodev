@@ -29,6 +29,20 @@ export function parseApprovals(progress: string): Approval[] {
   return [...progress.matchAll(APPROVAL)].map((m) => ({ date: m[1]!, spec: m[2]!, at: m[3]! }))
 }
 
+export type PrEvent = { url: string; state: "draft" | "ready" }
+
+const PR_EVENT = /^- pr (\S+) · (draft|ready)\s*$/gm
+
+/** The PR lines the commander appends to progress.md (`- pr <url> · draft|ready`), oldest first. */
+export function parsePrEvents(progress: string): PrEvent[] {
+  return [...progress.matchAll(PR_EVENT)].map((m) => ({ url: m[1]!, state: m[2] as PrEvent["state"] }))
+}
+
+/** The last `- tools: …` line in progress.md: the forge, tracker and commands the run settled on. */
+export function parseTools(progress: string): string | undefined {
+  return [...progress.matchAll(/^- tools: (.+?)\s*$/gm)].at(-1)?.[1]
+}
+
 /** The approval in force, and whether spec.md and plan.md still match it. */
 export async function currentApproval(dir: string): Promise<{ approval?: Approval; matches: boolean }> {
   const [spec, plan, progress] = await Promise.all(
@@ -99,33 +113,6 @@ export function parsePlan(plan: string): Plan {
     return { journeys, uncovered }
   }
   throw new Error("plan.md: no fenced YAML block starting with `journeys:`")
-}
-
-/** Command names solodev reads from AGENTS.md. */
-export const COMMAND_NAMES = ["install", "dev", "build", "test", "test_file", "lint", "typecheck"] as const
-
-/**
- * The `## Commands` list in AGENTS.md: `- <name>: <command>`. The command is the first backticked span, so a note can
- * follow it; `n/a` (or no span after n/a) means the repo has none and maps to null.
- */
-export function parseCommands(agents: string): Map<string, string | null> {
-  const out = new Map<string, string | null>()
-  const section = agents.split(/^## Commands[ \t]*$/m)[1]?.split(/^## /m)[0]
-  if (section === undefined) return out
-  for (const line of section.split("\n")) {
-    const m = line.match(/^\s*[-*]\s+([A-Za-z_/ -]+?):\s*(.*)$/)
-    if (!m) continue
-    const name = m[1]!.trim().toLowerCase()
-    const rest = m[2]!.trim()
-    if (/^n\/a\b/i.test(rest)) {
-      out.set(name, null)
-      continue
-    }
-    const span = rest.match(/`([^`]+)`/)?.[1]?.trim()
-    if (span === undefined) continue
-    out.set(name, /^n\/a$/i.test(span) ? null : span)
-  }
-  return out
 }
 
 export const SEVERITIES = ["blocker", "major", "minor"] as const

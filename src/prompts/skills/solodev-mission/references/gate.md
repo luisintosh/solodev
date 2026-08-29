@@ -7,7 +7,7 @@ Show it concisely, after a progress bar:
 - The approach and why; rejected alternatives, one line each.
 - The journeys: id, scenarios, test path. Scenarios left to QA (`uncovered`).
 - Spec review: what it changed and what's left, or why it was skipped.
-- For an issue run, the ticket comment below, as it will be posted on approval.
+- For a ticket run, the ticket comment below, as it will be posted on approval.
 
 End with one question built from `writers` in `solodev probe`, in its order:
 
@@ -57,6 +57,5 @@ and for people, drop empty sections, and post nothing when all four are empty.
 - Which bank fields show in the list? Product owner, asked in Slack.
 ```
 
-- Post it with `gh issue comment <n>`, or through the connected tracker the ticket came from. No ticket → skip it; the
-  feature folder is the record.
+- Post it with the tracker tool the `- tools:` line names. No ticket → skip it; the feature folder is the record.
 - A later approval edits the comment whose first line starts with `👨‍💻📝` instead of adding another.

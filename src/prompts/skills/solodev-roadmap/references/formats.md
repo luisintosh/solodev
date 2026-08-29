@@ -77,7 +77,7 @@ MVP line: through wave <n>.
 
 ## Work item
 
-One file per feature, `<state.dir>/roadmaps/<slug>/items/F<n>.md`. It is the issue body when filed, and the scope
+One file per feature, `<state.dir>/roadmaps/<slug>/items/F<n>.md`. It is the ticket body when filed, and the scope
 `/solodev-mission` runs against.
 
 ````markdown
@@ -135,7 +135,7 @@ data." under the roadmap's Data model when nothing is stored, and drop the Data 
 
 A work item's Data model section names entities and fields only (the tables stay in the roadmap) and states what the
 feature touches, not instructions. Omit the whole section when the feature touches no data. Filing rewrites its link to
-`the epic, #<epic> › Data model`.
+the epic's Data model section.
 
-One `Blocked by F<m>` line per `Depends on:` entry (none when `[]`); filing rewrites each to `Blocked by #<issue>`. Omit
-the mermaid block when no diagram helps; write "None." for an empty section rather than dropping its heading.
+One `Blocked by F<m>` line per `Depends on:` entry (none when `[]`); filing rewrites each to the tracker's reference.
+Omit the mermaid block when no diagram helps; write "None." for an empty section rather than dropping its heading.

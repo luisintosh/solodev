@@ -1,6 +1,5 @@
 import * as path from "node:path"
 import { parse as parseYaml } from "yaml"
-import { COMMAND_NAMES, parseCommands } from "./feature.ts"
 import { isTool, type ModelRef, type Models, TOOLS, type Tool, writerId } from "./models.ts"
 
 export type ProbeDeps = {
@@ -43,8 +42,6 @@ export type Probe = {
   home: Tool | null
   tools: Record<Tool, ToolProbe>
   orca: { cli: string; ready: boolean; reason: string }
-  gh: { installed: boolean; loggedIn: boolean }
-  agentsMd: { found: boolean; lines: number; commands: Record<string, string | null>; missing: string[] }
   /** Where feature folders go (`<dir>/<slug>/`). */
   state: { dir: string; writable: boolean }
   defaults: Defaults
@@ -177,21 +174,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     }),
   )
   const tools = Object.fromEntries(probed) as Record<Tool, ToolProbe>
-  const [orca, ghInstalled] = await Promise.all([probeOrca(deps), deps.which("gh")])
-  const ghLoggedIn = ghInstalled && (await deps.exec("gh", ["auth", "status"])).code === 0
-
-  const agents = await deps.read(path.join(deps.root, "AGENTS.md"))
-  const commands = parseCommands(agents ?? "")
-  const missing = COMMAND_NAMES.filter((n) => !commands.has(n))
-  const lines = agents ? agents.split("\n").length : 0
-  if (!agents) warnings.push("AGENTS.md not found; find the commands this session (optional: run /solodev-scout)")
-  else if (missing.length) {
-    warnings.push(
-      `AGENTS.md ## Commands doesn't list ${missing.join(", ")}; find them this session (optional: run /solodev-scout)`,
-    )
-  }
-  if (lines > 100)
-    warnings.push(`AGENTS.md is ${lines} lines; keep it near the commands list (about 100 lines at most)`)
+  const orca = await probeOrca(deps)
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
 
   const writable = await deps.writable(deps.state)
@@ -229,8 +212,6 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     home,
     tools,
     orca,
-    gh: { installed: ghInstalled, loggedIn: ghLoggedIn },
-    agentsMd: { found: agents !== undefined, lines, commands: Object.fromEntries(commands), missing },
     state: { dir: deps.state, writable },
     defaults,
     writers,

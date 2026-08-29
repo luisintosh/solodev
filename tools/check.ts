@@ -119,6 +119,10 @@ if (catalog) {
     for (const skill of shadow.skills ?? []) {
       if (!catalog.skills?.[skill]) fail(`catalog: shadows.${name} plays ${skill}, which is not a skill`)
     }
+    for (const key of Object.keys(shadow.permission ?? {})) {
+      if (key !== "edit")
+        fail(`catalog: shadows.${name}.permission.${key} — only edit denies; say the rest in a prompt`)
+    }
     for (const [where, value] of permissionValues(shadow.permission)) {
       if (value !== "deny") fail(`catalog: shadows.${name}.permission "${where}" is "${value}" — only deny is rendered`)
     }

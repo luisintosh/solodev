@@ -12,8 +12,6 @@ const models: Models = {
 }
 
 const ready = JSON.stringify({ ok: true, result: { runtime: { state: "ready" } } })
-const AGENTS =
-  "## Commands\n\n- install: n/a\n- dev: n/a\n- build: `b`\n- test: `t`\n- test_file: `t {file}`\n- lint: n/a\n- typecheck: n/a\n"
 
 function deps(over: Partial<ProbeDeps> = {}): ProbeDeps {
   return {
@@ -33,7 +31,7 @@ function deps(over: Partial<ProbeDeps> = {}): ProbeDeps {
     },
     which: async () => true,
     exists: async () => true,
-    read: async (file) => (file.endsWith("AGENTS.md") ? AGENTS : undefined),
+    read: async () => undefined,
     ...over,
   }
 }
@@ -50,7 +48,6 @@ describe("probe", () => {
     expect(p.writers[0]!.launch).toEqual({ agent: "codex", model: "gpt-6.1-sol", effort: "medium" })
     expect(p.tools.claude.launch.think).toEqual({ agent: "claude", model: "claude-opus-5-5", effort: "medium" })
     expect(p.defaults).toEqual({ writer: "ask", dispatch: "auto" })
-    expect(p.agentsMd.missing).toEqual([])
     expect(p.state).toEqual({ dir: "/home/u/.agents/solodev/acme/repo", writable: true })
     expect(p.warnings).toEqual([])
   })
@@ -89,27 +86,12 @@ describe("probe", () => {
     expect(p.tools.codex.loggedIn).toBe(false)
     expect(p.writers.map((w) => w.tool)).toEqual(["cursor", "claude"])
   })
-
-  test("suggests /solodev-scout as optional when AGENTS.md is missing", async () => {
-    const p = await probe(deps({ read: async () => undefined }), models)
-    expect(p.agentsMd.found).toBe(false)
-    expect(p.warnings.join("\n")).toMatch(/AGENTS.md not found.*optional: run \/solodev-scout/)
-  })
-
-  test("flags missing commands and a long AGENTS.md", async () => {
-    const long = `## Commands\n- test: \`t\`\n${"line\n".repeat(120)}`
-    const p = await probe(deps({ read: async (file) => (file.endsWith("AGENTS.md") ? long : undefined) }), models)
-    expect(p.agentsMd.missing).toEqual(["install", "dev", "build", "test_file", "lint", "typecheck"])
-    expect(p.warnings.join("\n")).toMatch(/doesn't list install, dev.*optional: run \/solodev-scout/)
-    expect(p.warnings.join("\n")).toMatch(/AGENTS.md is 1\d\d lines/)
-  })
 })
 
 describe("personal defaults", () => {
   const withDefaults = (yaml: string, over: Partial<ProbeDeps> = {}) =>
     deps({
-      read: async (file) =>
-        file.endsWith("AGENTS.md") ? AGENTS : file.endsWith("solodev-conf.yaml") ? yaml : undefined,
+      read: async (file) => (file.endsWith("solodev-conf.yaml") ? yaml : undefined),
       ...over,
     })
 

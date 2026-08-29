@@ -1,13 +1,21 @@
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
-import { run } from "./exec.ts"
-import { currentApproval, exists, featureDir, parsePlan, parseQa, parseReview, readIfExists } from "./feature.ts"
+import {
+  currentApproval,
+  exists,
+  featureDir,
+  type PrEvent,
+  parsePlan,
+  parsePrEvents,
+  parseQa,
+  parseReview,
+  parseTools,
+  readIfExists,
+} from "./feature.ts"
 import { currentBranch } from "./git.ts"
 
 export const STAGES = ["spec", "gate", "implement", "review", "pr", "qa", "done"] as const
 export type Stage = (typeof STAGES)[number]
-
-export type PrInfo = { url: string; isDraft: boolean; state: string }
 
 export type FeatureStatus = {
   slug: string
@@ -15,24 +23,11 @@ export type FeatureStatus = {
   next: string
   /** The approval in force: `<date> at <sha>`. */
   approved?: string
-  pr?: PrInfo
+  /** The PR from progress.md's last `- pr` line. */
+  pr?: PrEvent
+  /** progress.md's `- tools:` line. */
+  tools?: string
   notes: string[]
-}
-
-export type StatusDeps = {
-  /** The PR for the current branch, null when there is none, undefined when it can't be told (no gh, no auth). */
-  pr: (root: string) => Promise<PrInfo | null | undefined>
-}
-
-export async function ghPr(root: string): Promise<PrInfo | null | undefined> {
-  const r = await run("gh", ["pr", "view", "--json", "url,isDraft,state"], { cwd: root, timeoutMs: 20_000 })
-  if (r.code === null) return undefined
-  if (r.code !== 0) return /no pull requests? found/i.test(r.stderr) ? null : undefined
-  try {
-    return JSON.parse(r.stdout) as PrInfo
-  } catch {
-    return undefined
-  }
 }
 
 const NEXT: Record<Stage, (slug: string) => string> = {
@@ -40,25 +35,24 @@ const NEXT: Record<Stage, (slug: string) => string> = {
   gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
   implement: (s) => `solodev-code writes the journey tests and the code; then \`solodev check ${s} --for implement\``,
   review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
-  pr: (s) => `\`solodev check ${s} --for pr\`, then push and open the draft PR`,
+  pr: (s) =>
+    `\`solodev check ${s} --for pr\`, then push, open the draft PR and log \`- pr <url> · draft\` in progress.md`,
   qa: (s) =>
-    `solodev-verify for uncovered scenarios (if any); then \`solodev check ${s} --for done\` and mark the PR ready`,
+    `solodev-verify for uncovered scenarios (if any); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> · ready\``,
   done: () => "the user reviews and merges the PR",
 }
 
-/** `root` is the project, `state` the repo's folder of features (state.ts). */
-export async function featureStatus(
-  root: string,
-  state: string,
-  slug: string,
-  deps: StatusDeps,
-): Promise<FeatureStatus> {
+/** `state` is the repo's folder of features (state.ts). Reads only the feature folder. */
+export async function featureStatus(state: string, slug: string): Promise<FeatureStatus> {
   const dir = featureDir(state, slug)
   const notes: string[] = []
+  const progress = (await readIfExists(path.join(dir, "progress.md"))) ?? ""
+  const tools = parseTools(progress)
   const done = (stage: Stage, extra: Partial<FeatureStatus> = {}): FeatureStatus => ({
     slug,
     stage,
     next: NEXT[stage](slug),
+    ...(tools ? { tools } : {}),
     notes,
     ...extra,
   })
@@ -83,11 +77,9 @@ export async function featureStatus(
     return done("review", { approved })
   }
 
-  const pr = await deps.pr(root)
-  if (pr === undefined) notes.push("couldn't read the PR (is gh installed and logged in?)")
-  if (!pr) return done("pr", { approved, pr: pr ?? undefined })
-  if (pr.state === "MERGED") return done("done", { approved, pr, notes: [...notes, "merged"] })
-  if (!pr.isDraft) return done("done", { approved, pr })
+  const pr = parsePrEvents(progress).at(-1)
+  if (!pr) return done("pr", { approved })
+  if (pr.state === "ready") return done("done", { approved, pr })
 
   try {
     const uncovered = parsePlan(plan).uncovered
@@ -134,7 +126,8 @@ export async function branchFeature(root: string, state: string): Promise<string
 export function formatStatus(s: FeatureStatus): string {
   const lines = [`${s.slug}: ${s.stage}`]
   if (s.approved) lines.push(`  approved: ${s.approved}`)
-  if (s.pr) lines.push(`  pr: ${s.pr.url}${s.pr.isDraft ? " (draft)" : ""}`)
+  if (s.pr) lines.push(`  pr: ${s.pr.url}${s.pr.state === "draft" ? " (draft)" : ""}`)
+  if (s.tools) lines.push(`  tools: ${s.tools}`)
   for (const n of s.notes) lines.push(`  note: ${n}`)
   lines.push(`  next: ${s.next}`)
   return lines.join("\n")
