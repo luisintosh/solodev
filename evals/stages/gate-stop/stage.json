@@ -7,18 +7,24 @@
   "maxTurns": 40,
   "checks": [
     { "expect": "It ran `solodev probe`", "tool": "Bash", "input": "solodev(-cli)?(\\.mjs)? probe" },
-    { "expect": "It cut feat/<slug>", "git": ["branch", "--show-current"], "matches": "^feat/" },
+    { "expect": "It cut feat/<slug>", "contract": true, "git": ["branch", "--show-current"], "matches": "^feat/" },
     { "expect": "One feature folder", "features": true, "count": { "min": 1, "max": 1 } },
     { "expect": "progress.md starts with the request", "file": "{feature}/progress.md", "matches": "^## Request" },
-    { "expect": "spec.md has @S<n> scenarios", "file": "{feature}/spec.md", "matches": "@S\\d+" },
+    { "expect": "spec.md has @S<n> scenarios", "contract": true, "file": "{feature}/spec.md", "matches": "@S\\d+" },
     { "expect": "The plan covers the spec and the run stopped at the gate", "status": ["gate"] },
-    { "expect": "No AGENTS.md was written", "file": "AGENTS.md", "count": { "max": 0 } },
+    { "expect": "No AGENTS.md was written", "contract": true, "file": "AGENTS.md", "count": { "max": 0 } },
     {
       "expect": "Nothing was committed before the gate",
+      "contract": true,
       "git": ["diff", "--name-only", "{base}", "HEAD"],
       "count": { "max": 0 }
     },
-    { "expect": "No source file was edited before the gate", "git": ["status", "--porcelain"], "count": { "max": 0 } },
+    {
+      "expect": "No source file was edited before the gate",
+      "contract": true,
+      "git": ["status", "--porcelain"],
+      "count": { "max": 0 }
+    },
     { "expect": "No coder started", "tool": "Agent", "input": "shadow-coder", "count": { "max": 0 } },
     {
       "expect": "The last message is the gate card: a short spec summary, the coder options, and a request to approve",

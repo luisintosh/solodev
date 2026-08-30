@@ -18,39 +18,6 @@
         "`solodev check <slug> --for done` passed and the commander, not a shadow, marked the PR ready; nothing was merged",
         "Every report started with a progress bar, and each delegation was announced in one line before it started"
       ]
-    },
-    {
-      "id": 2,
-      "prompt": "Add a --version flag to the CLI that prints the package.json version.",
-      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander finds the commands from package.json, logs them in one `- tools:` line in progress.md and continues to the spec.",
-      "files": ["test/fixture-repo"],
-      "expectations": [
-        "The commander ran `solodev probe` before cutting the branch",
-        "The commander found the test commands from package.json (npm test, vitest), logged them in a `- tools:` line in progress.md, and went on to cut feat/<slug> and write the spec",
-        "No AGENTS.md was written"
-      ]
-    },
-    {
-      "id": 3,
-      "prompt": "/solodev-mission fix the typo 'Helo' in src/index.js",
-      "expected_output": "Run in a copy of test/fixture-repo. The commander says this is a trivial change better suited to /plan or a direct edit, and asks before starting the full run.",
-      "files": ["test/fixture-repo"],
-      "expectations": [
-        "The reply names the request as a single-line or trivial change in one line",
-        "The reply suggests /plan (or a direct edit) and offers to run the full workflow anyway",
-        "No branch, feature folder or spec was created before the user answered"
-      ]
-    },
-    {
-      "id": 4,
-      "prompt": "continue the greet feature",
-      "expected_output": "Run in a copy of test/fixture-repo on branch feat/greet with an approval line in its feature folder and a passing implement check but no review.md. The commander resumes at code review.",
-      "files": ["test/fixture-repo"],
-      "expectations": [
-        "The commander ran `solodev status` and read the feature folder's progress.md before doing anything else",
-        "It continued at code review without rewriting the spec, plan or code",
-        "Its first report carried the progress bar with implement marked done"
-      ]
     }
   ]
 }

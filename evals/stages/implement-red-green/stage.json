@@ -1,0 +1,58 @@
+{
+  "tier": "stage",
+  "skill": "solodev-mission",
+  "covers": ["solodev-mission", "solodev-code", "shadow-coder"],
+  "prompt": "continue the greet feature\n\nThis is an unattended eval: stop once the coder's work passes the implement check and is committed, before code review.",
+  "npm": true,
+  "branch": "feat/greet",
+  "slug": "greet",
+  "approve": true,
+  "start": { "stage": "implement" },
+  "maxTurns": 30,
+  "checks": [
+    {
+      "expect": "The held-out acceptance test passes at HEAD",
+      "contract": true,
+      "run": ["bash", "{stage}/accept.sh"]
+    },
+    {
+      "expect": "The committed tests fail on the base and pass at HEAD",
+      "contract": true,
+      "run": ["bash", "{stage}/redgreen.sh", "{base}"]
+    },
+    {
+      "expect": "The work is committed on the branch",
+      "contract": true,
+      "git": ["log", "--oneline", "{base}..HEAD"]
+    },
+    {
+      "expect": "Nothing is left uncommitted",
+      "contract": true,
+      "git": ["status", "--porcelain"],
+      "count": { "max": 0 }
+    },
+    {
+      "expect": "The approved spec is untouched",
+      "contract": true,
+      "run": ["cmp", "{stage}/feature/spec.md", "{feature}/spec.md"]
+    },
+    {
+      "expect": "The approved plan is untouched",
+      "contract": true,
+      "run": ["cmp", "{stage}/feature/plan.md", "{feature}/plan.md"]
+    },
+    {
+      "expect": "Nothing reached main",
+      "contract": true,
+      "git": ["log", "--oneline", "{base}..main"],
+      "count": { "max": 0 }
+    },
+    { "expect": "The code ran in a shadow-coder", "tool": "Agent", "input": "shadow-coder" },
+    { "expect": "No reviewer started", "tool": "Agent", "input": "shadow-reviewer", "count": { "max": 0 } },
+    {
+      "expect": "It ran the implement check before committing",
+      "tool": "Bash",
+      "input": "solodev(-cli)?(\\.mjs)? check greet --for implement"
+    }
+  ]
+}

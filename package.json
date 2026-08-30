@@ -30,7 +30,7 @@
     "eval:smoke": "pnpm test && node tools/eval-stage.ts run --tier smoke",
     "eval:stage": "node tools/eval-stage.ts run",
     "eval:changed": "node tools/eval-stage.ts run --changed",
-    "eval:full": "node tools/eval.ts run --config v2-claude"
+    "eval:full": "node tools/eval.ts run --config local-claude"
   },
   "dependencies": {
     "@clack/prompts": "^1.7.0",

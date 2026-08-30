@@ -7,6 +7,7 @@
  *                                run the selected stages; --changed keeps only those whose prompts changed since <ref>
  *                                (default master); --judge grades the `judge` expectations with one cheap model call
  */
+import * as fsSync from "node:fs"
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
@@ -32,6 +33,8 @@ const Count = z.object({ min: z.number().optional(), max: z.number().optional() 
 const Check = z
   .object({
     expect: z.string(),
+    /** Behavior the workflow keeps whatever implements it; untagged checks test today's mechanism. */
+    contract: z.boolean().optional(),
     count: Count.optional(),
     /** A path in the workspace; `{feature}` and `{state}` expand to the feature folder and the repo's state folder. */
     file: z.string().optional(),
@@ -48,13 +51,17 @@ const Check = z
     status: z.array(z.string()).optional(),
     /** Counts feature folders. */
     features: z.literal(true).optional(),
+    /** A command run in the workspace that has to exit with `exit` (default 0); `{base}`, `{feature}`, `{state}` and
+     * `{stage}` (the stage's folder) expand in its arguments. */
+    run: z.array(z.string()).min(1).optional(),
+    exit: z.number().int().optional(),
     /** Graded by a model, and only with --judge. */
     judge: z.literal(true).optional(),
     matches: z.string().optional(),
   })
   .strict()
-  .refine((c) => [c.file, c.git, c.tool, c.reply, c.status, c.features, c.judge].filter((k) => k).length === 1, {
-    message: "each check needs exactly one of file, git, tool, reply, status, features, judge",
+  .refine((c) => [c.file, c.git, c.tool, c.reply, c.status, c.features, c.run, c.judge].filter((k) => k).length === 1, {
+    message: "each check needs exactly one of file, git, tool, reply, status, features, run, judge",
   })
 const Stage = z
   .object({
@@ -71,6 +78,8 @@ const Stage = z
     branch: z.string().optional(),
     slug: z.string().optional(),
     approve: z.boolean().optional(),
+    /** Tools the agent may use beyond CLAUDE_ALLOWED, such as `Bash(gh:*)` for a stub in the stage's `bin/`. */
+    allow: z.array(z.string()).optional(),
     /** What `solodev status` reports after setup, and a check set that must pass then. */
     start: z.object({ stage: z.string(), check: z.enum(["implement", "pr", "done"]).optional() }).optional(),
     checks: z.array(Check).min(1),
@@ -81,7 +90,7 @@ type Stage = z.infer<typeof Stage> & { id: string }
 type Check = z.infer<typeof Check>
 type Event = { text: string } | { tool: string; input: string }
 type Transcript = { events: Event[]; turns: number | null; subtype: string | null }
-type Graded = { expect: string; pass: boolean | null; detail: string }
+type Graded = { expect: string; contract: boolean; pass: boolean | null; detail: string }
 
 async function loadStages(): Promise<Stage[]> {
   const stages: Stage[] = []
@@ -213,37 +222,45 @@ const countMatches = (text: string, re: string) => [...text.matchAll(new RegExp(
 export async function grade(
   checks: Check[],
   t: Transcript,
-  ctx: { ws: string; state: string; base: string; slug?: string },
+  ctx: { ws: string; state: string; base: string; slug?: string; stageDir?: string },
 ): Promise<Graded[]> {
   const repo = repoState(ctx.ws, ctx.state)
   const features = await fs.readdir(repo).catch(() => [] as string[])
   const featureDirs = features.filter((f) => f !== "roadmaps")
   const slug = ctx.slug ?? featureDirs[0]
+  const expand = (s: string) =>
+    s
+      .replaceAll("{feature}", path.join(repo, slug ?? "<no feature>"))
+      .replaceAll("{state}", repo)
+      .replaceAll("{base}", ctx.base)
+      .replaceAll("{stage}", ctx.stageDir ?? "<no stage>")
   const texts = t.events.flatMap((e) => ("text" in e ? [e.text] : []))
   const out: Graded[] = []
   for (const c of checks) {
+    const contract = c.contract ?? false
     let n = 0
     let detail = ""
     if (c.judge) {
-      out.push({ expect: c.expect, pass: null, detail: "judge" })
+      out.push({ expect: c.expect, contract, pass: null, detail: "judge" })
+      continue
+    }
+    if (c.run) {
+      const [cmd, ...args] = c.run.map(expand)
+      const r = sh(cmd!, args, ctx.ws, { timeoutMs: 300_000 })
+      const want = c.exit ?? 0
+      const tail = `${r.stdout}${r.stderr}`.trim().split("\n").slice(-3).join(" | ")
+      out.push({ expect: c.expect, contract, pass: r.code === want, detail: `exit ${r.code} (want ${want}): ${tail}` })
       continue
     }
     if (c.file) {
-      const resolved = path.resolve(
-        ctx.ws,
-        c.file.replace("{feature}", path.join(repo, slug ?? "<no feature>")).replace("{state}", repo),
-      )
+      const resolved = path.resolve(ctx.ws, expand(c.file))
       const body = await fs
         .readFile(resolved, "utf8")
         .catch((err: NodeJS.ErrnoException) => (err.code === "EISDIR" ? "" : undefined))
       n = body === undefined ? 0 : c.matches ? countMatches(body, c.matches) : 1
       detail = `${path.relative(ctx.ws, resolved)}: ${n}`
     } else if (c.git) {
-      const r = sh(
-        "git",
-        c.git.map((a) => a.replace("{base}", ctx.base)),
-        ctx.ws,
-      )
+      const r = sh("git", c.git.map(expand), ctx.ws)
       const lines = r.stdout.split("\n").filter(Boolean)
       n = c.matches ? lines.filter((l) => new RegExp(c.matches!, "i").test(l)).length : lines.length
       detail = `git ${c.git.join(" ")}: ${lines.slice(0, 5).join(" | ") || "(empty)"}`
@@ -266,13 +283,13 @@ export async function grade(
       } catch {
         // stays "no feature"
       }
-      out.push({ expect: c.expect, pass: c.status.includes(stage), detail: `status: ${stage}` })
+      out.push({ expect: c.expect, contract, pass: c.status.includes(stage), detail: `status: ${stage}` })
       continue
     } else if (c.features) {
       n = featureDirs.length
       detail = `${n} feature folder${n === 1 ? "" : "s"}`
     }
-    out.push({ expect: c.expect, pass: inRange(n, c.count), detail })
+    out.push({ expect: c.expect, contract, pass: inRange(n, c.count), detail })
   }
   return out
 }
@@ -339,6 +356,16 @@ function changedFiles(ref: string): string[] {
   return [...new Set(lists.flat())]
 }
 
+/** The stage's `bin/` goes first on PATH, so a stub such as a fake `gh` stands in for the real tool. */
+function agentEnv(stage: Stage, state: string): NodeJS.ProcessEnv {
+  const bin = path.join(stagesDir, stage.id, "bin")
+  return {
+    SOLODEV_HOME: "claude",
+    SOLODEV_STATE: state,
+    ...(fsSync.existsSync(bin) ? { PATH: `${bin}${path.delimiter}${process.env.PATH ?? ""}` } : {}),
+  }
+}
+
 function prompt(stage: Stage): string {
   return stage.prompt.startsWith("/") ? stage.prompt : `/${stage.skill} ${stage.prompt}`
 }
@@ -375,30 +402,33 @@ async function runStages(args: string[]): Promise<number> {
           "--max-turns",
           String(stage.maxTurns),
           "--allowedTools",
-          CLAUDE_ALLOWED.join(" "),
+          [...CLAUDE_ALLOWED, ...(stage.allow ?? [])].join(" "),
         ],
         ws,
-        { timeoutMs: 30 * 60_000, env: { SOLODEV_HOME: "claude", SOLODEV_STATE: state } },
+        { timeoutMs: 30 * 60_000, env: agentEnv(stage, state) },
       )
       const wallSeconds = Math.round((Date.now() - started) / 1000)
       const transcriptFile = path.join(os.tmpdir(), `solodev-stage-${stage.id}-${Date.now()}.jsonl`)
       await fs.writeFile(transcriptFile, agent.stdout)
       const t = parseTranscript(agent.stdout)
-      let graded = await grade(stage.checks, t, { ws, state, base, slug: stage.slug })
+      const stageDir = path.join(stagesDir, stage.id)
+      let graded = await grade(stage.checks, t, { ws, state, base, slug: stage.slug, stageDir })
       if (args.includes("--judge")) graded = gradeJudged(graded, t)
       const passed = graded.filter((g) => g.pass === true).length
       const failures = graded.filter((g) => g.pass === false)
       const skipped = graded.filter((g) => g.pass === null).length
+      const contract = graded.filter((g) => g.contract)
+      const contractFailed = contract.filter((g) => g.pass === false).length
       if (failures.length) failed++
       const cost = usage(agent.stdout).costUsd
       await fs.appendFile(
         path.join(resultsDir, `${stage.id}.jsonl`),
-        `${JSON.stringify({ stage: stage.id, date: new Date().toISOString(), passed, failed: failures.length, skipped, turns: t.turns, endedBy: t.subtype, wallSeconds, costUsd: cost, failures: failures.map((f) => f.expect) })}\n`,
+        `${JSON.stringify({ stage: stage.id, date: new Date().toISOString(), passed, failed: failures.length, contractFailed, skipped, turns: t.turns, endedBy: t.subtype, wallSeconds, costUsd: cost, failures: failures.map((f) => f.expect) })}\n`,
       )
       console.log(
-        `${failures.length ? "✗" : "✓"} ${stage.id}: ${passed}/${graded.length - skipped} checks${skipped ? ` (${skipped} judge skipped)` : ""} · ${t.turns ?? "?"} turns${t.subtype === "error_max_turns" ? " (hit the cap)" : ""} · ${wallSeconds}s · $${cost?.toFixed(2) ?? "?"}`,
+        `${failures.length ? "✗" : "✓"} ${stage.id}: ${passed}/${graded.length - skipped} checks${skipped ? ` (${skipped} judge skipped)` : ""} · contract ${contract.length - contractFailed}/${contract.length} · ${t.turns ?? "?"} turns${t.subtype === "error_max_turns" ? " (hit the cap)" : ""} · ${wallSeconds}s · $${cost?.toFixed(2) ?? "?"}`,
       )
-      for (const f of failures) console.log(`  ✗ ${f.expect} — ${f.detail}`)
+      for (const f of failures) console.log(`  ✗ ${f.contract ? "[contract] " : ""}${f.expect} — ${f.detail}`)
       console.log(`  transcript: ${transcriptFile}`)
       if (args.includes("--keep")) console.log(`  workspace: ${ws} (state in ${STATE_DIR}/)`)
     } finally {
