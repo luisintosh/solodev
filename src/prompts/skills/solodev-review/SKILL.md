@@ -3,18 +3,25 @@ what it seems to intend. You report; you don't fix.
 
 ## Modes
 
-Your brief names one. Run on its own, without a brief: code review of the current branch, the feature folder is
-`<state.dir>/<slug>/` from `solodev probe` for a `feat/<slug>` branch, the base is its merge-base with the default
-branch, and without a `spec.md` you ask the user what the change should do.
+Your brief names one, and for code review or re-review a lens. Run on its own, without a brief: code review of the
+current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` for a `feat/<slug>` branch, the base is
+its merge-base with the default branch, and without a `spec.md` you ask the user what the change should do. Then you run
+the review as [references/swarm.md](references/swarm.md) says: alone, or by starting a reviewer per lens and merging
+their findings.
 
 - **Spec review**, before the gate: `spec.md` and `plan.md` in the feature folder against the request in `progress.md`.
   Read [references/spec.md](references/spec.md). Put the findings in your reply; write no report file.
 - **Code review**: the diff since the base the brief names, `git diff <base>..HEAD`, plus untracked files, against the
-  spec's scenarios and the plan, and the evidence you gather by running the tests, on the base in a temporary worktree
-  outside the repo that you remove afterwards. Read [references/code.md](references/code.md), which covers the evidence,
-  contract, health and structure in one pass. Write findings to `review.md` in the feature folder.
+  spec's scenarios and the plan. Read the lens file your brief names and stay inside it; other reviewers cover the rest.
+  With `lens: single`, read every lens the brief lists. A large diff: review the riskiest files first and name in
+  `notes` what you didn't reach.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
-  commit the brief names, nothing else.
+  commit the brief names, nothing else. With a lens, only the rows whose `lens` cell names it.
+
+The lenses: [evidence](references/lens-evidence.md) runs the journey tests on the base and at HEAD and the project's
+checks; [contract](references/lens-contract.md), [correctness](references/lens-correctness.md),
+[security](references/lens-security.md), [design](references/lens-design.md) and [ui](references/lens-ui.md) read the
+diff.
 
 ## Findings
 
@@ -28,19 +35,21 @@ catches. Each finding names `file:line` and a concrete fix.
 ## review.md
 
 ```markdown
-| id  | severity | location         | status | finding                                                    |
-| --- | -------- | ---------------- | ------ | ---------------------------------------------------------- |
-| R1  | major    | src/export.ts:42 | open   | Swallows the write error; return it so @S3's message shows |
+| id  | severity | lens        | location         | status | finding                                                    |
+| --- | -------- | ----------- | ---------------- | ------ | ---------------------------------------------------------- |
+| R1  | major    | correctness | src/export.ts:42 | open   | Swallows the write error; return it so @S3's message shows |
 ```
 
-- Write `review.md` even when you find nothing: the header row alone records a clean review.
+- With `lens: single`, write `review.md` yourself, `single` in each `lens` cell, even when you find nothing: the header
+  row alone records a clean review. With any other lens, put your findings, and on re-review your row results, in your
+  reply and leave `review.md` to the session that started you; it merges the lenses.
 - A new finding takes the next free id and status `open`.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
   reason to its text. A `Weakened test:` finding is the user's to settle; mark it only `fixed`. New problems in the fix
   diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
   `Weakened test:` row. Leave those rows as they are.
-- `review.md` is the only file you change; the repo stays as you found it.
+- `review.md` and your reply are the only files you change; the repo stays as you found it.
 
 A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it
 to the user.
@@ -49,8 +58,10 @@ to the user.
 
 ```yaml
 mode: spec | code | re-review
+lens: single | evidence | contract | correctness | security | design | ui
 counts: { blocker: 0, major: 1, minor: 2 }
-findings: [] # spec review only: id, severity, location, finding
+findings: [] # spec review and lens runs: severity, location, finding
+rows: [] # lens re-review: id, result (fixed | rebutted | open), reason
 notes: <spec or plan gaps, parts of a large diff you didn't reach, or "">
 headline: <one plain sentence for the user>
 ```

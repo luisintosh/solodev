@@ -32,7 +32,7 @@ tests and docs. Every brief names the folder's absolute path.
 | 3 spec review | a fresh shadow-reviewer with solodev-review, when needed | you applied the findings you agree with                        |
 | 4 gate        | the user                                                 | `solodev approve` recorded                                     |
 | 5 implement   | the coder, with solodev-code                             | `solodev check <slug> --for implement` passes                  |
-| 6 code review | a fresh shadow-reviewer with solodev-review              | `review.md` has no open blocker or major                       |
+| 6 code review | fresh shadow-reviewers with solodev-review, one per lens | `review.md` has no open blocker or major                       |
 | 7 PR          | you                                                      | `solodev check <slug> --for pr` passes, draft PR open          |
 | 8 QA          | solodev-verify, if needed                                | uncovered scenarios have verdicts                              |
 | 9 finish      | you                                                      | `solodev check <slug> --for done` passes, PR ready, card shown |
@@ -57,13 +57,12 @@ tests and docs. Every brief names the folder's absolute path.
 5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
-6. **Code review.** Brief a fresh reviewer with the slug, the base (`git merge-base <default branch> HEAD`) and the
-   coder's `decisions:` to judge against the spec. It runs the journey tests on the base and at HEAD and the project's
-   checks. A `Weakened test:` finding goes straight to the user, who picks a fix round, `rebutted` or `deferred`. Any
-   other blocker or major → one fix round with the same coder, which replies per finding id, then one re-review by a new
-   reviewer whose brief carries the coder's per-finding replies and the commit the last review saw. Blockers and majors
-   still open go to the user: another fix round, `deferred` or `dropped`. Write the decision into `review.md`. Spec or
-   plan gaps in the reviewer's `notes` go to the user too.
+6. **Code review.** Run it as solodev-review's `references/swarm.md` says (one reviewer, or one per lens), briefing each
+   fresh with the slug, the base (`git merge-base <default branch> HEAD`) and the coder's `decisions:`. A
+   `Weakened test:` finding goes straight to the user, who picks a fix round, `rebutted` or `deferred`. Any other
+   blocker or major → one fix round with the same coder, which replies per finding id, then one re-review, chosen the
+   same way, whose briefs carry the coder's replies and the commit the last review saw. Blockers and majors still open
+   go to the user: another fix round, `deferred` or `dropped`, written into `review.md`; so do spec gaps in `notes`.
 7. **PR.** Run `solodev check <slug> --for pr`, push, open a draft PR ([references/pr.md](references/pr.md)), and log
    `- pr <url> · draft` in `progress.md`.
 8. **QA.** The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none are, the journey tests are
@@ -81,7 +80,8 @@ attempt, skipped stages and the user's decisions in `progress.md`, so a resumed 
 
 Write each brief to `briefs/<role>-<n>.md` in the feature folder: the role skill, the slug, the `- tools:` line, the
 `solodev` path, what to do now, and where to write the reply. Keep it short; the role skill and the feature files hold
-the rest. One coder serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start fresh.
+the rest. One coder serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start fresh;
+start lens reviewers together, one spawn call each in the same turn.
 
 - **Claude Code:** the Agent tool with `subagent_type` shadow-coder or shadow-reviewer; their role skills are preloaded.
   Continue the coder with SendMessage.
@@ -100,8 +100,8 @@ a few words the first time you use them.
 Ask the user only at: a slug that already has a folder (resume or start over); conflicting tools or commands at the
 start; no tool for the forge or tracker; questions while writing the spec; the gate; findings left after the re-review;
 a weakened-test finding; a spec gap from review or QA; a shadow's `question` or `blocked` reply; a `manual` QA verdict;
-stuck after two attempts (retry fresh, a second opinion from another tool, or take over); an Orca worker that fails (run
-that shadow natively, or wait); the ready PR. Between those, keep going.
+stuck after two attempts (retry fresh, a second opinion from another tool, or take over); an Orca worker that fails,
+other than a lens reviewer (run that shadow natively, or wait); the ready PR. Between those, keep going.
 
 ## Budgets
 

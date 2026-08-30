@@ -68,8 +68,10 @@ skills:
   solodev-review:
     budget: 90
     description: >-
-      Independent review of a spec and plan, or of a feature diff against its scenarios: contract, health and structure
-      in one pass, findings in review.md. Used by /solodev-mission in a fresh context, or by the user on any branch.
+      Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small
+      change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or
+      sensitive one, findings merged in review.md. Used by /solodev-mission in a fresh context, or by the user on any
+      branch.
   solodev-verify:
     budget: 52
     description: >-
