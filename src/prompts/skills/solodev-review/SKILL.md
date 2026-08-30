@@ -16,7 +16,8 @@ their findings.
   With `lens: single`, read every lens the brief lists. A large diff: review the riskiest files first and name in
   `notes` what you didn't reach.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
-  commit the brief names, nothing else. With a lens, only the rows whose `lens` cell names it.
+  commit the brief names, nothing else. With `lens: single`, every open row, and the evidence lens's runs again at HEAD;
+  with another lens, the rows your brief gives you.
 
 The lenses: [evidence](references/lens-evidence.md) runs the journey tests on the base and at HEAD and the project's
 checks; [contract](references/lens-contract.md), [correctness](references/lens-correctness.md),

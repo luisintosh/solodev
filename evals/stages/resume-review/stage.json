@@ -45,7 +45,7 @@
     {
       "expect": "review.md records the single-reviewer path in its lens column",
       "file": "{feature}/review.md",
-      "matches": "\\|\\s*single\\s*\\|"
+      "matches": "^\\|\\s*R\\d+\\s*\\|[^|]*\\|\\s*single\\s*\\|"
     },
     {
       "expect": "review.md flags the missing --name default (@S3) as blocker or major",

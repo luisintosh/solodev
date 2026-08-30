@@ -100,8 +100,8 @@ a few words the first time you use them.
 Ask the user only at: a slug that already has a folder (resume or start over); conflicting tools or commands at the
 start; no tool for the forge or tracker; questions while writing the spec; the gate; findings left after the re-review;
 a weakened-test finding; a spec gap from review or QA; a shadow's `question` or `blocked` reply; a `manual` QA verdict;
-stuck after two attempts (retry fresh, a second opinion from another tool, or take over); an Orca worker that fails,
-other than a lens reviewer (run that shadow natively, or wait); the ready PR. Between those, keep going.
+stuck after two attempts (retry fresh, a second opinion from another tool, or take over); a failed Orca worker other
+than a lens (run it natively, or wait); a failed lens `swarm.md` needs; the ready PR. Between those, keep going.
 
 ## Budgets
 
