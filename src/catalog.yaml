@@ -43,7 +43,8 @@ shadows:
     skills: [solodev-review, solodev-verify]
     description: >-
       Fresh-context reviewer: reviews a spec or a diff (solodev-review) or checks scenarios no test covers
-      (solodev-verify), following the role skill its brief names. Report-only; writes only review.md or qa.md.
+      (solodev-verify), following the role skill its brief names. Report-only; writes only its report (review.md or
+      qa.md) or its reply.
 
 skills:
   solodev-mission:

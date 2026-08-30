@@ -16,7 +16,7 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
 
 ## One reviewer or one per lens
 
-- **One reviewer** for a small or simple change that isn't sensitive: a few files, one journey, or mostly mechanical
+- **One reviewer** for a small or simple change that isn't sensitive: a few files and one journey, or mostly mechanical
   edits (renames, config, copy, tests only). Its brief says `lens: single` and lists the lenses; it reads them all and
   writes `review.md` itself.
 - **One reviewer per lens, all started in the same turn**, for a large change (many files, several journeys, a new
@@ -38,9 +38,9 @@ user the choice in one line:
   retry, review that lens yourself, or go on without it.
 - Two findings at the same location with the same cause are one row: the higher severity, both lenses in its `lens` cell
   (`contract, correctness`), and its text starts `Weakened test:` when any of them did.
-- Rows take the next free ids after any already in `review.md`, status `open`, in the format SKILL.md gives. No findings
-  from any lens: the header row alone.
-- Sum the counts and join the notes; a spec or plan gap among them goes to the user.
+- A finding that matches a row already in `review.md` updates that row instead of adding one. The rest take the next
+  free ids, status `open`, in the format SKILL.md gives. No findings from any lens: the header row alone.
+- Count by severity after merging, and join the notes; a spec or plan gap among them goes to the user.
 
 ## Re-review
 
@@ -51,5 +51,6 @@ an open security row makes it sensitive. Evidence runs every time: the journeys 
 - **Several:** the lenses picked for the fix diff, plus each lens named in an open row's `lens` cell. Give each lens the
   rows its cell names; a row whose cell names no lens (`single`, or a `review.md` from before the column) goes to the
   lens that fits it best. Each lens returns a result per row it was given and new findings in the fix diff. A row given
-  to two lenses is `fixed` only when both say so. Write the statuses and reasons into `review.md`, and new findings
-  under the next free ids.
+  to two lenses stays `open` if either says so, else is `rebutted` if either rebuts (both reasons, and never on a
+  `Weakened test:` row, which stays `open`), else `fixed`. Write the statuses and reasons into `review.md`, and new
+  findings under the next free ids.

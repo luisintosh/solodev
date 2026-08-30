@@ -139,6 +139,12 @@ async function setup(stage: Stage): Promise<{ ws: string; state: string; base: s
     sh("git", ["add", "-A"], ws)
     sh("git", ["commit", "-q", "-m", `feat: ${stage.slug ?? stage.id}`], ws)
   }
+  // A fix round on top of the code, for stages that start at a re-review.
+  if (await isDir(path.join(dir, "fix"))) {
+    await copyDir(path.join(dir, "fix"), ws)
+    sh("git", ["add", "-A"], ws)
+    sh("git", ["commit", "-q", "-m", `fix: ${stage.slug ?? stage.id} review findings`], ws)
+  }
   return { ws, state, base: sh("git", ["rev-parse", "HEAD"], ws).stdout.trim() }
 }
 

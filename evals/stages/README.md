@@ -10,13 +10,14 @@ turns, not a full run. The full end-to-end run lives in [../outcome/](../outcome
 | `<id>/seed/`         | files laid over the fixture before its first commit (optional)               |
 | `<id>/feature/`      | the feature folder the stage starts with: spec, plan, progress (optional)    |
 | `<id>/code/`         | files committed on the branch after the approval (optional)                  |
+| `<id>/fix/`          | files committed on top of `code/` as a fix round, for a re-review (optional) |
 | `<id>/bin/`          | stubs put first on the agent's PATH, such as a fake `gh` (optional)          |
 | `results/<id>.jsonl` | one line per run: checks passed, turns, wall time, cost, failed expectations |
 
 Setup builds the fixture with `seed/`, installs solodev from `dist/`, runs `npm ci` when `npm` is set, cuts `branch`,
-copies `feature/` to `<state>/<slug>/`, runs `solodev approve <slug>` when `approve` is set, then commits `code/`. When
-`start` is set, `solodev status` has to report that stage, and `solodev check --for <check>` has to pass, before the
-agent starts.
+copies `feature/` to `<state>/<slug>/`, runs `solodev approve <slug>` when `approve` is set, then commits `code/` and
+then `fix/`. When `start` is set, `solodev status` has to report that stage, and `solodev check --for <check>` has to
+pass, before the agent starts.
 
 ```bash
 pnpm run eval:validate                  # no agents: every stage's starting point holds (also in CI)
