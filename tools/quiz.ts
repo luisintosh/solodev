@@ -83,8 +83,9 @@ export function answerPrompt(quiz: Quiz): string {
 export function judgePrompt(quiz: Quiz, answers: Answers): string {
   const byId = new Map(answers.answers.map((a) => [a.id, a.answer]))
   return [
-    "Grade each answer from an AI coding agent against its expectation, strictly. Pass only when the answer does what",
-    "the expectation says. Extra detail is fine; an answer that also does something the expectation rules out fails.",
+    "Grade each answer from an AI coding agent against its expectation. Judge what the agent would do, not its wording:",
+    "pass when that matches the expectation, even phrased differently or hedged on cases the scenario rules out. Fail",
+    "when it misses what the expectation asks for or also does something the expectation rules out.",
     'Reply with only a JSON array: [{"id": "...", "pass": true, "why": "<one line>"}]',
     "",
     ...quiz.questions.map((q) =>
