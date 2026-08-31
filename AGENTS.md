@@ -49,7 +49,7 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
 - **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
 - **The user decides.** New pauses for the user go in `/solodev-mission`'s "ask the user only at" list; nothing approves
   the gate or merges for them.
-- **No new stage or agent** unless an outcome eval shows it pays for itself. Two shadows, two profiles, three hosts.
+- **No new stage or agent** unless the stage evals show it pays for itself. Two shadows, two profiles, three hosts.
 
 ## Checked artifacts
 
@@ -60,9 +60,10 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
 - Any `src/` change requires a `pnpm run build` before `pnpm run check`; check compares against `dist/` and against
   `manifest.txt` hashes.
 - Adding, removing or renaming a skill or shadow: `src/catalog.yaml`, its folder under `src/prompts/`, the `SKILLS` /
-  `SHADOWS` lists in `tools/check.ts`, the lists in `test/e2e-install.sh`, `README.md`, and its `evals/<skill>/`.
-- Changing a prompt or a skill `description`: `pnpm run eval:changed`; changing the workflow (stages, checks, the
-  shadows) also needs `pnpm run eval:stage`, and `node tools/eval.ts run` against the baseline before release.
+  `SHADOWS` lists in `tools/check.ts`, the lists in `test/e2e-install.sh`, `README.md`, and its scenarios and routing
+  queries in `evals/quiz.json`.
+- Changing a prompt or a skill `description`: `pnpm run eval:quiz`; changing the workflow (stages, checks, the shadows)
+  also needs `pnpm run eval:stage`, and so does a release.
 - Changing what a stage eval's setup relies on (the feature-folder format, `solodev approve`, the fixture):
   `pnpm run eval:validate`.
 - A new or changed check: `src/cli/checks.ts`, its test in `src/cli/checks.test.ts`, `src/cli/help.ts`, and the checks

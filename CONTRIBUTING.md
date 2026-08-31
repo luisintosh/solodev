@@ -48,26 +48,25 @@ bash test/e2e-install.sh
 
 ## Evals
 
-Three tiers, cheapest first. Run the cheapest one that covers your change:
+Two tiers, cheapest first:
 
-| Tier  | Command                                                | When                                     | Cost                      |
-| ----- | ------------------------------------------------------ | ---------------------------------------- | ------------------------- |
-| smoke | `pnpm run eval:smoke` (or `eval:changed`)              | after changing a prompt or a description | a few short headless runs |
-| stage | `pnpm run eval:stage`                                  | after changing the workflow              | every stage eval          |
-| full  | `pnpm run eval:full`, then `node tools/eval.ts report` | before a release                         | full runs, three per task |
+| Tier  | Command               | When                                              | Usage                                 |
+| ----- | --------------------- | ------------------------------------------------- | ------------------------------------- |
+| quiz  | `pnpm run eval:quiz`  | after changing a prompt or a description          | one Sonnet call and one Haiku call    |
+| stage | `pnpm run eval:stage` | after changing the workflow, and before a release | two headless runs with real subagents |
 
+- `evals/quiz.json` holds the quiz: scenarios (`situation`, `ask`, `expect`) and routing queries (`query`, the `skill`
+  that should handle it or `null`). `tools/quiz.ts` gives a model everything `dist/claude` installs, asks it what it
+  would do in each scenario and which skill each query goes to, then has Haiku grade each answer against `expect`;
+  routing is graded by exact match. Both calls run headless on your Claude Code login from an empty temp folder, with no
+  tools, MCP servers, skills or settings; the run fails if the init event shows any. `--model <alias>` picks the
+  answering model (default `sonnet`). It prints each failure, each `unclear` note (where the model found the files
+  didn't settle a scenario) and the tokens spent, and appends a line to `evals/results/quiz.jsonl`. A question tests one
+  decision: put the rest in another question, since a short answer that skips a sub-point fails.
 - `evals/stages/` holds stage evals: one step of a skill, started from a prepared repo and feature folder, capped in
-  turns and graded by scripts. `pnpm run eval:changed` runs only the stages whose prompts changed since `master`. See
-  [evals/stages/README.md](evals/stages/README.md).
-- `evals/<skill>/` holds prompt-behavior evals in the skill-creator format, run against a copy of `test/fixture-repo`:
-  `evals.json` (task prompts + expectations) and `trigger-evals.json` (should/shouldn't-trigger queries for the
-  description optimizer). After changing a prompt or a catalog `description`, rerun the matching set with the
-  skill-creator skill.
-- `evals/outcome/` holds outcome evals: feature tasks with held-out acceptance tests, run headless per config and scored
-  after the agent finishes. `pnpm run eval:validate` (also in CI) proves each task's tests fail on the fixture and pass
-  on its reference solution, and that each stage's starting point holds (it needs a prior `pnpm run build`);
-  `node tools/eval.ts run` and `report` need the coding tools and spend real usage. See
-  [evals/outcome/README.md](evals/outcome/README.md).
+  turns and graded by scripts. They see what the quiz can't: the tools the agent really calls and what reaches git.
+  `pnpm run eval:validate` (also in CI) checks each stage's starting point holds (it needs a prior `pnpm run build`).
+  See [evals/stages/README.md](evals/stages/README.md).
 
 ## Tooling (TypeScript on Node)
 
@@ -79,7 +78,7 @@ Three tiers, cheapest first. Run the cheapest one that covers your change:
 | `node tools/build-install.ts` | `tools/install.ts` → `bin/install.js` (esbuild, Node ESM for npx/bunx) |
 | `node tools/gen-manifest.ts`  | `manifest.txt` from `dist/`                                            |
 | `node tools/check.ts`         | hygiene                                                                |
-| `node tools/eval.ts`          | outcome evals: `validate`, `run --config <id>`, `report`               |
+| `node tools/quiz.ts`          | prompt quiz: `[--model <alias>]`                                       |
 | `node tools/eval-stage.ts`    | stage evals: `validate`, `run [--tier smoke] [--changed] [--judge]`    |
 | `pnpm run release`            | tag HEAD, push, publish a GitHub Release                               |
 

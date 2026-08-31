@@ -2,7 +2,7 @@
 
 Each stage tests one step of a skill. It starts from a prepared repo and feature folder instead of from scratch, caps
 the agent's turns, and is graded by scripts that read git, the feature folder and the transcript. A stage costs a few
-turns, not a full run. The full end-to-end run lives in [../outcome/](../outcome/README.md), for releases.
+turns, not a full run. The cheaper prompt quiz is `evals/quiz.json` (see CONTRIBUTING.md).
 
 | Path                 | Holds                                                                        |
 | -------------------- | ---------------------------------------------------------------------------- |
@@ -21,10 +21,9 @@ pass, before the agent starts.
 
 ```bash
 pnpm run eval:validate                  # no agents: every stage's starting point holds (also in CI)
-pnpm run eval:smoke                     # unit tests, then the smoke tier
 pnpm run eval:stage                     # every stage
-pnpm run eval:changed                   # only the stages whose prompts changed since master
-node tools/eval-stage.ts run --stage resume-review --judge --keep
+node tools/eval-stage.ts run --changed  # only the stages whose prompts changed since master
+node tools/eval-stage.ts run --stage gate-stop --judge --keep
 ```
 
 `--judge` grades the `judge` expectations with one Haiku call per stage; without it they're skipped. `--keep` leaves the
