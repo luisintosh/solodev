@@ -1,5 +1,6 @@
 import * as path from "node:path"
 import { parse as parseYaml } from "yaml"
+import { agentsDir } from "./init.ts"
 import { isTool, type ModelRef, type Models, TOOLS, type Tool, writerId } from "./models.ts"
 
 export type ProbeDeps = {
@@ -28,6 +29,8 @@ export type ToolProbe = {
   loggedIn: boolean | null
   /** solodev's coder skill is where this tool looks for skills. */
   skills: boolean
+  /** `solodev init` wrote both shadows for this tool, in this repo or globally. */
+  shadows: boolean
   think: string
   implement: string
   launch: { think: Launch; implement: Launch }
@@ -55,9 +58,10 @@ const BINARIES: Record<Tool, string> = { claude: "claude", codex: "codex", curso
 export const CODER_SKILL = "solodev-code"
 const SKILL_DIRS: Record<Tool, string[]> = {
   claude: [".claude/skills"],
-  codex: [".agents/skills"],
+  codex: [".agents/skills", ".codex/skills"],
   cursor: [".agents/skills", ".cursor/skills", ".claude/skills"],
 }
+export const SHADOWS = ["shadow-coder", "shadow-reviewer"]
 
 function launch(tool: Tool, ref: ModelRef): Launch {
   return ref.effort ? { agent: tool, model: ref.id, effort: ref.effort } : { agent: tool, model: ref.id }
@@ -143,6 +147,19 @@ async function probeOrca(deps: ProbeDeps): Promise<Probe["orca"]> {
   return { cli, ready: true, reason: "ok" }
 }
 
+async function hasShadows(deps: ProbeDeps, tool: Tool): Promise<boolean> {
+  const ext = tool === "codex" ? "toml" : "md"
+  for (const [scope, root] of [
+    ["project", deps.root],
+    ["global", deps.home],
+  ] as const) {
+    const dir = agentsDir(tool, scope, root, deps.home, deps.env)
+    const found = await Promise.all(SHADOWS.map((name) => deps.exists(path.join(dir, `${name}.${ext}`))))
+    if (found.every(Boolean)) return true
+  }
+  return false
+}
+
 async function hasSkill(deps: ProbeDeps, tool: Tool): Promise<boolean> {
   for (const base of [deps.root, deps.home]) {
     for (const dir of SKILL_DIRS[tool]) {
@@ -166,6 +183,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
           installed,
           loggedIn: installed ? await loggedIn(deps, tool) : false,
           skills: await hasSkill(deps, tool),
+          shadows: await hasShadows(deps, tool),
           think: writerId(tool, models[tool].think),
           implement: writerId(tool, models[tool].implement),
           launch: { think: launch(tool, models[tool].think), implement: launch(tool, models[tool].implement) },
@@ -176,6 +194,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   const tools = Object.fromEntries(probed) as Record<Tool, ToolProbe>
   const orca = await probeOrca(deps)
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
+  else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /solodev-mission init`)
 
   const writable = await deps.writable(deps.state)
   if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /solodev-mission`)

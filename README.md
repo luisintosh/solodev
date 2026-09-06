@@ -63,22 +63,34 @@ looks like one of them, and continues if you still want the full run.
 
 ### 1. Install
 
-From the root of the repository you want to work on:
+From the root of the repository you want to work on (add `-g` to install for every repository under `$HOME`):
 
 ```bash
-npx -y github:luisintosh/solodev
+npx skills add luisintosh/solodev
 ```
 
-The installer asks for a **scope** (this repo or `$HOME`) and the **hosts** to install for (Claude Code, Codex, Cursor).
-It downloads the release payload from GitHub Releases, verifies its sha256, and shows the file plan before applying it.
-Pin a release with `#vX.Y.Z`. Re-running is idempotent, and files removed upstream are cleaned up.
+[`skills`](https://github.com/vercel-labs/skills) asks which coding tools to install for and copies or links the seven
+skills into each one's skills folder. `npx skills update` updates them later. To pin a release:
+`npx skills add https://github.com/luisintosh/solodev/tree/vX.Y.Z`.
 
-Flags: `--dry-run`, `--doctor`, `--yes`. For CI or scripts, use `INSTALL_SCOPE=project|global` and
-`INSTALL_TARGET=all|claude,codex,cursor`.
+Then, in each coding tool you use, run once:
+
+```text
+/solodev-mission init
+```
+
+It writes that tool's two subagents, `shadow-coder` and `shadow-reviewer`, next to where the skills went: the repo's
+`.claude/agents/`, `.codex/agents/` or `.cursor/agents/`, or the same folders under `$HOME` for a global install. Run it
+again in Codex, then in Cursor, and so on. A subagent you edited is kept: init shows the diff and replaces it only if
+you say so. Then start a new session: coding tools load agents at startup.
+
+**Coming from the old installer** (`npx github:luisintosh/solodev`, v5 and earlier): install as above and run init once
+per tool. Init replaces the old subagents and removes the old CLI (`.agents/solodev/solodev-cli.mjs`) and the
+installer's manifests. Your feature folders stay where they are.
 
 **Requirements**, with the macOS install command (most use [Homebrew](https://brew.sh)):
 
-- [Node.js](https://nodejs.org) 20+, to run the installer and the `solodev` CLI: `brew install node`
+- [Node.js](https://nodejs.org) 20+, for `npx skills` and the `solodev` CLI: `brew install node`
 - [Git](https://git-scm.com): `xcode-select --install`
 - A way to reach your forge and tracker, to open the PR and comment on the ticket: a CLI such as `gh` or `glab`, or an
   MCP server or skill for GitHub, GitLab, Bitbucket, Jira, Linear and the like
@@ -203,14 +215,16 @@ each with why. The finish card repeats them as tickets ready to paste.
 
 ### The `solodev` CLI
 
-Installed at `.agents/solodev/solodev-cli.mjs`. It holds no state, commits nothing and never runs your project's tools:
-everything is worked out from git and the feature folder, so it works the same for any language, forge or tracker.
+Ships inside the solodev-mission skill, at `<skills folder>/solodev-mission/scripts/solodev-cli.mjs`. It holds no state,
+commits nothing and never runs your project's tools: everything is worked out from git and the feature folder, so it
+works the same for any language, forge or tracker.
 
 ```text
 solodev probe                          coding tools, models, Orca, the state folder (JSON)
 solodev status [<slug>]                where a feature stands and what comes next
 solodev approve <slug>                 record the gate: a line in progress.md with the spec's hash
 solodev check <slug> [--for implement|pr|done]   the checks that gate the next step
+solodev init [claude|codex|cursor]     write a coding tool's two subagents (what /solodev-mission init runs)
 solodev help [<command>]               what each command does
 ```
 
@@ -240,8 +254,8 @@ and build pass, no test was weakened, and every new env var is documented.
 | `shadow-coder`    | `implement` |
 | `shadow-reviewer` | `think`     |
 
-The commander is your session. On Claude Code the `/solodev-mission` skill switches to the `think` model while it runs;
-on Codex and Cursor, start the session on the `think` model yourself. CI checks both tables against the catalog.
+The commander is your session: start it on the `think` model. The shadows run on the models in their row. CI checks both
+tables against the catalog.
 
 ### A coder on another tool (Orca)
 
@@ -278,26 +292,13 @@ Only the feature's code, tests and the docs beside them, plus what you ask for:
 ```text
 AGENTS.md  docs/ARCHITECTURE.md   optional, from /solodev-scout
 .agents/  .claude/  .cursor/  .codex/   a project-scope install only; a global install puts these under $HOME
+skills-lock.json                        written by `npx skills add` for a project install
 ```
 
 ### This repository
 
-```text
-src/
-  catalog.yaml          models per host and profile, skills, shadows   ← source of truth
-  prompts/skills/       role skills and their references               ← source of truth
-  prompts/agents/       the two shadow shells
-  prompts/fragments/    shared includes
-  cli/                  the solodev CLI
-tools/                  transpile, build, install, hygiene check
-evals/                  prompt quiz, stage evals
-test/                   e2e install script, fixture repo
-bin/install.js          generated installer that npx/bunx run (tracked, never hand-edited)
-dist/                   generated install payload (untracked; shipped in each GitHub Release)
-```
-
-Prompts are written once and transpiled into each host's format by `pnpm run build`. See
-[CONTRIBUTING.md](CONTRIBUTING.md) for the build, check, and release workflow.
+This branch, `master`, holds only the released skills. The source, the build and contributions live on
+[`develop`](https://github.com/luisintosh/solodev/tree/develop); see its CONTRIBUTING.md.
 
 ## Safety notes
 

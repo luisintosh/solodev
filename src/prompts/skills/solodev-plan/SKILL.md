@@ -100,6 +100,7 @@ are the bar.
 - `spec.md` describes the current state. No history ("updated per review") in it.
 
 You edit only the feature folder, which lives outside the repo; the commander records the gate. Run on its own, the
-folder is `<state.dir>/<slug>/` from `solodev probe`, and you find the test command the way the repo defines it.
+folder is `<state.dir>/<slug>/` from `solodev probe` (the solodev-mission skill's `scripts/solodev-cli.mjs`), and you
+find the test command the way the repo defines it.
 
 {{include:fragments/boundaries.md}}

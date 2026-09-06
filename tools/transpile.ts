@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Emit the role skills (dist/agents/skills for Codex and Cursor, dist/claude/skills for Claude Code) and the two shadow
- * agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents).
+ * Emit the product (dist/product: the role skills every host installs with `npx skills add`, plus README.md and assets/)
+ * and the two shadow agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents), which build-cli bundles
+ * into the CLI for `solodev init`.
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
@@ -13,6 +14,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const srcDir = path.join(root, "src")
 const promptsDir = path.join(srcDir, "prompts")
 const distDir = path.join(root, "dist")
+export const productDir = path.join(distDir, "product")
+/** What dist/product holds besides skills/: the files master ships next to them. */
+export const PRODUCT_EXTRAS = ["README.md", "assets"]
 
 /** Hard edit denies only: a map of path pattern → "deny", or a bare "deny" for no edits at all. */
 type Permission = { edit?: unknown }
@@ -32,8 +36,6 @@ export type Shadow = {
 export type Skill = {
   budget: number
   description: string
-  /** Claude Code runs the skill on this profile's model. */
-  profile?: string
   /** Invoked by the user only; hosts don't load it on their own. */
   user_only?: boolean
 }
@@ -92,25 +94,21 @@ export async function skillReferences(name: string): Promise<string[]> {
 }
 
 async function emitSkills(catalog: Catalog) {
-  const shared = path.join(distDir, "agents", "skills")
-  const claude = path.join(distDir, "claude", "skills")
+  const skills = path.join(productDir, "skills")
   for (const [name, skill] of Object.entries(catalog.skills)) {
     const body = await renderPrompt(`skills/${name}/SKILL.md`)
     const fm: Record<string, unknown> = { name, description: skill.description }
     if (skill.user_only) fm["disable-model-invocation"] = true
-    const claudeFm = { ...fm }
-    if (skill.profile) {
-      const ref = resolveModel(catalog, "claude", skill.profile)
-      claudeFm.model = ref.id
-      if (ref.effort) claudeFm.effort = ref.effort
-    }
-    await writeFile(path.join(shared, name, "SKILL.md"), frontmatter(fm) + body)
-    await writeFile(path.join(claude, name, "SKILL.md"), frontmatter(claudeFm) + body)
+    await writeFile(path.join(skills, name, "SKILL.md"), frontmatter(fm) + body)
     for (const ref of await skillReferences(name)) {
-      const text = await renderPrompt(`skills/${name}/references/${ref}`)
-      await writeFile(path.join(shared, name, "references", ref), text)
-      await writeFile(path.join(claude, name, "references", ref), text)
+      await writeFile(
+        path.join(skills, name, "references", ref),
+        await renderPrompt(`skills/${name}/references/${ref}`),
+      )
     }
+  }
+  for (const extra of PRODUCT_EXTRAS) {
+    await fs.cp(path.join(root, extra), path.join(productDir, extra), { recursive: true })
   }
 }
 
@@ -181,10 +179,10 @@ async function emitShadows(catalog: Catalog) {
 
 async function main() {
   const catalog = await loadCatalog()
-  for (const dir of ["agents", "claude", "cursor", "codex"]) await rmrf(path.join(distDir, dir))
+  await rmrf(distDir)
   await emitSkills(catalog)
   await emitShadows(catalog)
-  console.log("transpile: wrote dist/agents/skills, dist/claude/{skills,agents}, dist/cursor/agents, dist/codex/agents")
+  console.log("transpile: wrote dist/product (skills, README.md, assets), dist/{claude,cursor,codex}/agents")
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) await main()

@@ -2,14 +2,17 @@
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
+import { fileURLToPath } from "node:url"
+import agents from "solodev:agents"
 import catalog from "../catalog.yaml"
 import { approve } from "./approve.ts"
 import { CHECK_SETS, type CheckSet, formatResults, runChecks } from "./checks.ts"
 import { run } from "./exec.ts"
 import { exists, featureDir, SLUG } from "./feature.ts"
 import { HELP, helpText } from "./help.ts"
-import { modelsFromCatalog } from "./models.ts"
-import { probe } from "./probe.ts"
+import { type AgentFiles, applyInit, formatInit, type InitOp, locate, planInit, type Scope } from "./init.ts"
+import { isTool, modelsFromCatalog } from "./models.ts"
+import { detectHome, probe } from "./probe.ts"
 import { stateDir } from "./state.ts"
 import { branchFeature, featureStatus, formatStatus, listFeatures, type Stage } from "./status.ts"
 
@@ -23,11 +26,13 @@ function flag(args: string[], name: string): string | undefined {
   return value
 }
 
+const BOOLEAN_FLAGS = ["--json", "--help", "--global", "--project", "--force", "--dry-run"]
+
 function positional(args: string[]): string[] {
   const out: string[] = []
   for (let i = 0; i < args.length; i++) {
     if (args[i]!.startsWith("--")) {
-      if (!["--json", "--help"].includes(args[i]!)) i++
+      if (!BOOLEAN_FLAGS.includes(args[i]!)) i++
       continue
     }
     out.push(args[i]!)
@@ -62,6 +67,7 @@ async function main(argv: string[]): Promise<number> {
     console.log(helpText(command))
     return 0
   }
+  if (command === "init") return init(args)
   const root = await repoRoot()
   const state = await stateDir(root, process.env, os.homedir())
   const models = modelsFromCatalog(catalog)
@@ -138,10 +144,74 @@ async function main(argv: string[]): Promise<number> {
       return results.some((r) => r.status === "fail") ? 1 : 0
     }
     case "install":
-      console.log("Install or update from the package: npx -y github:luisintosh/solodev")
+      console.log(
+        "Install or update the skills with `npx skills add luisintosh/solodev` (`-g` for every repo), then run\n" +
+          "`/solodev-mission init` in each coding tool you use.",
+      )
       return 0
   }
   return 0
+}
+
+async function init(args: string[]): Promise<number> {
+  const named = positional(args)[0]
+  if (named && !isTool(named)) throw new UsageError(`unknown tool "${named}" (claude, codex or cursor)`)
+  const host = named ?? detectHome(process.env)
+  if (!host) throw new UsageError("couldn't tell which coding tool runs this session; name it: solodev init claude")
+  if (args.includes("--global") && args.includes("--project")) throw new UsageError("pick --global or --project")
+  const home = os.homedir()
+  // Both real paths: the CLI's is resolved through symlinks (npx skills links agent folders), so $HOME must be too.
+  const realHome = await fs.realpath(home).catch(() => home)
+  const located = locate(await fs.realpath(fileURLToPath(import.meta.url)), realHome, process.env)
+  const scope: Scope = args.includes("--global")
+    ? "global"
+    : args.includes("--project")
+      ? "project"
+      : (located?.scope ?? "project")
+  const root = scope === "global" ? home : located?.scope === "project" ? located.base : await repoRoot()
+  const dryRun = args.includes("--dry-run")
+  const input = {
+    host,
+    scope,
+    root,
+    home,
+    env: process.env,
+    agents: agents as AgentFiles,
+    force: args.includes("--force"),
+    read: (file: string) => fs.readFile(file, "utf8").catch(() => undefined),
+    exists,
+  }
+  const ops = await planInit(input)
+  if (!dryRun) {
+    await applyInit(ops, {
+      write: async (file, content) => {
+        await fs.mkdir(path.dirname(file), { recursive: true })
+        await fs.writeFile(file, content)
+      },
+      remove: (file, recursive) => fs.rm(file, { recursive, force: true }),
+      move: async (from, to) => {
+        await fs.mkdir(path.dirname(to), { recursive: true })
+        await fs.rename(from, to)
+      },
+    })
+  }
+  const edited = ops.filter((op): op is Extract<InitOp, { kind: "edited" }> => op.kind === "edited")
+  if (args.includes("--json")) {
+    console.log(JSON.stringify({ host, scope, root, dryRun, ops }, null, 2))
+    return edited.length ? 1 : 0
+  }
+  console.log(formatInit(input, ops, dryRun))
+  for (const op of edited) console.log(`\n${await diff(op.path, op.content)}`)
+  return edited.length ? 1 : 0
+}
+
+/** What --force would change in an edited shadow. */
+async function diff(file: string, content: string): Promise<string> {
+  const tmp = path.join(await fs.mkdtemp(path.join(os.tmpdir(), "solodev-init-")), path.basename(file))
+  await fs.writeFile(tmp, content)
+  const r = await run("git", ["diff", "--no-index", "--no-color", "--", file, tmp])
+  await fs.rm(path.dirname(tmp), { recursive: true, force: true })
+  return r.stdout.trim() || `${file} differs from what init writes`
 }
 
 try {

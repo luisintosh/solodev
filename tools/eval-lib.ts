@@ -54,16 +54,23 @@ export async function workspace(name: string, seeds: string[] = [], remove: stri
   return ws
 }
 
-/** Installs solodev into the workspace (`local` from this checkout's dist/, or `ref:<tag>` through npx) and commits it. */
+/** Where a project install for Claude Code puts the CLI, relative to the workspace. */
+export const CLI = ".claude/skills/solodev-mission/scripts/solodev-cli.mjs"
+
+/**
+ * Installs solodev into the workspace for Claude Code (`local` from this checkout's dist/product, or `ref:<tag>` through
+ * `npx skills add`), writes the shadows with `solodev init`, and commits it.
+ */
 export function install(ws: string, source: string) {
-  const env = { TARGET_DIR: ws, INSTALL_SCOPE: "project", INSTALL_TARGET: "all", CI: "1" }
-  const r =
-    source === "local"
-      ? sh(process.execPath, [path.join(root, "bin", "install.js"), "--yes"], ws, {
-          env: { ...env, LOCAL_SOURCE: root },
-        })
-      : sh("npx", ["-y", `github:luisintosh/solodev#${source.replace(/^ref:/, "")}`, "--yes"], ws, { env })
-  if (r.code !== 0) throw new Error(`install of ${source} failed: ${r.stderr.slice(-500)}`)
+  if (source === "local") {
+    fsSync.cpSync(path.join(root, "dist", "product", "skills"), path.join(ws, ".claude", "skills"), { recursive: true })
+  } else {
+    const url = `https://github.com/luisintosh/solodev/tree/${source.replace(/^ref:/, "")}`
+    const r = sh("npx", ["-y", "skills", "add", url, "-y", "--copy", "-a", "claude-code"], ws, { env: { CI: "1" } })
+    if (r.code !== 0) throw new Error(`npx skills add ${url} failed: ${r.stderr.slice(-500)}`)
+  }
+  const r = sh(process.execPath, [path.join(ws, CLI), "init", "claude", "--project"], ws)
+  if (r.code !== 0) throw new Error(`solodev init for ${source} failed: ${(r.stdout + r.stderr).slice(-500)}`)
   sh("git", ["add", "-A"], ws)
   sh("git", ["commit", "-q", "-m", "chore: install solodev"], ws)
 }
@@ -152,7 +159,7 @@ export const CLAUDE_ALLOWED = [
   "Bash(node:*)",
   "Bash(npm:*)",
   "Bash(npx:*)",
-  "Bash(.agents/solodev/solodev-cli.mjs:*)",
+  `Bash(${CLI}:*)`,
 ]
 
 export type Usage = { costUsd: number | null; inputTokens: number | null; outputTokens: number | null }

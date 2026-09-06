@@ -1,9 +1,11 @@
 name: CI
 
+# Source lives on develop; master holds only the released product (tools/release.ts), with no workflows.
 on:
   push:
-    branches: [master]
+    branches: [develop]
   pull_request:
+    branches: [develop]
 
 jobs:
   shell-lint:
@@ -79,7 +81,7 @@ jobs:
       - name: Stage starting points hold
         run: pnpm run eval:validate
 
-  e2e-install:
+  e2e-init:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -89,4 +91,6 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: bash test/e2e-install.sh
+      - run: bash test/e2e-init.sh
+        env:
+          E2E_NPX_SKILLS: "1"

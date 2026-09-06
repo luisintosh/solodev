@@ -11,7 +11,13 @@ const assistant = (content: unknown[], parent: string | null = null) =>
 
 const stream = [
   line({ type: "system", subtype: "init" }),
-  assistant([{ type: "tool_use", name: "Bash", input: { command: ".agents/solodev/solodev-cli.mjs status greet" } }]),
+  assistant([
+    {
+      type: "tool_use",
+      name: "Bash",
+      input: { command: ".claude/skills/solodev-mission/scripts/solodev-cli.mjs status greet" },
+    },
+  ]),
   assistant([{ type: "tool_use", name: "Read", input: { file_path: "/x/greet/progress.md" } }]),
   assistant([{ type: "text", text: "spec ✓ · gate ✓ · implement ✓ · **review** · pr" }]),
   assistant([{ type: "tool_use", name: "Agent", input: { subagent_type: "shadow-reviewer" } }]),
