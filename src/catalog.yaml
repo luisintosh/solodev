@@ -43,8 +43,7 @@ shadows:
     skills: [solodev-review, solodev-verify]
     description: >-
       Fresh-context reviewer: reviews a spec or a diff (solodev-review) or checks scenarios no test covers
-      (solodev-verify), following the role skill its brief names. Report-only; writes only its report (review.md or
-      qa.md) or its reply.
+      (solodev-verify), following the role skill its brief names. Report-only; writes only review.md.
 
 skills:
   solodev-mission:
@@ -59,8 +58,8 @@ skills:
   solodev-plan:
     budget: 112
     description: >-
-      Writes a feature's spec.md (requirements and @S<n> acceptance scenarios) and plan.md (approach and journeys) for
-      the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it.
+      Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys)
+      for the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it.
   solodev-code:
     budget: 80
     description: >-
@@ -77,7 +76,7 @@ skills:
     budget: 52
     description: >-
       Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
-      scenario in qa.md. Loaded by shadow-reviewer for a /solodev-mission run.
+      scenario in review.md. Loaded by shadow-reviewer for a /solodev-mission run.
   solodev-roadmap:
     budget: 150
     description: >-

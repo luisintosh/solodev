@@ -26,15 +26,15 @@
     },
     {
       "id": "mission-skip-spec-review",
-      "situation": "You wrote spec.md and plan.md for a --version flag: one journey, no new dependency, no public API, schema, migration, auth or security change, and the user didn't ask for a review.",
+      "situation": "You wrote spec.md, with its plan, for a --version flag: one journey, no new dependency, no public API, schema, migration, auth or security change, and the user didn't ask for a review.",
       "ask": "Does a spec review run? What do you do next?",
       "expect": "No spec review; tells the user it was skipped and why, then shows the gate card and waits for approval."
     },
     {
       "id": "mission-run-spec-review",
-      "situation": "Your plan.md has two journeys and the feature adds a login token check.",
+      "situation": "Your plan in spec.md has two journeys and the feature adds a login token check.",
       "ask": "Does a spec review run, and how?",
-      "expect": "Yes: a fresh shadow-reviewer playing solodev-review in spec mode judges spec.md and plan.md against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
+      "expect": "Yes: a fresh shadow-reviewer playing solodev-review in spec mode judges spec.md and its plan against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
     },
     {
       "id": "gate-unattended",
@@ -70,7 +70,7 @@
       "id": "implement-brief",
       "situation": "The gate is approved and the user picked Claude Code as the coder. Two journeys, five scenarios.",
       "ask": "How do you start the coder, and what goes in its brief?",
-      "expect": "Writes briefs/coder-1.md (slug, every journey, the files the change touches, helpers to reuse, a one-line test sketch per scenario, the `- tools:` line, the solodev path, where to reply) and starts it with the Agent tool, subagent_type shadow-coder."
+      "expect": "Starts it with the Agent tool, subagent_type shadow-coder, the brief in the call itself rather than a file: slug, feature folder, every journey, the files the change touches, helpers to reuse, a one-line test sketch per scenario, the `- tools:` line and the solodev path."
     },
     {
       "id": "report-progress-bar",
@@ -83,6 +83,12 @@
       "situation": "The coder replies `status: done`, journeys J1 and J2 passing.",
       "ask": "What do you do next?",
       "expect": "Runs `solodev check <slug> --for implement` yourself, logs the result in progress.md, and when it passes commits the coder's work with a plain Conventional Commit; then code review."
+    },
+    {
+      "id": "implement-decisions-log",
+      "situation": "The coder's implement reply is `status: done` with `decisions: [\"CSV dates use ISO 8601\", \"empty export writes the header row\"]`. The implement check passes.",
+      "ask": "Where do those decisions go, and in what form?",
+      "expect": "Into progress.md, one `- decision implement…: <text>` line per entry (an attempt number after `implement` is fine); the PR's Deviations later list these lines."
     },
     {
       "id": "implement-budget-spent",
@@ -100,7 +106,7 @@
       "id": "review-sensitive",
       "situation": "Code review. 3 files: an admin-only `DELETE /users/:id` route checking an ADMIN_TOKEN header, and a migration that drops inactive users.",
       "ask": "One reviewer or one per lens, which lenses, and how do you start them?",
-      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design, contract and security, each a fresh shadow-reviewer with its own brief briefs/reviewer-<lens>-1.md, all Agent calls in the same turn."
+      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design, contract and security, each a fresh shadow-reviewer with its own brief in its spawn call, all Agent calls in the same turn."
     },
     {
       "id": "review-unsure-size",
@@ -119,6 +125,12 @@
       "situation": "Parallel code review, not sensitive. The design lens stopped without writing its reply; you started it once more fresh and it failed again.",
       "ask": "What do you do?",
       "expect": "Merges the other lenses without it, names it in the notes and tells the user."
+    },
+    {
+      "id": "orca-reply",
+      "situation": "`dispatch: orca`. You're starting the coder as an Orca worker for implement.",
+      "ask": "How does the brief reach it, and where does its reply land?",
+      "expect": "The brief goes inline as the worker's `--spec`; the worker writes its full reply to `review-output/coder-<n>.md` in the feature folder (created first) and passes it as `--report-path` to `worker_done`, since worker_done carries only a short summary."
     },
     {
       "id": "review-security-lens-fails",
@@ -149,6 +161,12 @@
       "situation": "review.md has an open blocker R1 and an open major R3 (neither a weakened test). It's the first fix round.",
       "ask": "What do you do, and what do the re-review briefs carry?",
       "expect": "One fix round with the same coder (continued with SendMessage, not a new one), which replies per finding id; then one re-review, chosen the same way, whose briefs carry the coder's replies and the commit the last review saw."
+    },
+    {
+      "id": "resume-after-fix-round",
+      "situation": "The user says \"continue\" in a fresh session. `solodev status` says review, open: R1, R3. progress.md ends with `- review 1 at 3f2a9c1` and `- fix 1: R1 fixed · R3 rebutted: the null check is upstream in parse()`, and the coder's fix is committed.",
+      "ask": "Do you run a fix round, and what does the next brief carry?",
+      "expect": "No new fix round: fix 1 is spent. It starts the re-review, chosen as in code review, whose briefs carry the `- fix 1` line (R1 fixed, R3 rebutted with its reason) and 3f2a9c1 as the commit the last review saw."
     },
     {
       "id": "review-still-open",
@@ -184,7 +202,7 @@
       "id": "reviewer-lens-no-subagents",
       "situation": "You are shadow-reviewer, started from a brief with `lens: security`. You'd like a second opinion on one finding.",
       "ask": "Do you start another reviewer? Where do your findings go?",
-      "expect": "No subagents. Findings go in its reply (the YAML in the brief's reply file), not in review.md, which the session that started it merges."
+      "expect": "No subagents. Findings go in its reply (the YAML as its final message), not in review.md, which the session that started it merges."
     },
     {
       "id": "reviewer-single-clean",
@@ -212,7 +230,7 @@
     },
     {
       "id": "qa-none",
-      "situation": "The draft PR is open. plan.md has `uncovered: []`.",
+      "situation": "The draft PR is open. The plan in spec.md has `uncovered: []`.",
       "ask": "Does a verifier run?",
       "expect": "No agent starts; the journey tests are the QA. It goes on to finish."
     },
@@ -227,6 +245,12 @@
       "situation": "You are shadow-reviewer playing solodev-verify. S5 is a UI scenario and agent-browser is not on PATH.",
       "ask": "What do you do?",
       "expect": "Doesn't install it; gives the commander agent-browser's install line (and doesn't fake a verdict)."
+    },
+    {
+      "id": "verifier-writes-qa",
+      "situation": "You play solodev-verify for uncovered S5 and S6. The feature folder's review.md already has its findings table, all fixed.",
+      "ask": "Where do you write the verdicts?",
+      "expect": "In a `## QA` section at the end of review.md, a `scenario | verdict | evidence` table with one row each for S5 and S6, leaving the findings as they are; no separate file. Posting the same table on the PR is fine."
     },
     {
       "id": "finish-no-merge",
@@ -262,7 +286,7 @@
       "id": "coder-no-commit",
       "situation": "You are shadow-coder. Every journey passes and the implement check passes.",
       "ask": "Do you commit?",
-      "expect": "No: commits belong to the commander; it writes its reply (status: done) where the brief says."
+      "expect": "No: commits belong to the commander; its final message is its reply (status: done)."
     },
     {
       "id": "plan-interview",
@@ -273,7 +297,7 @@
     {
       "id": "plan-journeys",
       "situation": "Spec for a CSV export with @S1-@S3 tested through the API and @S4 'the download button shows a spinner', which no test can reasonably reach.",
-      "ask": "What does plan.md's journeys block look like?",
+      "ask": "What does the plan's journeys block in spec.md look like?",
       "expect": "A fenced YAML block starting `journeys:` with one journey (the default) whose test goes through the public boundary covering S1-S3, with test path and command, and `uncovered: [S4]`."
     },
     {

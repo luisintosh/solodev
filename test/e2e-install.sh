@@ -213,8 +213,9 @@ FEATURE="${SOLODEV_STATE}/consumer-repo/hello"
 mkdir -p "$FEATURE"
 printf '# Hello\n\n## Acceptance\n\n- @S1 Given nothing, when I call hello, then it returns "hello".\n' \
   >"${FEATURE}/spec.md"
-cat >"${FEATURE}/plan.md" <<'EOF'
-# Plan
+cat >>"${FEATURE}/spec.md" <<'EOF'
+
+## Plan
 
 ```yaml
 journeys:

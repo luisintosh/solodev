@@ -61,8 +61,8 @@ const result = (id: CheckId, status: CheckStatus, summary: string, details: stri
 })
 
 async function loadPlan(dir: string): Promise<Plan> {
-  const raw = await readIfExists(path.join(dir, "plan.md"))
-  if (raw === undefined) throw new Error(`plan.md not found in ${dir}`)
+  const raw = await readIfExists(path.join(dir, "spec.md"))
+  if (raw === undefined) throw new Error(`spec.md not found in ${dir}`)
   return parsePlan(raw)
 }
 
@@ -82,7 +82,7 @@ export async function coverage(root: string, dir: string, requireTests: boolean)
   if (!scenarios.length) return result("C1", "fail", "spec.md has no @S<n> scenarios")
   let plan: Plan
   try {
-    plan = await loadPlan(dir)
+    plan = parsePlan(spec)
   } catch (err) {
     return result("C1", "fail", (err as Error).message)
   }
@@ -91,7 +91,7 @@ export async function coverage(root: string, dir: string, requireTests: boolean)
   const unclaimed = scenarios.filter((s) => !claimed.has(s))
   if (unclaimed.length) details.push(`no journey or uncovered entry claims ${unclaimed.join(", ")}`)
   const unknown = [...claimed].filter((s) => !scenarios.includes(s))
-  if (unknown.length) details.push(`plan.md names ${unknown.join(", ")}, which spec.md doesn't define`)
+  if (unknown.length) details.push(`the plan names ${unknown.join(", ")}, which spec.md doesn't define`)
   for (const j of plan.journeys) {
     if (!requireTests) continue
     const test = await readIfExists(path.join(root, j.test))
@@ -121,8 +121,7 @@ const c1 = (ctx: CheckContext) => coverage(ctx.root, ctx.dir, true)
 async function c2(ctx: CheckContext): Promise<CheckResult> {
   const { approval, approvals, matches } = await currentApproval(ctx.dir)
   if (!approval) return result("C2", "fail", "not approved — run solodev approve at the spec gate")
-  if (!matches)
-    return result("C2", "fail", "spec.md or plan.md changed since approval — show the user and approve again")
+  if (!matches) return result("C2", "fail", "spec.md changed since approval — show the user and approve again")
   const base = await baseOf(ctx)
   if (!base) return result("C2", "fail", NO_BASE)
   // The gate is the earliest approval still in this branch: no code before it. Later ones re-agree an edited spec.
@@ -204,13 +203,14 @@ async function c5(ctx: CheckContext): Promise<CheckResult> {
     return result("C5", "fail", (err as Error).message)
   }
   if (!plan.uncovered.length) return result("C5", "pass", "every scenario has a journey test")
-  const raw = await readIfExists(path.join(ctx.dir, "qa.md"))
-  if (raw === undefined) return result("C5", "fail", `no qa.md for ${plan.uncovered.join(", ")} — run solodev-verify`)
-  const verdicts = parseQa(raw)
+  const verdicts = parseQa((await readIfExists(path.join(ctx.dir, "review.md"))) ?? "")
+  if (!verdicts.size) {
+    return result("C5", "fail", `no QA verdicts in review.md for ${plan.uncovered.join(", ")} — run solodev-verify`)
+  }
   const details: string[] = []
   for (const s of plan.uncovered) {
     const v = verdicts.get(s)
-    if (!v) details.push(`${s} has no verdict in qa.md`)
+    if (!v) details.push(`${s} has no QA verdict in review.md`)
     else if (v.verdict === "manual") details.push(`${s} needs a person: ask the user to check it or waive it`)
     else if (!PASSING_VERDICTS.includes(v.verdict)) details.push(`${s} ${v.verdict}: ${v.evidence}`)
   }

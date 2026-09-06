@@ -6,6 +6,10 @@ describe("parseScenarios", () => {
   test("unique ids in order of first appearance", () => {
     expect(parseScenarios("@S2 given\n@S1 when @S2 again\n@S10")).toEqual(["S2", "S1", "S10"])
   })
+
+  test("ignores the plan, which may name a removed scenario", () => {
+    expect(parseScenarios("@S1 given\n\n## Plan\n\nRejected: fold @S7 into J1.\n")).toEqual(["S1"])
+  })
 })
 
 describe("parsePlan", () => {

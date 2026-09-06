@@ -8,7 +8,7 @@ turns, not a full run. The cheaper prompt quiz is `evals/quiz.json` (see CONTRIB
 | -------------------- | ---------------------------------------------------------------------------- |
 | `<id>/stage.json`    | the prompt, the skill, its tier, the turn cap, the setup and the checks      |
 | `<id>/seed/`         | files laid over the fixture before its first commit (optional)               |
-| `<id>/feature/`      | the feature folder the stage starts with: spec, plan, progress (optional)    |
+| `<id>/feature/`      | the feature folder the stage starts with: spec, progress (optional)          |
 | `<id>/code/`         | files committed on the branch after the approval (optional)                  |
 | `<id>/fix/`          | files committed on top of `code/` as a fix round, for a re-review (optional) |
 | `<id>/bin/`          | stubs put first on the agent's PATH, such as a fake `gh` (optional)          |

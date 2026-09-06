@@ -164,7 +164,7 @@ if (catalog) {
       "references/docs.md",
     ],
     "solodev-review": ["review.md", "deferred", "rebutted", "lens: single", "Weakened test:", "as you found it"],
-    "solodev-verify": ["qa.md", "agent-browser"],
+    "solodev-verify": ["## QA", "agent-browser"],
     "solodev-scout": ["## Commands", "test_file"],
   }
   for (const [name, skill] of Object.entries(catalog.skills ?? {})) {

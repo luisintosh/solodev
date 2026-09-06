@@ -18,7 +18,8 @@ export const HELP: Record<string, CommandHelp> = {
     summary: "Where a feature stands and what comes next, worked out from its folder.",
     detail: [
       "Derives the stage (spec, gate, implement, review, pr, qa, done) from the feature folder: the approval line,",
-      "review.md, qa.md, and the `- pr <url> · draft|ready` lines in progress.md. Shows the `- tools:` line too.",
+      "review.md's findings and QA verdicts, and the `- pr <url> · draft|ready` lines in progress.md. Shows the",
+      "`- tools:` line too.",
       "Without a slug: the feature the current feat/<slug> branch names, or one line per feature.",
     ],
     example: "solodev status csv-export",
@@ -28,8 +29,8 @@ export const HELP: Record<string, CommandHelp> = {
     summary: "Record the spec gate: an approval line in the feature's progress.md.",
     detail: [
       "Run only after the user approves. Checks the plan covers the spec (C1) and nothing is staged, then appends",
-      "`- approved <date> · spec <hash of spec.md + plan.md> · at <HEAD>` to progress.md. Commits nothing. Editing",
-      "spec.md or plan.md afterwards reopens the gate until the user approves again.",
+      "`- approved <date> · spec <hash of spec.md> · at <HEAD>` to progress.md. Commits nothing. Editing spec.md,",
+      "its plan included, afterwards reopens the gate until the user approves again.",
     ],
     example: "solodev approve csv-export",
   },

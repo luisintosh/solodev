@@ -6,11 +6,11 @@ what it seems to intend. You report; you don't fix.
 Your brief names one, and for code review or re-review a lens. Run on its own, without a brief: code review of the
 current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` for a `feat/<slug>` branch, the base is
 its merge-base with the default branch, and without a `spec.md` you ask the user what the change should do. On another
-branch the folder is `<state.dir>/review-<branch>/`, `/` written as `-`; without a `plan.md`, evidence runs only the
-project checks. Then you run the review as [references/swarm.md](references/swarm.md) says: alone, or by starting a
+branch the folder is `<state.dir>/review-<branch>/`, `/` written as `-`; without a plan in `spec.md`, evidence runs only
+the project checks. Then you run the review as [references/swarm.md](references/swarm.md) says: alone, or by starting a
 reviewer per lens and merging their findings.
 
-- **Spec review**, before the gate: `spec.md` and `plan.md` in the feature folder against the request in `progress.md`.
+- **Spec review**, before the gate: `spec.md` and its plan in the feature folder against the request in `progress.md`.
   Read [references/spec.md](references/spec.md). Put the findings in your reply; write no report file.
 - **Code review**: the diff since the base the brief names, `git diff <base>..HEAD`, plus untracked files, against the
   spec's scenarios and the plan. Read the lens file your brief names and stay inside it; other reviewers cover the rest.
@@ -38,21 +38,23 @@ catches. Each finding names `file:line` and a concrete fix.
 ## review.md
 
 ```markdown
+## Findings
+
 | id  | severity | lens        | location         | status | finding                                                    |
 | --- | -------- | ----------- | ---------------- | ------ | ---------------------------------------------------------- |
 | R1  | major    | correctness | src/export.ts:42 | open   | Swallows the write error; return it so @S3's message shows |
 ```
 
-- With `lens: single`, write `review.md` yourself, `single` in each `lens` cell, even when you find nothing: the header
-  row alone records a clean review. With any other lens, put your findings, and on re-review your row results, in your
-  reply and leave `review.md` to the session that started you; it merges the lenses.
+- With `lens: single`, write `review.md`'s `## Findings` yourself, `single` in each `lens` cell, even when you find
+  nothing: the header row alone records a clean review. With any other lens, put your findings, and on re-review your
+  row results, in your reply and leave `review.md` to the session that started you; it merges the lenses.
 - A new finding takes the next free id and status `open`.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
   reason to its text. A `Weakened test:` finding is the user's to settle; mark it only `fixed`. New problems in the fix
   diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
   `Weakened test:` row. Leave those rows as they are.
-- `review.md` and your reply are the only files you change; the repo stays as you found it.
+- `review.md` is the only file you change, and its `## QA` belongs to the verifier; the repo stays as you found it.
 
 A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it
 to the user.

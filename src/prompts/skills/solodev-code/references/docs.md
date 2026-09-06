@@ -44,7 +44,7 @@ README, `docs/` page or env template names.
 | -------- | -------- | ------- | -------------------------- |
 ```
 
-External services get the setup a human does outside the repo, copied from `plan.md`'s `## Setup`; never invent steps,
+External services get the setup a human does outside the repo, copied from the plan's `### Setup`; never invent steps,
 URLs or keys. The commander copies this section into the PR's `## Setup required`. Every `file:symbol` you cite resolves
 in the current tree.
 

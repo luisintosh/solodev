@@ -15,9 +15,9 @@ reads only git and the feature folder; `solodev help <command>` explains each co
 - `solodev approve <slug>`: records the gate as a line in `progress.md`.
 - `solodev check <slug> --for implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
 
-A feature lives in its folder, `<state.dir>/<slug>/`, outside the repo: `spec.md`, `plan.md`, `review.md`, `qa.md`,
-`progress.md`, and `briefs/` for shadow briefs and replies. Nothing there is committed; the repo gets only the code,
-tests and docs. Every brief names the folder's absolute path.
+A feature lives in its folder, `<state.dir>/<slug>/`, outside the repo: `spec.md` with its `## Plan`, `review.md` with
+the findings and any `## QA` verdicts, and `progress.md`, the run's log. Nothing there is committed; the repo gets only
+the code, tests and docs. Every brief names the folder's absolute path.
 
 {{include:fragments/tracker.md}}
 
@@ -28,7 +28,7 @@ tests and docs. Every brief names the folder's absolute path.
 | Step          | Who                                                       | Leaves when                                                    |
 | ------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
 | 1 start       | you                                                       | probe done, branch cut, `progress.md` with its `- tools:` line |
-| 2 spec        | you, with solodev-plan                                    | spec and plan written, open questions answered                 |
+| 2 spec        | you, with solodev-plan                                    | spec and its plan written, open questions answered             |
 | 3 spec review | a fresh shadow-reviewer with solodev-review, when needed  | you applied the findings you agree with                        |
 | 4 gate        | the user                                                  | `solodev approve` recorded                                     |
 | 5 implement   | the coder, with solodev-code                              | `solodev check <slug> --for implement` passes                  |
@@ -47,14 +47,14 @@ tests and docs. Every brief names the folder's absolute path.
    toolbox as one line for the whole run, `n/a` where the repo has none:
    `- tools: forge glab · tracker linear (mcp) · install … · dev … · test … · test_file … · lint … · typecheck … · build …`.
    Commands come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
-2. **Spec.** Load solodev-plan, interview the user in rounds as it says, then write `spec.md` and `plan.md` yourself.
+2. **Spec.** Load solodev-plan, interview the user in rounds as it says, then write `spec.md` yourself.
 3. **Spec review** runs when the plan has more than one journey, adds a dependency, changes a public API, a data schema
    or a migration, touches auth or security, or the user asks. The reviewer judges the spec against `progress.md`'s
    request. Otherwise tell the user you skipped it and why.
 4. **Gate.** Show the gate card from [references/gate.md](references/gate.md) and wait. On approval run
    `solodev approve <slug>`, post the ticket comment for a ticket run, and log the coder choice in `progress.md`. No
-   code before that line. An edit to the spec or plan after the gate reopens it: brief the coder nothing new until the
-   user approves again, then send the change as a fix round.
+   code before that line. An edit to `spec.md` after the gate reopens it: brief the coder nothing new until the user
+   approves again, then send the change as a fix round.
 5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
@@ -62,11 +62,10 @@ tests and docs. Every brief names the folder's absolute path.
    fresh with the slug, the base (`git merge-base <default branch> HEAD`) and the coder's `decisions:`. A
    `Weakened test:` finding goes straight to the user, who picks a fix round, `rebutted` or `deferred`. Any other
    blocker or major → one fix round with the same coder, which replies per finding id, then one re-review, chosen the
-   same way, whose briefs carry the coder's replies and the commit the last review saw. Blockers and majors still open
+   same way, whose briefs carry the `- fix` line and the sha of the last `- review` line. Blockers and majors still open
    go to the user: another fix round, `deferred` or `dropped`, written into `review.md`; so do spec gaps in `notes`.
-7. **PR.** Run `solodev check <slug> --for pr`, push, open a draft PR ([references/pr.md](references/pr.md)), and log
-   `- pr <url> · draft` in `progress.md`.
-8. **QA.** The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none are, the journey tests are
+7. **PR.** `solodev check <slug> --for pr`, push, open a draft PR ([pr.md](references/pr.md)), log `- pr <url> · draft`.
+8. **QA.** The verifier runs only for scenarios listed as `uncovered` in the plan. When none are, the journey tests are
    the QA and no agent starts. A QA failure in code goes to the coder as a fix round, the scenario ids as finding ids,
    then a re-review as in step 6 and a recheck of those rows; a spec gap goes to the user. A `manual` verdict goes to
    the user: they check it and you record `pass` with their words as evidence, or they waive it and you record `waived`.
@@ -74,15 +73,16 @@ tests and docs. Every brief names the folder's absolute path.
    card ([references/pr.md](references/pr.md)).
 
 After a reviewer or verifier run, revert anything `git status` shows it changed and tell the user. Commit the coder's
-work after each passing check with a plain Conventional Commit, and push once the PR exists. Log the coder choice, each
-attempt, skipped stages and the user's decisions in `progress.md`, so a resumed run knows what's spent.
+work after each passing check with a plain Conventional Commit; push once the PR exists. Log in `progress.md` the coder
+choice, attempts, skipped stages, the user's calls, and for a resume: `- decision implement|fix <n>: <text>` per coder
+`decisions:` entry, `- review <n> at <sha>` per review, `- fix <n>: R1 fixed · R3 rebutted: <reason>` per fix reply.
 
 ## Shadows
 
-Write each brief to `briefs/<role>-<n>.md` in the feature folder: the role skill, the slug, the `- tools:` line, the
-`solodev` path, what to do now, and where to write the reply. Keep it short; the role skill and the feature files hold
-the rest. One coder serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start fresh;
-start lens reviewers together, one spawn call each in the same turn.
+Put each brief in the spawn call, never in a file: the role skill, the slug, the feature folder, the `- tools:` line,
+the `solodev` path and what to do now; the reply is the shadow's final message. The role skill and the feature files
+hold the rest. One coder serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start
+fresh; start lens reviewers together, one spawn call each in the same turn.
 
 - **Claude Code:** the Agent tool with `subagent_type` shadow-coder or shadow-reviewer; their role skills are preloaded.
   Continue the coder with SendMessage.

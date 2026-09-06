@@ -10,9 +10,9 @@ export function featureDir(state: string, slug: string): string {
   return path.join(state, slug)
 }
 
-/** What the user approved: spec.md and plan.md together, so an edit to either reopens the gate. */
-export function specHash(spec: string, plan: string): string {
-  return createHash("sha256").update(spec).update("\0").update(plan).digest("hex").slice(0, 12)
+/** What the user approved: spec.md, its plan included, so any edit to it reopens the gate. */
+export function specHash(spec: string): string {
+  return createHash("sha256").update(spec).digest("hex").slice(0, 12)
 }
 
 export type Approval = { date: string; spec: string; at: string }
@@ -44,19 +44,16 @@ export function parseTools(progress: string): string | undefined {
 }
 
 /**
- * The approval in force, whether spec.md and plan.md still match it, and every approval oldest first. A later one
+ * The approval in force, whether spec.md still matches it, and every approval oldest first. A later one
  * re-agrees an edited spec, so code may already exist before it.
  */
 export async function currentApproval(
   dir: string,
 ): Promise<{ approval?: Approval; approvals: Approval[]; matches: boolean }> {
-  const [spec, plan, progress] = await Promise.all(
-    ["spec.md", "plan.md", "progress.md"].map((f) => readIfExists(path.join(dir, f))),
-  )
+  const [spec, progress] = await Promise.all(["spec.md", "progress.md"].map((f) => readIfExists(path.join(dir, f))))
   const approvals = parseApprovals(progress ?? "")
   const approval = approvals.at(-1)
-  const matches =
-    approval !== undefined && spec !== undefined && plan !== undefined && specHash(spec, plan) === approval.spec
+  const matches = approval !== undefined && spec !== undefined && specHash(spec) === approval.spec
   return { approval, approvals, matches }
 }
 
@@ -78,9 +75,10 @@ export async function exists(file: string): Promise<boolean> {
   }
 }
 
-/** `@S<n>` ids in order of first appearance, as `S<n>`. */
+/** `@S<n>` ids in order of first appearance, as `S<n>`, before `## Plan`: the plan may name a removed one. */
 export function parseScenarios(spec: string): string[] {
-  return [...new Set([...spec.matchAll(/@S(\d+)\b/g)].map((m) => `S${m[1]}`))]
+  const body = spec.split(/^## Plan\b/m)[0]!
+  return [...new Set([...body.matchAll(/@S(\d+)\b/g)].map((m) => `S${m[1]}`))]
 }
 
 export type Journey = { id: string; scenarios: string[]; test: string; command: string }
@@ -90,7 +88,7 @@ function scenarioId(value: unknown): string {
   return String(value).trim().replace(/^@/, "")
 }
 
-/** The fenced YAML block in plan.md whose first key is `journeys:`. Throws with a message an agent can act on. */
+/** The fenced YAML block in spec.md's `## Plan` whose first key is `journeys:`. Throws with a message an agent can act on. */
 export function parsePlan(plan: string): Plan {
   for (const m of plan.matchAll(/^```(?:ya?ml)?[ \t]*\n([\s\S]*?)^```/gm)) {
     const body = m[1]!
@@ -99,15 +97,15 @@ export function parsePlan(plan: string): Plan {
     try {
       parsed = parseYaml(body)
     } catch (err) {
-      throw new Error(`plan.md: the journeys block is not valid YAML — ${(err as Error).message.split("\n")[0]}`)
+      throw new Error(`spec.md: the journeys block is not valid YAML — ${(err as Error).message.split("\n")[0]}`)
     }
     const doc = parsed as { journeys?: unknown; uncovered?: unknown }
-    if (!Array.isArray(doc.journeys)) throw new Error("plan.md: `journeys:` must be a list")
+    if (!Array.isArray(doc.journeys)) throw new Error("spec.md: `journeys:` must be a list")
     const journeys = doc.journeys.map((raw, i) => {
       const j = (raw ?? {}) as Record<string, unknown>
       const missing = ["id", "scenarios", "test", "command"].filter((k) => j[k] === undefined || j[k] === "")
-      if (missing.length) throw new Error(`plan.md: journey ${i + 1} is missing ${missing.join(", ")}`)
-      if (!Array.isArray(j.scenarios)) throw new Error(`plan.md: journey ${j.id} scenarios must be a list`)
+      if (missing.length) throw new Error(`spec.md: journey ${i + 1} is missing ${missing.join(", ")}`)
+      if (!Array.isArray(j.scenarios)) throw new Error(`spec.md: journey ${j.id} scenarios must be a list`)
       return {
         id: String(j.id),
         scenarios: j.scenarios.map(scenarioId),
@@ -118,7 +116,7 @@ export function parsePlan(plan: string): Plan {
     const uncovered = Array.isArray(doc.uncovered) ? doc.uncovered.map(scenarioId) : []
     return { journeys, uncovered }
   }
-  throw new Error("plan.md: no fenced YAML block starting with `journeys:`")
+  throw new Error("spec.md: no fenced YAML block starting with `journeys:`")
 }
 
 export const SEVERITIES = ["blocker", "major", "minor"] as const
@@ -152,7 +150,7 @@ function tableRows(md: string, required: string[]): Record<string, string>[] {
   return rows
 }
 
-/** review.md: a table `| id | severity | lens | location | status | finding |` (columns matched by name). */
+/** review.md's findings: a table `| id | severity | lens | location | status | finding |` (columns matched by name). */
 export function parseReview(md: string): Finding[] {
   return tableRows(md, ["id", "severity", "status"]).map((r) => ({
     id: r.id ?? "",
@@ -165,7 +163,7 @@ export function parseReview(md: string): Finding[] {
 
 export type Verdict = { verdict: string; evidence: string }
 
-/** qa.md: a table `| scenario | verdict | evidence |`, verdict pass or fail. */
+/** review.md's `## QA`: a table `| scenario | verdict | evidence |`, verdict pass or fail. */
 export function parseQa(md: string): Map<string, Verdict> {
   const out = new Map<string, Verdict>()
   for (const r of tableRows(md, ["scenario", "verdict"])) {
