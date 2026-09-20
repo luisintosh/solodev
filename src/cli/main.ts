@@ -180,13 +180,17 @@ async function init(args: string[]): Promise<number> {
     force: args.includes("--force"),
     read: (file: string) => fs.readFile(file, "utf8").catch(() => undefined),
     exists,
+    inside: scope === "global" ? async () => true : await insideOf(root),
   }
   const ops = await planInit(input)
   if (!dryRun) {
     await applyInit(ops, {
+      // Write beside the file, then rename over it: a symlink in its place is replaced, never written through.
       write: async (file, content) => {
         await fs.mkdir(path.dirname(file), { recursive: true })
-        await fs.writeFile(file, content)
+        const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.tmp`)
+        await fs.writeFile(tmp, content, { flag: "wx" })
+        await fs.rename(tmp, file)
       },
       remove: (file, recursive) => fs.rm(file, { recursive, force: true }),
       move: async (from, to) => {
@@ -196,13 +200,29 @@ async function init(args: string[]): Promise<number> {
     })
   }
   const edited = ops.filter((op): op is Extract<InitOp, { kind: "edited" }> => op.kind === "edited")
+  const failed = edited.length > 0 || ops.some((op) => op.kind === "outside")
   if (args.includes("--json")) {
     console.log(JSON.stringify({ host, scope, root, dryRun, ops }, null, 2))
-    return edited.length ? 1 : 0
+    return failed ? 1 : 0
   }
   console.log(formatInit(input, ops, dryRun))
   for (const op of edited) console.log(`\n${await diff(op.path, op.content)}`)
-  return edited.length ? 1 : 0
+  return failed ? 1 : 0
+}
+
+/** Whether a path's nearest existing folder resolves, through symlinks, inside `root`. */
+async function insideOf(root: string): Promise<(file: string) => Promise<boolean>> {
+  const real = await fs.realpath(root)
+  return async (file) => {
+    let dir = path.dirname(file)
+    for (;;) {
+      const resolved = await fs.realpath(dir).catch(() => undefined)
+      if (resolved !== undefined) return resolved === real || resolved.startsWith(`${real}${path.sep}`)
+      const up = path.dirname(dir)
+      if (up === dir) return false
+      dir = up
+    }
+  }
 }
 
 /** What --force would change in an edited shadow. */
