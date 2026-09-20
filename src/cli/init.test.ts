@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto"
 import { describe, expect, test } from "vitest"
 import { type AgentFiles, agentsDir, type InitInput, intact, locate, planInit, stripHash, withHash } from "./init.ts"
 
@@ -18,7 +17,6 @@ function input(files: Record<string, string>, over: Partial<InitInput> = {}): In
     agents,
     force: false,
     read: async (p) => files[p],
-    exists: async (p) => p in files || Object.keys(files).some((f) => f.startsWith(`${p}/`)),
     inside: async () => true,
     ...over,
   }
@@ -85,59 +83,21 @@ describe("planInit", () => {
     expect((await kinds(input(files, { force: true })))[0]).toBe("update /repo/.claude/agents/shadow-coder.md")
   })
 
-  test("an unmarked shadow is ours only if the old installer's manifest vouches for it", async () => {
-    const old = "coder v4\n"
-    const hash = createHash("sha256").update(old).digest("hex")
-    const files = { "/repo/.claude/agents/shadow-coder.md": old }
+  test("an unmarked shadow at a shadow's path is treated as edited", async () => {
+    const files = { "/repo/.claude/agents/shadow-coder.md": "someone else's coder\n" }
     expect((await kinds(input(files)))[0]).toBe("edited /repo/.claude/agents/shadow-coder.md")
-    const vouched = { ...files, "/repo/.claude/agents/.harness-manifest": `${hash}  shadow-coder.md\n` }
-    expect(await kinds(input(vouched))).toContain("update /repo/.claude/agents/shadow-coder.md")
-    expect(await kinds(input(vouched))).toContain("delete /repo/.claude/agents/.harness-manifest")
   })
 
-  test("removes the old installer's leftovers, never the feature folders", async () => {
-    const files = {
-      "/repo/.agents/solodev/solodev-cli.mjs": "",
-      "/repo/.agents/skills/.harness-manifest": "",
-      "/repo/bin/quest-state": "",
-      "/repo/.cursor/skills/sddkit/SKILL.md": "",
-      "/home/u/.agents/solodev/acme/app/csv/spec.md": "",
-    }
-    const ops = await kinds(input(files, { host: "cursor" }))
-    expect(ops).toEqual(
-      expect.arrayContaining([
-        "delete /repo/.agents/solodev/solodev-cli.mjs",
-        "delete /repo/.agents/skills/.harness-manifest",
-        "delete /repo/bin/quest-state",
-        "delete /repo/.cursor/skills/sddkit",
-      ]),
-    )
-    expect(ops.some((op) => op.includes("/home/u/.agents/solodev/acme"))).toBe(false)
+  test("global codex follows CODEX_HOME", async () => {
+    const ops = await kinds(input({}, { scope: "global", root: "/home/u", host: "codex", env: { CODEX_HOME: "/c" } }))
+    expect(ops).toEqual(["create /c/agents/shadow-coder.toml", "create /c/agents/shadow-reviewer.toml"])
   })
 
-  test("global: old CLI under $HOME and the personal defaults move", async () => {
-    const files = { "/home/u/.agents/solodev/solodev-cli.mjs": "", "/home/u/.agents/solodev.yaml": "writer: codex\n" }
-    const ops = await planInit(input(files, { scope: "global", root: "/home/u", host: "codex" }))
-    expect(ops.map((op) => `${op.kind} ${op.path}`)).toEqual([
-      "create /home/u/.codex/agents/shadow-coder.toml",
-      "create /home/u/.codex/agents/shadow-reviewer.toml",
-      "delete /home/u/.agents/solodev/solodev-cli.mjs",
-      "move /home/u/.agents/solodev/solodev-conf.yaml",
-    ])
-    const kept = { ...files, "/home/u/.agents/solodev/solodev-conf.yaml": "writer: claude\n" }
-    const again = await planInit(input(kept, { scope: "global", root: "/home/u", host: "codex" }))
-    expect(again.some((op) => op.kind === "move")).toBe(false)
-  })
-
-  test("a project init leaves alone what a symlinked folder leads outside the repo", async () => {
-    const files = { "/repo/.cursor/skills/sddkit/SKILL.md": "", "/repo/.agents/solodev/solodev-cli.mjs": "" }
+  test("a project init leaves alone a shadows folder a symlink leads outside the repo", async () => {
     const inside = async (p: string) => !p.startsWith("/repo/.cursor/")
-    const ops = await kinds(input(files, { host: "cursor", inside }))
-    expect(ops).toEqual([
+    expect(await kinds(input({}, { host: "cursor", inside }))).toEqual([
       "outside /repo/.cursor/agents/shadow-coder.md",
       "outside /repo/.cursor/agents/shadow-reviewer.md",
-      "delete /repo/.agents/solodev/solodev-cli.mjs",
-      "outside /repo/.cursor/skills/sddkit",
     ])
   })
 })

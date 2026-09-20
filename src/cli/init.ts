@@ -11,8 +11,6 @@ export type InitOp =
   | { kind: "create" | "update" | "unchanged"; path: string; content: string }
   /** The user changed a shadow init wrote; left alone unless --force. */
   | { kind: "edited"; path: string; content: string }
-  | { kind: "delete"; path: string; recursive?: boolean; note: string }
-  | { kind: "move"; path: string; from: string; note: string }
   /** A repo path that resolves outside the repo (a symlinked folder): left alone. */
   | { kind: "outside"; path: string }
 
@@ -26,10 +24,9 @@ export type InitInput = {
   agents: AgentFiles
   force: boolean
   read: (filePath: string) => Promise<string | undefined>
-  exists: (filePath: string) => Promise<boolean>
   /**
-   * Whether a path's folder resolves inside `root` once symlinks are followed (the path itself may be a link; writes
-   * and deletes replace the link, not its target). A project init touches nothing a cloned repo's symlinks point
+   * Whether a path's folder resolves inside `root` once symlinks are followed (the path itself may be a link; a write
+   * replaces the link, not its target). A project init touches nothing a cloned repo's symlinks point
    * elsewhere; a global one trusts $HOME, where linking dotfolders is common.
    */
   inside: (filePath: string) => Promise<boolean>
@@ -91,38 +88,12 @@ export function locate(
   return base === home ? { scope: "global", base: home } : { scope: "project", base }
 }
 
-/** `<rel>  <sha256>` lines the old installer kept next to what it wrote. */
-function parseLegacyManifest(raw: string | undefined): Map<string, string> {
-  const map = new Map<string, string>()
-  for (const line of (raw ?? "").split("\n")) {
-    const i = line.indexOf("  ")
-    if (i > 0) map.set(line.slice(i + 2), line.slice(0, i))
-  }
-  return map
-}
-
-const OLD_CLIS = [
-  ".agents/solodev/solodev-cli.mjs",
-  ".agents/bin/solodev.mjs",
-  ".agents/bin/quest-state.mjs",
-  ".agents/bin/quest-state",
-  ".agents/bin/quest-state.js",
-  ".agents/bin/sddkit-state.mjs",
-]
-const OLD_PROJECT_BINS = ["bin/quest-state", "bin/sdd-state"]
-const OLD_CURSOR_SKILLS = ["sddkit", "sddkit-plan", "sddkit-epic", "sddkit-setup-docs", "setup-docs"]
-const OLD_INSTALLER = "(left by the old installer)"
-
 /** What `solodev init` would do; nothing is written. */
 export async function planInit(input: InitInput): Promise<InitOp[]> {
-  const { host, scope, root, home, env } = input
-  const dir = agentsDir(host, scope, root, home, env)
-  const legacyManifest = path.join(dir, ".harness-manifest")
-  const dirInside = await input.inside(legacyManifest)
-  const legacy = parseLegacyManifest(dirInside ? await input.read(legacyManifest) : undefined)
+  const dir = agentsDir(input.host, input.scope, input.root, input.home, input.env)
+  const dirInside = await input.inside(path.join(dir, "shadow"))
   const ops: InitOp[] = []
-
-  for (const [file, built] of Object.entries(input.agents[host]).sort()) {
+  for (const [file, built] of Object.entries(input.agents[input.host]).sort()) {
     const dest = path.join(dir, file)
     if (!dirInside) {
       ops.push({ kind: "outside", path: dest })
@@ -133,50 +104,14 @@ export async function planInit(input: InitInput): Promise<InitOp[]> {
     let kind: InitOp["kind"]
     if (current === undefined) kind = "create"
     else if (current === content) kind = "unchanged"
-    else {
-      // No hash line: written by the old installer (its manifest vouches for it) or by someone else.
-      const ours = intact(current) ?? legacy.get(file) === sha256(current)
-      kind = ours || input.force ? "update" : "edited"
-    }
+    else kind = intact(current) || input.force ? "update" : "edited"
     ops.push({ kind, path: dest, content })
-  }
-
-  const remove = async (rel: string, recursive = false) => {
-    const target = path.join(root, rel)
-    if (!(await input.exists(target))) return
-    if (await input.inside(target)) ops.push({ kind: "delete", path: target, recursive, note: OLD_INSTALLER })
-    else ops.push({ kind: "outside", path: target })
-  }
-  if (dirInside && (await input.exists(legacyManifest))) {
-    ops.push({ kind: "delete", path: legacyManifest, note: OLD_INSTALLER })
-  }
-  for (const skills of [".agents/skills", ".claude/skills", ".cursor/skills"])
-    await remove(`${skills}/.harness-manifest`)
-  for (const rel of OLD_CLIS) await remove(rel)
-  if (scope === "project") for (const rel of OLD_PROJECT_BINS) await remove(rel)
-  if (host === "cursor") for (const name of OLD_CURSOR_SKILLS) await remove(`.cursor/skills/${name}`, true)
-
-  // Personal defaults moved from ~/.agents/solodev.yaml; an existing new file wins.
-  const oldConf = path.join(home, ".agents", "solodev.yaml")
-  const conf = path.join(home, ".agents", "solodev", "solodev-conf.yaml")
-  if ((await input.exists(oldConf)) && !(await input.exists(conf))) {
-    ops.push({ kind: "move", path: conf, from: oldConf, note: "(personal defaults' new name)" })
   }
   return ops
 }
 
-export type InitFs = {
-  write: (filePath: string, content: string) => Promise<void>
-  remove: (filePath: string, recursive: boolean) => Promise<void>
-  move: (from: string, to: string) => Promise<void>
-}
-
-export async function applyInit(ops: InitOp[], fs: InitFs): Promise<void> {
-  for (const op of ops) {
-    if (op.kind === "create" || op.kind === "update") await fs.write(op.path, op.content)
-    else if (op.kind === "delete") await fs.remove(op.path, op.recursive ?? false)
-    else if (op.kind === "move") await fs.move(op.from, op.path)
-  }
+export async function applyInit(ops: InitOp[], write: (filePath: string, content: string) => Promise<void>) {
+  for (const op of ops) if (op.kind === "create" || op.kind === "update") await write(op.path, op.content)
 }
 
 const VERB: Record<InitOp["kind"], string> = {
@@ -185,8 +120,6 @@ const VERB: Record<InitOp["kind"], string> = {
   unchanged: "= unchanged",
   edited: "! edited   ",
   outside: "! outside  ",
-  delete: "- removed  ",
-  move: "> moved    ",
 }
 
 export function formatInit(input: Pick<InitInput, "host" | "scope" | "root" | "home">, ops: InitOp[], dryRun: boolean) {
@@ -200,8 +133,6 @@ export function formatInit(input: Pick<InitInput, "host" | "scope" | "root" | "h
   if (dryRun) lines[0] += " — dry run, nothing written"
   for (const op of ops) {
     let line = `  ${VERB[op.kind]} ${show(op.path)}`
-    if (op.kind === "move") line += ` from ${show(op.from)}`
-    if (op.kind === "delete" || op.kind === "move") line += ` ${op.note}`
     if (op.kind === "edited") line += " — kept your edits; --force replaces them"
     if (op.kind === "outside") line += " — a symlink leads outside the repo; left alone"
     lines.push(line)

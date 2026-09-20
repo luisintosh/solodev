@@ -84,9 +84,10 @@ It writes that tool's two subagents, `shadow-coder` and `shadow-reviewer`, next 
 again in Codex, then in Cursor, and so on. A subagent you edited is kept: init shows the diff and replaces it only if
 you say so. Then start a new session: coding tools load agents at startup.
 
-**Coming from the old installer** (`npx github:luisintosh/solodev`, v5 and earlier): install as above and run init once
-per tool. Init replaces the old subagents and removes the old CLI (`.agents/solodev/solodev-cli.mjs`) and the
-installer's manifests. Your feature folders stay where they are.
+**Coming from the old installer** (`npx github:luisintosh/solodev`, v5 and earlier): install as above, then run
+`solodev init --force` once per tool, since init treats subagents it didn't write as yours. The old files under
+`.agents/solodev/` (the CLI) and the installer's `.harness-manifest` files can be deleted; your feature folders stay
+where they are.
 
 **Requirements**, with the macOS install command (most use [Homebrew](https://brew.sh)):
 

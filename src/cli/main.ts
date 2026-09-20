@@ -179,24 +179,16 @@ async function init(args: string[]): Promise<number> {
     agents: agents as AgentFiles,
     force: args.includes("--force"),
     read: (file: string) => fs.readFile(file, "utf8").catch(() => undefined),
-    exists,
     inside: scope === "global" ? async () => true : await insideOf(root),
   }
   const ops = await planInit(input)
   if (!dryRun) {
-    await applyInit(ops, {
-      // Write beside the file, then rename over it: a symlink in its place is replaced, never written through.
-      write: async (file, content) => {
-        await fs.mkdir(path.dirname(file), { recursive: true })
-        const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.tmp`)
-        await fs.writeFile(tmp, content, { flag: "wx" })
-        await fs.rename(tmp, file)
-      },
-      remove: (file, recursive) => fs.rm(file, { recursive, force: true }),
-      move: async (from, to) => {
-        await fs.mkdir(path.dirname(to), { recursive: true })
-        await fs.rename(from, to)
-      },
+    // Write beside the file, then rename over it: a symlink in its place is replaced, never written through.
+    await applyInit(ops, async (file, content) => {
+      await fs.mkdir(path.dirname(file), { recursive: true })
+      const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.tmp`)
+      await fs.writeFile(tmp, content, { flag: "wx" })
+      await fs.rename(tmp, file)
     })
   }
   const edited = ops.filter((op): op is Extract<InitOp, { kind: "edited" }> => op.kind === "edited")
