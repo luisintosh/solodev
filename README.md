@@ -9,7 +9,7 @@ or [Cursor](https://cursor.com).
 [![Claude Code](https://img.shields.io/badge/Claude_Code-supported-d97757)](https://code.claude.com)
 [![Codex](https://img.shields.io/badge/Codex-supported-10a37f)](https://developers.openai.com/codex)
 [![Cursor](https://img.shields.io/badge/Cursor-supported-111111)](https://cursor.com)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache_2.0-blue)](LICENSE)
 
 ```bash
 npx skills add luisintosh/solodev          # -g for every repo
@@ -127,4 +127,4 @@ quieter command output.
 
 ---
 
-The name comes from _Solo Leveling_, where one hunter commands an army of shadows. MIT licensed.
+The name comes from _Solo Leveling_, where one hunter commands an army of shadows. Licensed under Apache 2.0.
