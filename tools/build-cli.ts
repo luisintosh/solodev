@@ -58,8 +58,14 @@ async function bundle(entry: string, outJs: string) {
     format: "esm",
     target: "node20",
     // Bundled CJS deps (yaml) call require() for node builtins; ESM output needs a real require.
-    banner: { js: 'import { createRequire } from "node:module";const require=createRequire(import.meta.url);' },
-    minify: true,
+    // Readable on purpose: users and skill registries audit this file, so it ships unminified.
+    banner: {
+      js: [
+        "// solodev CLI, bundled from src/cli/ at https://github.com/luisintosh/solodev/tree/develop/src/cli",
+        'import { createRequire } from "node:module";const require=createRequire(import.meta.url);',
+      ].join("\n"),
+    },
+    minify: false,
     plugins: [yamlPlugin, agentsPlugin],
     logLevel: "warning",
   })
