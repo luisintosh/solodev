@@ -27,7 +27,8 @@ product (`dist/product`), written by `pnpm run release`. Never commit to `master
 
 `src/catalog.yaml` (host × profile models, skills with line budgets, shadows with hard denies) and `src/prompts/**` are
 the **only** sources of truth. `tools/transpile.ts` emits one skill tree for every host into `dist/product/skills` and
-the two shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles those shadows into the CLI.
+the two shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and copies those shadows beside
+it, as plain files, into `dist/product/skills/solodev-mission/shadows/`.
 
 - Never hand-edit `dist/`: it's generated and untracked. Fix the catalog or the prompt body, then `pnpm run build`.
 - Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;

@@ -16,7 +16,8 @@ once; tests use Vitest and bundles use esbuild.
 `dist/` is generated and untracked. `dist/product/` is exactly what a release puts on `master`: the skills (with the CLI
 bundled at `skills/solodev-mission/scripts/solodev-cli.mjs`), `README.md` and `assets/`. Users install it with
 `npx skills add luisintosh/solodev`; try a build locally with `npx skills add ./dist/product` in a scratch repo. The
-shadows go to `dist/{claude,cursor,codex}/agents/` and are bundled into the CLI, which writes them on `solodev init`.
+shadows go to `dist/{claude,cursor,codex}/agents/` and are copied, as plain files, into
+`skills/solodev-mission/shadows/<host>/`, which the CLI reads and writes on `solodev init`.
 
 `README.md` ships to users, so it describes using solodev; the layout of this repository is below.
 
@@ -87,14 +88,14 @@ Two tiers, cheapest first:
 
 ## Tooling (TypeScript on Node)
 
-| Script                     | Purpose                                                              |
-| -------------------------- | -------------------------------------------------------------------- |
-| `node tools/transpile.ts`  | `src/` → `dist/product` (skills, README, assets) + `dist/*/agents`   |
-| `node tools/build-cli.ts`  | the CLI, shadows inlined, into `dist/product/.../scripts/`           |
-| `node tools/check.ts`      | hygiene                                                              |
-| `node tools/quiz.ts`       | prompt quiz: `[--model <alias>]`                                     |
-| `node tools/eval-stage.ts` | stage evals: `validate`, `run [--tier smoke] [--changed] [--judge]`  |
-| `pnpm run release`         | publish `dist/product` to `master`, tag it, publish a GitHub Release |
+| Script                     | Purpose                                                               |
+| -------------------------- | --------------------------------------------------------------------- |
+| `node tools/transpile.ts`  | `src/` → `dist/product` (skills, README, assets) + `dist/*/agents`    |
+| `node tools/build-cli.ts`  | the CLI into `dist/product/.../scripts/`, the shadows into `shadows/` |
+| `node tools/check.ts`      | hygiene                                                               |
+| `node tools/quiz.ts`       | prompt quiz: `[--model <alias>]`                                      |
+| `node tools/eval-stage.ts` | stage evals: `validate`, `run [--tier smoke] [--changed] [--judge]`   |
+| `pnpm run release`         | publish `dist/product` to `master`, tag it, publish a GitHub Release  |
 
 `pnpm run build` runs transpile + build-cli.
 
