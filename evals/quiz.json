@@ -2,43 +2,43 @@
   "questions": [
     {
       "id": "mission-trivial",
-      "situation": "The user runs `/solodev-mission fix the typo 'recieve' in src/mailer.ts line 40`.",
+      "situation": "The user runs `/mission fix the typo 'recieve' in src/mailer.ts line 40`.",
       "ask": "What do you do?",
       "expect": "Says in one line that this is a one-line fix and suggests /plan or making the change directly; continues the full run only if the user still wants it. No branch, feature folder or coder yet."
     },
     {
       "id": "mission-fresh-start",
-      "situation": "The user runs `/solodev-mission add a --version flag to the CLI that prints the package.json version`. No feature folder exists for it and you are on the default branch.",
+      "situation": "The user runs `/mission add a --version flag to the CLI that prints the package.json version`. No feature folder exists for it and you are on the default branch.",
       "ask": "What do you do before writing the spec?",
       "expect": "Runs `solodev probe`, derives a slug, cuts feat/<slug> from the default branch, creates progress.md starting with a ## Request section holding the request verbatim, and logs one `- tools:` line with the repo's commands (n/a where missing). Writes no code and commits nothing."
     },
     {
       "id": "mission-init-codex",
-      "situation": "In a Codex session the user runs `/solodev-mission init`. The solodev skills were installed in this repo with `npx skills add`.",
+      "situation": "In a Codex session the user runs `/mission init`. The solodev skills were installed in this repo with `npx skills add`.",
       "ask": "What do you do?",
-      "expect": "Runs `solodev init` (the CLI in the solodev-mission skill's scripts folder) for Codex, shows its report of the shadows it wrote, tells the user to start a new session before the next /solodev-mission and to run `/solodev-mission init` in each other coding tool they use, and stops. Starts no feature: no branch, spec or feature folder."
+      "expect": "Runs `solodev init` (the CLI in the mission skill's scripts folder) for Codex, shows its report of the shadows it wrote, tells the user to start a new session before the next /mission and to run `/mission init` in each other coding tool they use, and stops. Starts no feature: no branch, spec or feature folder."
     },
     {
       "id": "mission-init-edited",
-      "situation": "The user runs `/solodev-mission init` in Claude Code. `solodev init` exits 1 and reports `! edited .claude/agents/shadow-coder.md — kept your edits; --force replaces them`, followed by a diff that adds a line the user wrote.",
+      "situation": "The user runs `/mission init` in Claude Code. `solodev init` exits 1 and reports `! edited .claude/agents/shadow-coder.md — kept your edits; --force replaces them`, followed by a diff that adds a line the user wrote.",
       "ask": "What do you do?",
       "expect": "Shows the user the diff and asks whether to replace their edited shadow; reruns `solodev init` with `--force` only if they say yes. Does not pass --force on its own."
     },
     {
       "id": "mission-no-shadows",
-      "situation": "The user runs `/solodev-mission add an /healthz endpoint that returns the build sha` in Claude Code. `solodev probe` shows `tools.claude.shadows: false` and warns `claude has no solodev shadows yet; run /solodev-mission init`; `state.writable` is true.",
+      "situation": "The user runs `/mission add an /healthz endpoint that returns the build sha` in Claude Code. `solodev probe` shows `tools.claude.shadows: false` and warns `claude has no solodev shadows yet; run /mission init`; `state.writable` is true.",
       "ask": "What do you do?",
       "expect": "Runs `solodev init` for Claude Code and shows its report, then asks the user to start a new session (agents load at startup) and rerun the command, and stops. No branch, feature folder or spec in this session."
     },
     {
       "id": "mission-not-writable",
-      "situation": "Fresh /solodev-mission run. `solodev probe` reports `state.writable: false`.",
+      "situation": "Fresh /mission run. `solodev probe` reports `state.writable: false`.",
       "ask": "What do you do?",
       "expect": "Tells the user to allow state.dir in their tool's sandbox and stops."
     },
     {
       "id": "mission-slug-exists",
-      "situation": "The user asks /solodev-mission for a CSV export feature. A feature folder for the slug `csv-export` already exists.",
+      "situation": "The user asks /mission for a CSV export feature. A feature folder for the slug `csv-export` already exists.",
       "ask": "What do you do?",
       "expect": "Shows that feature's stage and asks the user whether to resume it or start over under the next free slug (csv-export-2)."
     },
@@ -326,19 +326,19 @@
     },
     {
       "id": "scout-existing",
-      "situation": "The user runs /solodev-scout. AGENTS.md exists; docs/ARCHITECTURE.md doesn't. The user didn't ask for a refresh.",
+      "situation": "The user runs /gen-docs. AGENTS.md exists; docs/ARCHITECTURE.md doesn't. The user didn't ask for a refresh.",
       "ask": "What do you write?",
       "expect": "Leaves AGENTS.md as it is, creates docs/ARCHITECTURE.md, commits nothing, and ends with a short summary."
     },
     {
       "id": "scout-no-lint",
-      "situation": "Running /solodev-scout on a repo with no lint or typecheck script.",
+      "situation": "Running /gen-docs on a repo with no lint or typecheck script.",
       "ask": "What do the Commands lines for lint and typecheck say?",
       "expect": "`- lint: n/a` and `- typecheck: n/a`; every name still appears."
     },
     {
       "id": "roadmap-first-round",
-      "situation": "The user asks solodev-roadmap to plan 'scheduled greetings'. You have twelve possible questions; seven are routine choices.",
+      "situation": "The user asks /strategy to plan 'scheduled greetings'. You have twelve possible questions; seven are routine choices.",
       "ask": "What do you do before and in the first round?",
       "expect": "Reads AGENTS.md, docs/ARCHITECTURE.md and the code first and strikes what the code answers; asks at most five high-leverage numbered questions with recommended answers; routine choices become a numbered assumptions ledger."
     },
@@ -364,43 +364,43 @@
   "routing": [
     {
       "query": "add rate limiting to /api/upload — 10 req/min per api key, 429 with Retry-After, across the router, middleware and config",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "we need SSO with our existing auth module; not sure yet whether to use SAML or OIDC — can you spec it and build it?",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "integrate Stripe billing into the accounts service and the dashboard, end to end with a PR",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "users want to export invoices as CSV from the dashboard; requirements are fuzzy, figure out the details with me",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "continue the csv-export feature, i approved the plan last night",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "pick up issue 118 (F2: team invites) and take it all the way to a ready PR",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "new feature: admins can soft-delete projects and restore them within 30 days — touches the API, the jobs runner and the UI",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "resume — where were we on the password reset feature?",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "implement F2 from the onboarding roadmap",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "add rate limiting to /api/upload with a spec and a PR",
-      "skill": "solodev-mission"
+      "skill": "mission"
     },
     {
       "query": "fix the typo 'recieve' in src/mailer.ts line 40",
@@ -472,27 +472,27 @@
     },
     {
       "query": "i want to build a referral program for our saas — help me nail the goal and break it into features",
-      "skill": "solodev-roadmap"
+      "skill": "strategy"
     },
     {
       "query": "turn this idea into a roadmap: offline mode for the mobile app",
-      "skill": "solodev-roadmap"
+      "skill": "strategy"
     },
     {
       "query": "plan a self-serve billing portal as a product and create github issues for each feature",
-      "skill": "solodev-roadmap"
+      "skill": "strategy"
     },
     {
       "query": "decompose 'team workspaces' into vertical slices and waves, and mark the MVP line",
-      "skill": "solodev-roadmap"
+      "skill": "strategy"
     },
     {
       "query": "revise the onboarding roadmap, we dropped the email verification requirement",
-      "skill": "solodev-roadmap"
+      "skill": "strategy"
     },
     {
       "query": "write a roadmap for our invoicing product",
-      "skill": "solodev-roadmap"
+      "skill": "strategy"
     },
     {
       "query": "file a github issue: login button does nothing on safari 17",
@@ -508,11 +508,19 @@
     },
     {
       "query": "create AGENTS.md and docs/ARCHITECTURE.md for this repo",
-      "skill": "solodev-scout"
+      "skill": "gen-docs"
     },
     {
-      "query": "/solodev-scout",
-      "skill": "solodev-scout"
+      "query": "/gen-docs",
+      "skill": "gen-docs"
+    },
+    {
+      "query": "pick a git branching strategy for this repo",
+      "skill": null
+    },
+    {
+      "query": "generate API docs for this module",
+      "skill": null
     }
   ]
 }

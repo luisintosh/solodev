@@ -15,7 +15,7 @@ const stream = [
     {
       type: "tool_use",
       name: "Bash",
-      input: { command: ".claude/skills/solodev-mission/scripts/solodev-cli.mjs status greet" },
+      input: { command: ".claude/skills/mission/scripts/solodev-cli.mjs status greet" },
     },
   ]),
   assistant([{ type: "tool_use", name: "Read", input: { file_path: "/x/greet/progress.md" } }]),
@@ -103,9 +103,7 @@ describe("grade", () => {
 
 describe("changedPrompts", () => {
   it("maps skills, shadows and stage folders, and widens shared sources to every stage", () => {
-    expect([...changedPrompts(["src/prompts/skills/solodev-roadmap/SKILL.md", "README.md"])]).toEqual([
-      "solodev-roadmap",
-    ])
+    expect([...changedPrompts(["src/prompts/skills/strategy/SKILL.md", "README.md"])]).toEqual(["strategy"])
     expect([...changedPrompts(["src/prompts/agents/shadow-reviewer.md", "evals/stages/gate-stop/stage.json"])]).toEqual(
       ["shadow-reviewer", "stage:gate-stop"],
     )

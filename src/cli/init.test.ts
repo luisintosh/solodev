@@ -46,7 +46,7 @@ describe("agentsDir", () => {
 })
 
 describe("locate", () => {
-  const cli = (base: string) => `${base}/skills/solodev-mission/scripts/solodev-cli.mjs`
+  const cli = (base: string) => `${base}/skills/mission/scripts/solodev-cli.mjs`
   test("project and global installs", () => {
     expect(locate(cli("/repo/.agents"), "/home/u", {})).toEqual({ scope: "project", base: "/repo" })
     expect(locate(cli("/home/u/.claude"), "/home/u", {})).toEqual({ scope: "global", base: "/home/u" })

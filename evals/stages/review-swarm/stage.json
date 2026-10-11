@@ -1,7 +1,7 @@
 {
   "tier": "stage",
-  "skill": "solodev-mission",
-  "covers": ["solodev-mission", "solodev-review", "shadow-reviewer"],
+  "skill": "mission",
+  "covers": ["mission", "solodev-review", "shadow-reviewer"],
   "prompt": "continue the remove-user feature\n\nThis is an unattended eval: stop once code review has written review.md, before any fix round.",
   "npm": true,
   "branch": "feat/remove-user",

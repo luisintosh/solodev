@@ -5,10 +5,10 @@ file. Keep it under about 100 lines: link CONTRIBUTING.md or the README instead 
 
 ## What this is
 
-solodev ships no runtime app. It ships role skills, with a small workflow CLI inside solodev-mission, that
-`npx skills add luisintosh/solodev` installs into a _consuming_ repo or `$HOME`; `/solodev-mission init` (the CLI's
-`init`) then writes two shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing
-here runs against this repo's own code.
+solodev ships no runtime app. It ships role skills, with a small workflow CLI inside the mission skill, that
+`npx skills add luisintosh/solodev` installs into a _consuming_ repo or `$HOME`; `/mission init` (the CLI's `init`) then
+writes two shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here runs
+against this repo's own code.
 
 Two branches: `develop` holds the source and all work (branch from it, PR into it); `master` holds only the released
 product (`dist/product`), written by `pnpm run release`. Never commit to `master` by hand.
@@ -28,12 +28,14 @@ product (`dist/product`), written by `pnpm run release`. Never commit to `master
 `src/catalog.yaml` (host × profile models, skills with line budgets, shadows with hard denies) and `src/prompts/**` are
 the **only** sources of truth. `tools/transpile.ts` emits one skill tree for every host into `dist/product/skills` and
 the two shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and copies those shadows beside
-it, as plain files, into `dist/product/skills/solodev-mission/shadows/`.
+it, as plain files, into `dist/product/skills/mission/shadows/`.
 
 - Never hand-edit `dist/`: it's generated and untracked. Fix the catalog or the prompt body, then `pnpm run build`.
 - Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;
   transpile adds it.
 - `{{include:fragments/<name>.md}}` in a prompt body is resolved at transpile time.
+- Names: the three entry skills a user types are bare (`mission`, `strategy`, `gen-docs`); role skills are
+  `solodev-<action>`, shadows `shadow-<name>`.
 
 ## How changes stay thin
 
@@ -50,8 +52,8 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   approval line live in its folder outside the repo (`~/.agents/solodev/<owner>/<repo>/<slug>/`), the code in git, and
   `solodev status` derives the stage from both. Nothing harness-related is committed to the user's repo.
 - **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
-- **The user decides.** New pauses for the user go in `/solodev-mission`'s "ask the user only at" list; nothing approves
-  the gate or merges for them.
+- **The user decides.** New pauses for the user go in `/mission`'s "ask the user only at" list; nothing approves the
+  gate or merges for them.
 - **No new stage or agent** unless the stage evals show it pays for itself. Two shadows, two profiles, three hosts.
 
 ## Checked artifacts

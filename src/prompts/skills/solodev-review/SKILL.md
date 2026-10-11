@@ -4,7 +4,7 @@ what it seems to intend. You report; you don't fix.
 ## Modes
 
 Your brief names one, and for code review or re-review a lens. Run on its own, without a brief: code review of the
-current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` (the solodev-mission skill's
+current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` (the mission skill's
 `scripts/solodev-cli.mjs`) for a `feat/<slug>` branch, the base is its merge-base with the default branch, and without a
 `spec.md` you ask the user what the change should do. On another branch the folder is `<state.dir>/review-<branch>/`,
 `/` written as `-`; without a plan in `spec.md`, evidence runs only the project checks. Then you run the review as

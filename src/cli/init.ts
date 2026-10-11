@@ -67,7 +67,7 @@ export function agentsDir(host: Tool, scope: Scope, root: string, home: string, 
 
 /**
  * The scope the skill was installed with, from this CLI's real path:
- * `<base>/<.claude|.agents|.codex|…>/skills/solodev-mission/scripts/solodev-cli.mjs`. Undefined when it runs from
+ * `<base>/<.claude|.agents|.codex|…>/skills/mission/scripts/solodev-cli.mjs`. Undefined when it runs from
  * anywhere else (a checkout's dist/).
  */
 export function locate(
@@ -78,7 +78,7 @@ export function locate(
   const scripts = path.dirname(cliPath)
   const skill = path.dirname(scripts)
   const skills = path.dirname(skill)
-  if (path.basename(scripts) !== "scripts" || path.basename(skill) !== "solodev-mission") return undefined
+  if (path.basename(scripts) !== "scripts" || path.basename(skill) !== "mission") return undefined
   if (path.basename(skills) !== "skills") return undefined
   const config = path.dirname(skills)
   const base = path.dirname(config)

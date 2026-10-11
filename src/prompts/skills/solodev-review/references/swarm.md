@@ -1,8 +1,8 @@
 # Running a code review
 
-The session that starts the review runs this: the commander at `/solodev-mission`'s code review, or your own session
-when the user runs `/solodev-review` directly. A reviewer started from a brief never runs it, since a subagent can't
-start subagents.
+The session that starts the review runs this: the commander at `/mission`'s code review, or your own session when the
+user runs `/solodev-review` directly. A reviewer started from a brief never runs it, since a subagent can't start
+subagents.
 
 ## Pick the lenses
 
@@ -27,7 +27,7 @@ Each reviewer gets a fresh agent and its own brief in the spawn call, its reply 
 solodev-review's absolute `SKILL.md` path, the slug, the feature folder, the base, the coder's `decisions:`, the
 `- tools:` line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with
 Claude Code's Agent tool (`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same
-turn, or as one Orca worker each (solodev-mission's `references/orca.md`); on any other coding tool use one reviewer.
+turn, or as one Orca worker each (the mission skill's `references/orca.md`); on any other coding tool use one reviewer.
 Tell the user the choice in one line:
 `→ review: 4 lenses in parallel (evidence, contract, correctness, design): 14 files, 3 journeys`.
 

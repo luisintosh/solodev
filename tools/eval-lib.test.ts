@@ -19,19 +19,24 @@ describe("moveUserSkillsAside", () => {
     await fs.rm(home, { recursive: true, force: true })
   })
 
-  it("moves only solodev-* skills aside and puts them back", async () => {
+  it("moves only solodev's skills aside and puts them back", async () => {
     await skill(skills(), "solodev-plan")
-    await skill(skills(), "solodev-roadmap")
+    await skill(skills(), "mission")
+    await skill(skills(), "strategy")
     await skill(skills(), "other")
     const restore = moveUserSkillsAside(home)
     expect(await ls(skills())).toEqual(["other"])
-    expect((await ls(path.join(asideRoot(), String(process.pid)))).sort()).toEqual(["solodev-plan", "solodev-roadmap"])
+    expect((await ls(path.join(asideRoot(), String(process.pid)))).sort()).toEqual([
+      "mission",
+      "solodev-plan",
+      "strategy",
+    ])
     restore()
-    expect((await ls(skills())).sort()).toEqual(["other", "solodev-plan", "solodev-roadmap"])
+    expect((await ls(skills())).sort()).toEqual(["mission", "other", "solodev-plan", "strategy"])
     expect(await fs.readFile(path.join(skills(), "solodev-plan", "SKILL.md"), "utf8")).toBe("solodev-plan")
     expect(await ls(asideRoot())).toEqual([])
     restore()
-    expect((await ls(skills())).length).toBe(3)
+    expect((await ls(skills())).length).toBe(4)
   })
 
   it("does nothing without user-level solodev skills", async () => {

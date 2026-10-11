@@ -60,15 +60,7 @@ function permissionValues(node: unknown, at: string[] = []): [string, string][] 
 }
 
 const SHADOWS = ["shadow-coder", "shadow-reviewer"]
-const SKILLS = [
-  "solodev-mission",
-  "solodev-plan",
-  "solodev-code",
-  "solodev-review",
-  "solodev-verify",
-  "solodev-roadmap",
-  "solodev-scout",
-]
+const SKILLS = ["mission", "solodev-plan", "solodev-code", "solodev-review", "solodev-verify", "strategy", "gen-docs"]
 /** Claude Code ignores any other `experimental.cacheTtl`, so a typo would silently fall back to the 5m default. */
 const CACHE_TTLS = new Set(["5m", "1h"])
 /** Top models over-trigger on shouted rules; write "do X when Y" instead. */
@@ -142,7 +134,7 @@ if (catalog) {
 const flat = (text: string) => text.replace(/\s+/g, " ")
 if (catalog) {
   const contracts: Record<string, string[]> = {
-    "solodev-mission": [
+    mission: [
       "`/plan`",
       "solodev approve",
       "solodev check",
@@ -159,7 +151,7 @@ if (catalog) {
     ],
     "solodev-review": ["review.md", "deferred", "rebutted", "lens: single", "Weakened test:", "as you found it"],
     "solodev-verify": ["## QA", "agent-browser"],
-    "solodev-scout": ["## Commands", "test_file"],
+    "gen-docs": ["## Commands", "test_file"],
   }
   for (const [name, skill] of Object.entries(catalog.skills ?? {})) {
     let body: string
@@ -313,15 +305,15 @@ if (JSON.stringify(shipped) !== JSON.stringify(wantShipped)) {
 for (const host of HOSTS) {
   const want = (await readdir(path.join(root, "dist", host, "agents")).catch(() => [] as string[])).sort()
   const have = (
-    await readdir(path.join(product, "skills", "solodev-mission", "shadows", host)).catch(() => [] as string[])
+    await readdir(path.join(product, "skills", "mission", "shadows", host)).catch(() => [] as string[])
   ).sort()
   if (!want.length || JSON.stringify(have) !== JSON.stringify(want)) {
-    fail(`dist/product/skills/solodev-mission/shadows/${host} doesn't match dist/${host}/agents — run pnpm run build`)
+    fail(`dist/product/skills/mission/shadows/${host} doesn't match dist/${host}/agents — run pnpm run build`)
   }
 }
-const cliPath = path.join(product, "skills", "solodev-mission", "scripts", "solodev-cli.mjs")
+const cliPath = path.join(product, "skills", "mission", "scripts", "solodev-cli.mjs")
 const cli = await readOr(cliPath)
-if (!cli) fail("dist/product/skills/solodev-mission/scripts/solodev-cli.mjs missing — run pnpm run build")
+if (!cli) fail("dist/product/skills/mission/scripts/solodev-cli.mjs missing — run pnpm run build")
 else if (!cli.startsWith("#!/usr/bin/env node\n")) fail("solodev-cli.mjs missing node shebang")
 else if (catalog) {
   const tmp = await mkdtemp(path.join(os.tmpdir(), "solodev-check-"))

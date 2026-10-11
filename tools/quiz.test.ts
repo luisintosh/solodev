@@ -62,7 +62,7 @@ describe("grade", () => {
         answers: [],
         routing: [
           { n: 1, skill: "solodev-review" },
-          { n: 2, skill: "solodev-mission" },
+          { n: 2, skill: "mission" },
         ],
       },
       [{ id: "a", pass: true, why: "ok" }],

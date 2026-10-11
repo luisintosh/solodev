@@ -194,10 +194,10 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   const tools = Object.fromEntries(probed) as Record<Tool, ToolProbe>
   const orca = await probeOrca(deps)
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
-  else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /solodev-mission init`)
+  else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /mission init`)
 
   const writable = await deps.writable(deps.state)
-  if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /solodev-mission`)
+  if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /mission`)
 
   const defaults = parseDefaults(
     await deps.read(path.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),

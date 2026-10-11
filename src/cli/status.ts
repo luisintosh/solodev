@@ -95,7 +95,7 @@ export async function featureStatus(state: string, slug: string): Promise<Featur
   return done("qa", { approved, pr })
 }
 
-/** Where /solodev-roadmap keeps roadmap drafts, beside the feature folders; not a feature. */
+/** Where /strategy keeps roadmap drafts, beside the feature folders; not a feature. */
 export const ROADMAPS_DIR = "roadmaps"
 
 /** Feature slugs in the repo's state folder, newest directory first. */

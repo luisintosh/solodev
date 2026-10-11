@@ -15,10 +15,10 @@ or [Cursor](https://cursor.com).
 npx skills add luisintosh/solodev          # -g for every repo
 ```
 
-Then, once in each coding tool: `/solodev-mission init`, start a new session, and:
+Then, once in each coding tool: `/mission init`, start a new session, and:
 
 ```text
-/solodev-mission Add CSV export to the accounts page
+/mission Add CSV export to the accounts page
 ```
 
 > I built solodev for my own work; it's the workflow I use every day to ship features with AI agents. —
@@ -39,10 +39,10 @@ work, and loses the thread when its context fills up. solodev gives top models w
 
 ## How it works
 
-`/solodev-mission` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with
-their own models and fresh context: one coder and one reviewer. `init` copies them from
-`skills/solodev-mission/shadows/<tool>/` into the tool's agents folder (`.claude/agents/`, `.codex/agents/`,
-`.cursor/agents/`), adding only a hash line that lets it spot your edits, so you can read them before installing.
+`/mission` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with their
+own models and fresh context: one coder and one reviewer. `init` copies them from `skills/mission/shadows/<tool>/` into
+the tool's agents folder (`.claude/agents/`, `.codex/agents/`, `.cursor/agents/`), adding only a hash line that lets it
+spot your edits, so you can read them before installing.
 
 1. **Spec.** Requirements, acceptance scenarios tagged `@S1`, `@S2`…, and a plan of at most three **journeys**: one test
    file each, proving a group of scenarios.
@@ -59,11 +59,11 @@ by a different model family.
 
 | Skill                            | Role                                                                        |
 | -------------------------------- | --------------------------------------------------------------------------- |
-| `/solodev-mission`               | carries one feature from request to a ready PR                              |
+| `/mission`                       | carries one feature from request to a ready PR                              |
 | `/solodev-plan`                  | writes a spec on its own                                                    |
 | `/solodev-review`                | reviews a spec or any branch                                                |
-| `/solodev-roadmap`               | turns an idea into a goal, a data model and a roadmap filed in your tracker |
-| `/solodev-scout`                 | maps a repo once into `AGENTS.md` and `docs/ARCHITECTURE.md`                |
+| `/strategy`                      | turns an idea into a goal, a data model and a roadmap filed in your tracker |
+| `/gen-docs`                      | maps a repo once into `AGENTS.md` and `docs/ARCHITECTURE.md`                |
 | `solodev-code`, `solodev-verify` | the coder's and QA's roles, started by the commander                        |
 
 ## Models
@@ -97,7 +97,7 @@ flowchart LR
   catalog.
 - **Rules that code can check are code.** "No code before approval" or "every scenario is claimed by a test" are CLI
   checks over git, with unit tests; prompts keep only what needs judgment.
-- **Prompts are tested like software.** A quiz of 60 decision scenarios and 38 routing queries runs on every prompt
+- **Prompts are tested like software.** A quiz of 60 decision scenarios and 40 routing queries runs on every prompt
   change (latest run: 60/60 scenarios, 37/38 routing); it caught, for example, that tools load subagents only at
   startup, so a run that installs them mid-session now stops for a restart. Stage evals run the real workflow headless,
   with real subagents, graded by scripts on what reached git.
@@ -115,13 +115,23 @@ scenarios.
 **Do I need GitHub?** No. Any forge or tracker your tool can reach works (`gh`, `glab`, or an MCP server for GitLab,
 Jira, Linear…); without one, it asks you.
 
-**How do I resume?** Ask `/solodev-mission` to continue. Any session can, since state lives in git and the feature
-folder.
+**How do I resume?** Ask `/mission` to continue. Any session can, since state lives in git and the feature folder.
 
 **Can it merge or push to main?** No. It opens the PR and marks it ready; use branch protection as the backstop.
 
-**Coming from the old installer (v5 and earlier)?** Install as above and let `/solodev-mission init` use `--force` once
-per tool. Feature folders stay where they are.
+**Upgrading from v6?** v7 renamed `/solodev-mission` to `/mission`, `/solodev-roadmap` to `/strategy` and
+`/solodev-scout` to `/gen-docs`. `npx skills update` doesn't install renamed skills, so add them again, remove the old
+names, then run `/mission init` once in each coding tool to refresh the shadows:
+
+```bash
+npx skills add luisintosh/solodev
+npx skills remove solodev-mission solodev-roadmap solodev-scout
+```
+
+Add `-g` to both if you installed globally. Feature folders stay where they are.
+
+**Coming from the old installer (v5 and earlier)?** Install as above and let `/mission init` use `--force` once per
+tool. Feature folders stay where they are.
 
 **Requirements:** Node.js 20+, Git, and one coding tool you're logged in to. Optional:
 [agent-browser](https://github.com/vercel-labs/agent-browser) for UI checks, [rtk](https://github.com/rtk-ai/rtk) for
