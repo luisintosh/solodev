@@ -24,10 +24,10 @@ hosts:
 shadows:
   shadow-coder:
     profile: implement
-    skills: [arise-coder, arise-documenter]
+    skills: [arise-coder]
     description: >-
-      Writes a feature's tests and code (arise-coder) or its docs (arise-documenter), following the role skill its brief
-      names. Started by the /arise commander; the only agent that edits source.
+      Writes a feature's tests, code and the docs that live beside them (arise-coder). Started by the /arise commander;
+      the only agent that edits source.
     permission:
       edit:
         # The spec, plan and reports belong to the commander and the reviewers.
@@ -67,10 +67,9 @@ skills:
     profile: think
     description: >-
       Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one
-      coder writing failing tests then code, a fresh-context review, QA and docs. Use for new features that touch
-      multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to
-      resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps
-      (arise-strategist).
+      coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files,
+      need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not
+      for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (arise-strategist).
   arise-architect:
     budget: 100
     description: >-
@@ -91,11 +90,6 @@ skills:
     description: >-
       Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
       scenario in qa.md. Loaded by shadow-reviewer for an /arise run.
-  arise-documenter:
-    budget: 60
-    description: >-
-      Writes the docs a finished feature leaves behind: the owning domain's README, plus docs/ARCHITECTURE.md and
-      AGENTS.md where the feature changed them. Loaded by shadow-coder for an /arise run.
   arise-strategist:
     budget: 150
     description: >-

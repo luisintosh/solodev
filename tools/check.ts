@@ -72,7 +72,6 @@ const SKILLS = [
   "arise-coder",
   "arise-reviewer",
   "arise-verifier",
-  "arise-documenter",
   "arise-strategist",
   "arise-scout",
 ]
@@ -145,10 +144,13 @@ if (catalog) {
   const contracts: Record<string, string[]> = {
     arise: ["## When to use this skill", "`/plan`", "solodev approve", "solodev check", "never merge"],
     "arise-architect": ["journeys:", "uncovered", "@S1"],
-    "arise-coder": ["solodev check <slug> --for implement", "fails because the behavior is missing"],
+    "arise-coder": [
+      "solodev check <slug> --for implement",
+      "fails because the behavior is missing",
+      "references/docs.md",
+    ],
     "arise-reviewer": ["review.md", "deferred", "rebutted"],
     "arise-verifier": ["qa.md", "agent-browser"],
-    "arise-documenter": ["references/readme.md", "current state"],
     "arise-scout": ["## Commands", "test_file"],
   }
   for (const [name, skill] of Object.entries(catalog.skills ?? {})) {

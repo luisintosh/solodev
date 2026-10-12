@@ -31,9 +31,8 @@ Keep it short: agents follow everything in it, so each extra line costs every ru
 ## docs/ARCHITECTURE.md
 
 A concise system overview: the module map, how data flows between modules, key decisions and dependencies, and how tests
-are organized. Add one line for domain docs: a domain's `README.md` lives in the directory that owns it, and
-`docs/domains/<domain>.md` covers one too cross-cutting for that. Don't write those domain docs now; the documenter
-writes each one when a feature touches that domain.
+are organized. Add one line for domain docs: a short `README.md` signpost in the directory that owns a domain, with the
+detail in doc comments. Don't write them now; the coder does when a feature touches that domain.
 
 Create `docs/feats/.gitkeep` so feature folders have a home.
 
