@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to coding agents when working with code in this repository. `CLAUDE.md` is a symlink to this
-file.
+file. Keep it under about 100 lines: link CONTRIBUTING.md or the README instead of repeating them.
 
 ## What this is
 
@@ -9,6 +9,16 @@ solodev ships no runtime app. It ships role skills, two shadow agents and a smal
 `npx`/`bunx github:luisintosh/solodev` installs into a _consuming_ repo or `$HOME` (`.agents/skills/`,
 `.claude/skills/`, `.claude/agents/`, `.cursor/agents/`, `.codex/agents/`, `.agents/bin/solodev.mjs`). Nothing here runs
 against this repo's own code.
+
+## Commands
+
+- install: `pnpm install`
+- dev: n/a
+- build: `pnpm run build`
+- test: `pnpm test`
+- test_file: `pnpm exec vitest run {file}`
+- lint: `pnpm run lint`
+- typecheck: n/a (Node strips types; nothing runs tsc)
 
 ## Generation model
 
@@ -20,9 +30,23 @@ the **only** sources of truth. `tools/transpile.ts` emits the skills for each ho
 - Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;
   transpile adds it.
 - `{{include:fragments/<name>.md}}` in a prompt body is resolved at transpile time.
-- Prompts are short and plain: no capitalized MUST/NEVER/CRITICAL/ALWAYS, and each skill stays within its `budget`.
-  Detail a step needs only sometimes goes in the skill's `references/`, linked from `SKILL.md`.
-- A rule that can be verified from git, files or an exit code belongs in `src/cli/checks.ts`, not in a prompt.
+
+## How changes stay thin
+
+solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that way:
+
+- **Check before instruction.** A rule verifiable from git, files or an exit code goes in `src/cli/checks.ts` with a
+  test, not in a prompt.
+- **Load on demand.** A skill body holds the goal, the steps and the done-when; detail a step needs only sometimes goes
+  in its `references/`. Raise a skill's `budget` only with a reason in the commit message.
+- **Plain prompts.** "Do X when Y", no capitalized MUST/NEVER/CRITICAL/ALWAYS, no step-by-step for what a top model
+  already knows.
+- **Git is the state.** No state files and no stage machine. Progress comes from commits, the approval commit's trailers
+  and `docs/feats/<slug>/`, and `solodev status` derives it.
+- **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
+- **The user decides.** New pauses for the user go in `/arise`'s "ask the user only at" list; nothing approves the gate
+  or merges for them.
+- **No new stage or agent** unless an outcome eval shows it pays for itself. Two shadows, two profiles, three hosts.
 
 ## Checked artifacts
 
@@ -32,6 +56,12 @@ the **only** sources of truth. `tools/transpile.ts` emits the skills for each ho
   `tools/models.ts` to match.
 - Any `src/` change requires a `pnpm run build` before `pnpm run check`; check compares against `dist/` and against
   `manifest.txt` hashes.
+- Adding, removing or renaming a skill or shadow: `src/catalog.yaml`, its folder under `src/prompts/`, the `SKILLS` /
+  `SHADOWS` lists in `tools/check.ts`, the lists in `test/e2e-install.sh`, `README.md`, and its `evals/<skill>/`.
+- Changing a prompt or a skill `description`: rerun that skill's evals; changing the workflow (stages, checks, the
+  shadows) also needs `node tools/eval.ts run` against the baseline before release.
+- A new or changed check: `src/cli/checks.ts`, its test in `src/cli/checks.test.ts`, `src/cli/help.ts`, and the checks
+  table in `README.md`.
 
 ## Build, test, release
 
@@ -45,7 +75,7 @@ verifies both. Shell scripts are covered by `bash -n` and `shellcheck` only. Bot
 conventions already in the tree, so keep to them:
 
 - No semicolons, double quotes, 2-space indent.
-- `.ts` extension in relative imports (`import { deepMerge } from "./merge.ts"`).
+- `.ts` extension in relative imports (`import { run } from "./exec.ts"`).
 - Node builtins namespaced: `import * as fs from "node:fs/promises"`.
 - `tools/*.ts` use a `#!/usr/bin/env node` shebang (Node ≥22.18 runs `.ts` directly) and top-level `await main()`.
 
