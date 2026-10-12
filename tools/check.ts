@@ -73,7 +73,7 @@ const SKILLS = [
   "arise-reviewer",
   "arise-verifier",
   "arise-documenter",
-  "arise-planner",
+  "arise-strategist",
   "arise-scout",
 ]
 /** Claude Code ignores any other `experimental.cacheTtl`, so a typo would silently fall back to the 5m default. */

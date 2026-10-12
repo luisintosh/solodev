@@ -70,7 +70,7 @@ skills:
       coder writing failing tests then code, a fresh-context review, QA and docs. Use for new features that touch
       multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to
       resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps
-      (arise-planner).
+      (arise-strategist).
   arise-architect:
     budget: 100
     description: >-
@@ -96,12 +96,13 @@ skills:
     description: >-
       Writes the docs a finished feature leaves behind: the owning domain's README, plus docs/ARCHITECTURE.md and
       AGENTS.md where the feature changed them. Loaded by shadow-coder for an /arise run.
-  arise-planner:
+  arise-strategist:
     budget: 150
     description: >-
-      Product planner: turns a raw idea into a measurable goal and a feature roadmap at docs/product/<slug>/roadmap.md,
-      with one work item per feature, optionally filed as GitHub issues. Use to plan a product, write a roadmap, or turn
-      an idea into sequenced features. Standalone; each feature later runs through /arise.
+      Product strategist: turns a raw idea into a measurable goal and a feature roadmap at
+      docs/product/<slug>/roadmap.md, with one work item per feature, optionally filed as GitHub issues. Use to plan a
+      product, write a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through
+      /arise.
   arise-scout:
     budget: 50
     user_only: true

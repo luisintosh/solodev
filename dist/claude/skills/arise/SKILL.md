@@ -1,6 +1,6 @@
 ---
 name: arise
-description: "Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one coder writing failing tests then code, a fresh-context review, QA and docs. Use for new features that touch multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (arise-planner)."
+description: "Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one coder writing failing tests then code, a fresh-context review, QA and docs. Use for new features that touch multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (arise-strategist)."
 model: claude-opus-5-5
 effort: medium
 ---

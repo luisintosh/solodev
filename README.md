@@ -89,8 +89,8 @@ the `solodev` CLI reads, plus only the constraints the code doesn't show.
 
 ### 3. Plan a whole product (optional)
 
-Run `/arise-planner` and describe the idea. It explores the codebase, turns the idea into a measurable goal, and writes
-`docs/product/<slug>/roadmap.md` with dependency-ordered waves and one work item per feature, each reviewed by an
+Run `/arise-strategist` and describe the idea. It explores the codebase, turns the idea into a measurable goal, and
+writes `docs/product/<slug>/roadmap.md` with dependency-ordered waves and one work item per feature, each reviewed by an
 adversarial subagent. It can also open the GitHub issues, wired with `Blocked by #N`.
 
 ### 4. Build a feature with `/arise`
@@ -238,7 +238,7 @@ docs/
     review.md                   review findings and their status (written even when clean)
     qa.md                       verdicts for scenarios no test covers (pass, fail, manual, waived)
     progress.md                 the request verbatim, decisions and attempts, for resuming
-  product/<slug>/roadmap.md     optional, from /arise-planner
+  product/<slug>/roadmap.md     optional, from /arise-strategist
 src/<domain>/README.md          domain docs, kept current by arise-documenter
 .agents/bin/solodev.mjs         the workflow CLI
 .agents/skills/                 arise and its role skills (Codex, Cursor)
