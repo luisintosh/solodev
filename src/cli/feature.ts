@@ -1,11 +1,43 @@
+import { createHash } from "node:crypto"
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { parse as parseYaml } from "yaml"
 
 export const SLUG = /^[a-z0-9][a-z0-9-]*$/
 
-export function featureDir(root: string, slug: string): string {
-  return path.join(root, "docs", "feats", slug)
+/** A feature's folder under the repo's state dir (see state.ts); nothing in it is committed. */
+export function featureDir(state: string, slug: string): string {
+  return path.join(state, slug)
+}
+
+/** What the user approved: spec.md and plan.md together, so an edit to either reopens the gate. */
+export function specHash(spec: string, plan: string): string {
+  return createHash("sha256").update(spec).update("\0").update(plan).digest("hex").slice(0, 12)
+}
+
+export type Approval = { date: string; spec: string; at: string }
+
+const APPROVAL = /^- approved (\S+) · spec ([0-9a-f]+) · at ([0-9a-f]+)\s*$/gm
+
+/** The line `solodev approve` appends to progress.md. */
+export function approvalLine(a: Approval): string {
+  return `- approved ${a.date} · spec ${a.spec} · at ${a.at}`
+}
+
+/** Approval lines in progress.md, oldest first; the last one is in force. */
+export function parseApprovals(progress: string): Approval[] {
+  return [...progress.matchAll(APPROVAL)].map((m) => ({ date: m[1]!, spec: m[2]!, at: m[3]! }))
+}
+
+/** The approval in force, and whether spec.md and plan.md still match it. */
+export async function currentApproval(dir: string): Promise<{ approval?: Approval; matches: boolean }> {
+  const [spec, plan, progress] = await Promise.all(
+    ["spec.md", "plan.md", "progress.md"].map((f) => readIfExists(path.join(dir, f))),
+  )
+  const approval = parseApprovals(progress ?? "").at(-1)
+  const matches =
+    approval !== undefined && spec !== undefined && plan !== undefined && specHash(spec, plan) === approval.spec
+  return { approval, matches }
 }
 
 export async function readIfExists(file: string): Promise<string | undefined> {

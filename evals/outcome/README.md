@@ -26,8 +26,9 @@ the home tool headless, pre-approves the gate in the prompt, and skips the PR (t
 as its CLI allows: Claude Code to an allowlist of edits and git, node and npm commands; Codex to its `workspace-write`
 sandbox. Cursor's headless mode can only approve every command, so Cursor configs refuse to start unless you pass
 `--allow-unsandboxed`; do that only inside a container or VM. Running the whole harness in one is the safer choice for
-any tool. It records held-out passes, wall time, cost and tokens where the tool reports them, whether an approval commit
-was made, and the diff size.
+any tool. It records held-out passes, wall time, cost and tokens where the tool reports them, whether the gate was
+recorded (the approval line, or an approval commit for releases before v3.1), and the diff size. Feature folders go in
+the workspace's git-ignored `.solodev-state/` so every tool's sandbox can write them.
 
 **Release bar:** every `v2-<tool>` config matches or beats the baseline's held-out pass rate, at lower cost and lower
 wall time, over at least three runs per task. The ablation configs justify each cut on its own: spec review and the

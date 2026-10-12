@@ -2,7 +2,7 @@ Write a feature's spec and plan: the two documents the user approves at the gate
 
 ## spec.md
 
-`docs/feats/<slug>/spec.md` says what and why, with no implementation choices:
+`spec.md`, in the feature folder your brief names, says what and why, with no implementation choices:
 
 - The problem and who has it, in a few lines.
 - Requirements, each testable as written. A number, a threshold or a named behavior instead of "fast" or "robust".
@@ -19,7 +19,7 @@ through an API, a CLI or the UI, so a test or the verifier can check them.
 
 ## plan.md
 
-`docs/feats/<slug>/plan.md` holds the approach and the journeys, nothing more:
+`plan.md`, beside it, holds the approach and the journeys, nothing more:
 
 - The approach in a short paragraph, and the alternatives you rejected, one line each with why. Only one viable approach
   → say so in a line.
@@ -58,4 +58,4 @@ are the bar.
 - A spec review's findings: apply the ones you agree with and bring the rest to the gate.
 - Both documents describe the current state. No history ("updated per review") in them.
 
-You edit only `docs/feats/<slug>/`, and you don't commit; the commander records the gate.
+You edit only the feature folder, which lives outside the repo, and you don't commit; the commander records the gate.

@@ -28,12 +28,13 @@ things they can't give themselves:
 
 - **One approved spec.** Requirements and `@S<n>` acceptance scenarios, plus a plan of at most three journeys (one test
   file each), approved by you before any code.
-- **Failing test first, proven.** `solodev check` runs each journey test against the code as it was at the gate (it must
+- **Failing test first, proven.** `solodev check` runs each journey test against the code before the feature (it must
   fail) and against the branch (it must pass), and flags a test that was skipped, deleted or loosened.
 - **Independent eyes.** The agent that wrote the code never signs off on it. Pick a coder on another tool and every PR
   also gets a review from a different model family.
-- **Git is the state.** One approval commit and a few files in `docs/feats/<slug>/` say where a feature stands, so any
-  session can resume with `solodev status`.
+- **Nothing extra in your repo.** A feature's spec, plan, reports and approval live in one folder outside it,
+  `~/.agents/skills/solodev/<owner>/<repo>/<slug>/`. Your branch holds only code, tests and docs, and any session can
+  resume with `solodev status`.
 - **Short instructions, loaded when needed.** Each role is a skill of a few dozen lines; detail sits in references read
   only when a step needs it.
 - **You stay in charge.** solodev opens the PR and marks it ready. It never merges.
@@ -98,10 +99,10 @@ Optional:
 /arise-scout
 ```
 
-This writes a short `AGENTS.md` and `docs/ARCHITECTURE.md`, and creates `docs/feats/`, if they are missing. `AGENTS.md`
-holds a `## Commands` list (install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none) that
-the `solodev` CLI reads, plus only the constraints the code doesn't show. Without it, each `/arise` run finds the
-commands itself and `solodev check` skips the ones AGENTS.md doesn't list.
+This writes a short `AGENTS.md` and `docs/ARCHITECTURE.md` if they are missing. `AGENTS.md` holds a `## Commands` list
+(install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none) that the `solodev` CLI reads, plus
+only the constraints the code doesn't show. Without it, each `/arise` run finds the commands itself and `solodev check`
+skips the ones AGENTS.md doesn't list.
 
 ### 3. Plan a whole product (optional)
 
@@ -171,7 +172,7 @@ run only when they add something.
 | 1 start       | the commander (`/arise`)                | `solodev probe` done, branch `feat/<slug>` cut           |
 | 2 spec        | `arise-architect`, in your main session | `spec.md` and `plan.md` written, your questions answered |
 | 3 spec review | `arise-reviewer`, only when needed      | the commander applied the findings it agrees with        |
-| 4 ⏸ gate      | you                                     | `solodev approve` committed                              |
+| 4 ⏸ gate      | you                                     | `solodev approve` recorded                               |
 | 5 implement   | `arise-coder`, the one writer           | `solodev check --for implement` passes                   |
 | 6 code review | `arise-reviewer`, fresh                 | `review.md` has no open blocker or major                 |
 | 7 PR          | the commander                           | `solodev check --for pr` passes, draft PR open           |
@@ -191,12 +192,13 @@ minors and waived scenarios, each with why. The finish card repeats them as tick
 
 ### The `solodev` CLI
 
-Installed at `.agents/bin/solodev.mjs`. It holds no state: everything is worked out from git and `docs/feats/<slug>/`.
+Installed at `.agents/bin/solodev.mjs`. It holds no state and commits nothing: everything is worked out from git and the
+feature folder.
 
 ```text
 solodev probe                          coding tools, models, Orca, gh, the AGENTS.md commands (JSON)
 solodev status [<slug>]                where a feature stands and what comes next
-solodev approve <slug> --writer <w>    commit the spec and plan with the gate trailers
+solodev approve <slug>                 record the gate: a line in progress.md with the spec's hash
 solodev check <slug> [--for implement|pr|done]   the checks that gate the next step
 solodev help [<command>]               what each command does
 ```
@@ -205,13 +207,13 @@ solodev help [<command>]               what each command does
 | ----- | ----------------------------------------------------------------------------------------------------------- |
 | C1    | typecheck, lint, test and build from the AGENTS.md commands pass; unlisted ones are skipped                 |
 | C2    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists   |
-| C3    | each journey test fails against the gate commit's code and passes now                                       |
-| C4    | no test was skipped, deleted or lost assertions: journey tests since first committed, others since the gate |
-| C5    | no code was committed before the gate                                                                       |
-| C6    | reviewer and verifier commits changed only their report                                                     |
+| C3    | each journey test fails against the code before the feature and passes now                                  |
+| C4    | no test was skipped, deleted or lost assertions: journey tests since first committed, others since the base |
+| C5    | the spec and plan are approved as they stand, and no code was committed before the approval                 |
+| C6    | nothing is left uncommitted in the repo (a reviewer or verifier touches only its report)                    |
 | C7    | `review.md` has no open blocker or major                                                                    |
 | C8    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                               |
-| C9    | every env var the code reads since the gate is named in a README, `docs/` or `.env.example`                 |
+| C9    | every env var the code reads since the base is named in a README, `docs/` or `.env.example`                 |
 
 ## Models
 
@@ -243,23 +245,31 @@ dispatch: auto # orca: run every shadow as an Orca worker, even on the home tool
 
 ## Directory overview
 
-### What solodev adds to your repo
+### Where feature state lives
+
+Outside every repo, whatever the install scope (`SOLODEV_STATE` overrides the root):
 
 ```text
-AGENTS.md                       the commands list, plus constraints the code doesn't show
-docs/
-  ARCHITECTURE.md
-  feats/<feature>/
+~/.agents/skills/solodev/<owner>/<repo>/   origin's path, or the checkout's folder name without an origin
+  <feature>/
     spec.md                     what and why, with @S<n> acceptance scenarios
     plan.md                     approach and journeys (one test file each)
+    progress.md                 the request verbatim, decisions, attempts, and the approval line
     review.md                   review findings and their status (written even when clean)
     qa.md                       verdicts for scenarios no test covers (pass, fail, manual, waived)
-    progress.md                 the request verbatim, decisions and attempts, for resuming
-  product/<slug>/roadmap.md     optional, from /arise-strategist
-src/<domain>/README.md          signpost: purpose, entry points, configuration (doc comments hold the rest)
-.agents/bin/solodev.mjs         the workflow CLI
-.agents/skills/                 arise and its role skills (Codex, Cursor)
-.claude/skills/  .claude/agents/  .cursor/agents/  .codex/agents/    host copies and the two shadows
+    briefs/                     briefs and replies for the shadows
+```
+
+The PR body carries the scenarios and journeys, since the spec isn't on the branch.
+
+### What solodev adds to your repo
+
+Only the feature's code, tests and the docs beside them, plus what you ask for:
+
+```text
+AGENTS.md  docs/ARCHITECTURE.md   optional, from /arise-scout
+docs/product/<slug>/roadmap.md    optional, from /arise-strategist
+.agents/  .claude/  .cursor/  .codex/   a project-scope install only; a global install puts these under $HOME
 ```
 
 ### This repository
@@ -284,8 +294,8 @@ Prompts are written once and transpiled into each host's format by `pnpm run bui
 ## Safety notes
 
 - solodev never merges its own PR. That rule lives in the prompts, so use branch protection as your hard backstop.
-- `solodev approve` refuses to record the gate while anything outside the feature folder is staged, and `solodev check`
-  fails a branch that committed code before the gate.
+- `solodev approve` refuses to record the gate while anything is staged, and `solodev check` fails a branch that
+  committed code before the approval or whose spec changed since.
 
 ## OpenCode
 

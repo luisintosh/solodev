@@ -3,8 +3,8 @@ import * as os from "node:os"
 import * as path from "node:path"
 import { run, shell, tail } from "./exec.ts"
 import {
+  currentApproval,
   exists,
-  featureDir,
   parseCommands,
   parsePlan,
   parseQa,
@@ -15,7 +15,7 @@ import {
   SEVERITIES,
   STATUSES,
 } from "./feature.ts"
-import { commitsWithPaths, featurePath, firstAdded, gateCommits, git, resolveBase } from "./git.ts"
+import { firstAdded, git, resolveBase } from "./git.ts"
 
 export type CheckStatus = "pass" | "fail" | "warn" | "skip"
 export type CheckResult = {
@@ -33,7 +33,7 @@ export const CHECK_IDS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"] 
 export type CheckId = (typeof CHECK_IDS)[number]
 
 export const CHECK_SETS = {
-  implement: ["C1", "C2", "C3", "C4", "C9"],
+  implement: ["C1", "C2", "C3", "C4", "C5", "C9"],
   pr: ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C9"],
   done: [...CHECK_IDS],
 } as const satisfies Record<string, readonly CheckId[]>
@@ -41,8 +41,10 @@ export const CHECK_SETS = {
 export type CheckSet = keyof typeof CHECK_SETS
 
 export type CheckContext = {
+  /** The project. */
   root: string
-  slug: string
+  /** The feature folder, outside the project (state.ts). */
+  dir: string
   set: CheckSet
   /** Per command; journey tests and AGENTS.md commands each get this long. */
   timeoutMs: number
@@ -54,7 +56,7 @@ const TITLES: Record<CheckId, string> = {
   C2: "scenario coverage",
   C3: "fail then pass",
   C4: "tests not weakened",
-  C5: "gate before code",
+  C5: "gate held",
   C6: "reports only",
   C7: "review settled",
   C8: "QA verdicts",
@@ -69,11 +71,16 @@ const result = (id: CheckId, status: CheckStatus, summary: string, details: stri
   details,
 })
 
-async function loadPlan(root: string, slug: string): Promise<Plan> {
-  const raw = await readIfExists(path.join(featureDir(root, slug), "plan.md"))
-  if (raw === undefined) throw new Error(`docs/feats/${slug}/plan.md not found`)
+async function loadPlan(dir: string): Promise<Plan> {
+  const raw = await readIfExists(path.join(dir, "plan.md"))
+  if (raw === undefined) throw new Error(`plan.md not found in ${dir}`)
   return parsePlan(raw)
 }
+
+/** The code without the feature: where the branch forked from the default branch. */
+const baseOf = (ctx: CheckContext) => resolveBase(ctx.root, { ...process.env, ...ctx.env })
+
+const NO_BASE = "can't find the base branch — set SOLODEV_BASE"
 
 async function c1(ctx: CheckContext): Promise<CheckResult> {
   // /arise-scout is optional: a command AGENTS.md doesn't list is skipped here and run by the agent that found it.
@@ -110,15 +117,14 @@ async function c1(ctx: CheckContext): Promise<CheckResult> {
 }
 
 /** C2. At the gate the journey tests don't exist yet, so `requireTests` is off there. */
-export async function coverage(root: string, slug: string, requireTests: boolean): Promise<CheckResult> {
-  const ctx = { root, slug }
-  const spec = await readIfExists(path.join(featureDir(ctx.root, ctx.slug), "spec.md"))
-  if (spec === undefined) return result("C2", "fail", `docs/feats/${ctx.slug}/spec.md not found`)
+export async function coverage(root: string, dir: string, requireTests: boolean): Promise<CheckResult> {
+  const spec = await readIfExists(path.join(dir, "spec.md"))
+  if (spec === undefined) return result("C2", "fail", `spec.md not found in ${dir}`)
   const scenarios = parseScenarios(spec)
   if (!scenarios.length) return result("C2", "fail", "spec.md has no @S<n> scenarios")
   let plan: Plan
   try {
-    plan = await loadPlan(ctx.root, ctx.slug)
+    plan = await loadPlan(dir)
   } catch (err) {
     return result("C2", "fail", (err as Error).message)
   }
@@ -129,7 +135,7 @@ export async function coverage(root: string, slug: string, requireTests: boolean
   const unknown = [...claimed].filter((s) => !scenarios.includes(s))
   if (unknown.length) details.push(`plan.md names ${unknown.join(", ")}, which spec.md doesn't define`)
   for (const j of plan.journeys) {
-    if (requireTests && !(await exists(path.join(ctx.root, j.test)))) {
+    if (requireTests && !(await exists(path.join(root, j.test)))) {
       details.push(`${j.id}: test file ${j.test} does not exist`)
     }
   }
@@ -143,29 +149,29 @@ export async function coverage(root: string, slug: string, requireTests: boolean
   )
 }
 
-const c2 = (ctx: CheckContext) => coverage(ctx.root, ctx.slug, true)
+const c2 = (ctx: CheckContext) => coverage(ctx.root, ctx.dir, true)
 
 /** Dependency folders a temporary worktree borrows from the checkout instead of reinstalling. */
 const DEPENDENCY_DIRS = ["node_modules", ".venv", "venv", "vendor"]
 
 async function c3(ctx: CheckContext): Promise<CheckResult> {
-  const gate = (await gateCommits(ctx.root, ctx.slug))[0]
-  if (!gate) return result("C3", "fail", "no approval commit — run solodev approve at the spec gate")
+  const base = await baseOf(ctx)
+  if (!base) return result("C3", "fail", NO_BASE)
   let plan: Plan
   try {
-    plan = await loadPlan(ctx.root, ctx.slug)
+    plan = await loadPlan(ctx.dir)
   } catch (err) {
     return result("C3", "fail", (err as Error).message)
   }
   if (!plan.journeys.length) return result("C3", "pass", "no journey tests to prove")
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-c3-"))
-  const worktree = path.join(tmp, "gate")
+  const worktree = path.join(tmp, "base")
   const details: string[] = []
   const evidence: string[] = []
   const parts: string[] = []
   let failed = false
   try {
-    await git(ctx.root, ["worktree", "add", "--detach", "--quiet", worktree, gate.sha])
+    await git(ctx.root, ["worktree", "add", "--detach", "--quiet", worktree, base])
     for (const dir of DEPENDENCY_DIRS) {
       const from = path.join(ctx.root, dir)
       if ((await exists(from)) && !(await exists(path.join(worktree, dir)))) {
@@ -182,8 +188,10 @@ async function c3(ctx: CheckContext): Promise<CheckResult> {
       const after = await shell(j.command, ctx.root, ctx.timeoutMs)
       if (before.code === 0) {
         failed = true
-        parts.push(`${j.id} passes at gate`)
-        details.push(`${j.id}: \`${j.command}\` passes against the gate commit's code, so it doesn't prove the change`)
+        parts.push(`${j.id} passes at base`)
+        details.push(
+          `${j.id}: \`${j.command}\` passes against the code before the feature, so it doesn't prove the change`,
+        )
       } else if (after.code !== 0) {
         failed = true
         parts.push(`${j.id} FAILS now`)
@@ -191,7 +199,7 @@ async function c3(ctx: CheckContext): Promise<CheckResult> {
       } else {
         parts.push(`${j.id} red→green`)
         // The reviewer judges whether the test failed for the right reason (missing behavior, not a broken test).
-        evidence.push(`${j.id} failed at the gate commit with:`, ...tail(before, 8).map((l) => `  ${l}`))
+        evidence.push(`${j.id} failed before the feature with:`, ...tail(before, 8).map((l) => `  ${l}`))
       }
     }
   } catch (err) {
@@ -221,7 +229,7 @@ const TEST_FILE =
 async function c4(ctx: CheckContext): Promise<CheckResult> {
   let plan: Plan
   try {
-    plan = await loadPlan(ctx.root, ctx.slug)
+    plan = await loadPlan(ctx.dir)
   } catch (err) {
     return result("C4", "fail", (err as Error).message)
   }
@@ -261,14 +269,14 @@ async function c4(ctx: CheckContext): Promise<CheckResult> {
     if (first) await compare(test, await git(ctx.root, ["show", `${first}:${test}`]), first)
   }
 
-  // Every other test the feature touched: against the gate commit, where it already protected existing behavior.
-  const gate = (await gateCommits(ctx.root, ctx.slug))[0]
-  if (gate) {
-    const changed = (await git(ctx.root, ["diff", "--name-only", gate.sha])).split("\n").filter(Boolean)
+  // Every other test the feature touched: against the base, where it already protected existing behavior.
+  const base = await baseOf(ctx)
+  if (base) {
+    const changed = (await git(ctx.root, ["diff", "--name-only", base])).split("\n").filter(Boolean)
     for (const file of changed) {
-      if (journeyTests.has(file) || file.startsWith(featurePath(ctx.slug)) || !TEST_FILE.test(file)) continue
-      const before = await run("git", ["show", `${gate.sha}:${file}`], { cwd: ctx.root })
-      if (before.code === 0) await compare(file, before.stdout, gate.sha)
+      if (journeyTests.has(file) || !TEST_FILE.test(file)) continue
+      const before = await run("git", ["show", `${base}:${file}`], { cwd: ctx.root })
+      if (before.code === 0) await compare(file, before.stdout, base)
     }
   }
 
@@ -279,47 +287,43 @@ async function c4(ctx: CheckContext): Promise<CheckResult> {
 }
 
 async function c5(ctx: CheckContext): Promise<CheckResult> {
-  const gate = (await gateCommits(ctx.root, ctx.slug))[0]
-  if (!gate) return result("C5", "fail", "no approval commit — run solodev approve at the spec gate")
-  const base = await resolveBase(ctx.root, { ...process.env, ...ctx.env })
-  if (!base) return result("C5", "fail", "can't find the base branch — set SOLODEV_BASE")
-  const outside = []
-  for (const c of await commitsWithPaths(ctx.root, `${base}..${gate.sha}`)) {
-    for (const p of c.paths) if (!p.startsWith(featurePath(ctx.slug))) outside.push(`${c.sha.slice(0, 7)} ${p}`)
+  const { approval, matches } = await currentApproval(ctx.dir)
+  if (!approval) return result("C5", "fail", "not approved — run solodev approve at the spec gate")
+  if (!matches)
+    return result("C5", "fail", "spec.md or plan.md changed since approval — show the user and approve again")
+  const base = await baseOf(ctx)
+  if (!base) return result("C5", "fail", NO_BASE)
+  const ancestor = await run("git", ["merge-base", "--is-ancestor", approval.at, "HEAD"], { cwd: ctx.root })
+  if (ancestor.code !== 0) {
+    return result(
+      "C5",
+      "fail",
+      `approved at ${approval.at}, which isn't in this branch — it was rewritten; approve again`,
+    )
   }
-  if (outside.length) {
-    return result("C5", "fail", `${outside.length} path(s) changed before the gate commit`, outside.slice(0, 20))
+  const early = (await git(ctx.root, ["log", "--format=%h %s", `${base}..${approval.at}`])).split("\n").filter(Boolean)
+  if (early.length) {
+    return result("C5", "fail", `${early.length} commit(s) before the approval`, early.slice(0, 20))
   }
-  return result("C5", "pass", `nothing outside docs/feats/${ctx.slug}/ before ${gate.sha.slice(0, 7)}`)
+  return result("C5", "pass", `approved ${approval.date} at ${approval.at.slice(0, 7)}, no code before it`)
 }
 
-const REPORTS = ["review.md", "qa.md"]
-
 async function c6(ctx: CheckContext): Promise<CheckResult> {
-  const reports = REPORTS.map((f) => `${featurePath(ctx.slug)}${f}`)
-  const base = await resolveBase(ctx.root, { ...process.env, ...ctx.env })
-  if (!base) return result("C6", "fail", "can't find the base branch — set SOLODEV_BASE")
-  const details: string[] = []
-  for (const c of await commitsWithPaths(ctx.root, `${base}..HEAD`)) {
-    if (!c.paths.some((p) => reports.includes(p))) continue
-    const extra = c.paths.filter((p) => !reports.includes(p))
-    if (extra.length) details.push(`${c.sha.slice(0, 7)} changes ${extra.join(", ")} beside its report`)
+  // Reports live in the feature folder, outside the project, so any tracked change left behind is a stray edit.
+  const dirty = (await git(ctx.root, ["status", "--porcelain", "--untracked-files=no"])).split("\n").filter(Boolean)
+  if (dirty.length) {
+    return result(
+      "C6",
+      "fail",
+      "uncommitted changes in the project",
+      dirty.map((l) => l.slice(3).trim()),
+    )
   }
-  const status = await git(ctx.root, ["status", "--porcelain", "--untracked-files=all"])
-  const dirty = status
-    .split("\n")
-    .filter(Boolean)
-    .map((l) => l.slice(3).trim())
-  if (dirty.some((p) => reports.includes(p))) {
-    const extra = dirty.filter((p) => !reports.includes(p))
-    if (extra.length) details.push(`uncommitted changes beside a report: ${extra.join(", ")}`)
-  }
-  if (details.length) return result("C6", "fail", "a reviewer or verifier changed more than its report", details)
-  return result("C6", "pass", "report commits touch only review.md or qa.md")
+  return result("C6", "pass", "no uncommitted changes in the project")
 }
 
 async function c7(ctx: CheckContext): Promise<CheckResult> {
-  const raw = await readIfExists(path.join(featureDir(ctx.root, ctx.slug), "review.md"))
+  const raw = await readIfExists(path.join(ctx.dir, "review.md"))
   if (raw === undefined) return result("C7", "fail", "no review.md — run arise-reviewer")
   const findings = parseReview(raw)
   const bad = findings.filter(
@@ -356,12 +360,12 @@ const PASSING_VERDICTS = ["pass", "waived"]
 async function c8(ctx: CheckContext): Promise<CheckResult> {
   let plan: Plan
   try {
-    plan = await loadPlan(ctx.root, ctx.slug)
+    plan = await loadPlan(ctx.dir)
   } catch (err) {
     return result("C8", "fail", (err as Error).message)
   }
   if (!plan.uncovered.length) return result("C8", "pass", "every scenario has a journey test")
-  const raw = await readIfExists(path.join(featureDir(ctx.root, ctx.slug), "qa.md"))
+  const raw = await readIfExists(path.join(ctx.dir, "qa.md"))
   if (raw === undefined) return result("C8", "fail", `no qa.md for ${plan.uncovered.join(", ")} — run arise-verifier`)
   const verdicts = parseQa(raw)
   const details: string[] = []
@@ -390,20 +394,13 @@ const ENV_READS = new RegExp(
 /** Set by the runtime or the shell, not by whoever deploys the feature. */
 const RUNTIME_VARS = new Set(["NODE_ENV", "CI", "HOME", "PATH", "PWD", "USER", "SHELL", "TERM", "TMPDIR"])
 
-/** Where a variable counts as documented: any README, docs/ outside feature folders, or an env template. */
-const CONFIG_DOCS = [
-  ":(glob)**/README.md",
-  ":(glob)docs/**",
-  ":(exclude,glob)docs/feats/**",
-  ".env.example",
-  ".env.sample",
-  ".env.template",
-]
+/** Where a variable counts as documented: any README, docs/, or an env template. */
+const CONFIG_DOCS = [":(glob)**/README.md", ":(glob)docs/**", ".env.example", ".env.sample", ".env.template"]
 
-const skipForEnv = (file: string) => TEST_FILE.test(file) || file.startsWith("docs/feats/") || file.endsWith(".md")
+const skipForEnv = (file: string) => TEST_FILE.test(file) || file.endsWith(".md")
 
-/** Variable name → first file that reads it, from lines added since the gate, committed or not. */
-async function envReads(root: string, gate: string): Promise<Map<string, string>> {
+/** Variable name → first file that reads it, from lines added since the base, committed or not. */
+async function envReads(root: string, base: string): Promise<Map<string, string>> {
   const reads = new Map<string, string>()
   const scan = (file: string, text: string) => {
     if (skipForEnv(file)) return
@@ -413,7 +410,7 @@ async function envReads(root: string, gate: string): Promise<Map<string, string>
     }
   }
   let file = ""
-  for (const line of (await git(root, ["diff", "-U0", "--no-color", gate])).split("\n")) {
+  for (const line of (await git(root, ["diff", "-U0", "--no-color", base])).split("\n")) {
     if (line.startsWith("+++ ")) file = line.replace(/^\+\+\+ (b\/)?/, "")
     else if (line.startsWith("+")) scan(file, line.slice(1))
   }
@@ -424,9 +421,9 @@ async function envReads(root: string, gate: string): Promise<Map<string, string>
 }
 
 async function c9(ctx: CheckContext): Promise<CheckResult> {
-  const gate = (await gateCommits(ctx.root, ctx.slug))[0]
-  if (!gate) return result("C9", "skip", "no approval commit yet")
-  const reads = await envReads(ctx.root, gate.sha)
+  const base = await baseOf(ctx)
+  if (!base) return result("C9", "fail", NO_BASE)
+  const reads = await envReads(ctx.root, base)
   if (!reads.size) return result("C9", "pass", "no new env reads")
   const patterns = [...reads.keys()].flatMap((name) => ["-e", name])
   const found = await run("git", ["grep", "--untracked", "-h", "-o", "-w", ...patterns, "--", ...CONFIG_DOCS], {
