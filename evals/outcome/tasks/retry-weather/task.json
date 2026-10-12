@@ -1,0 +1,4 @@
+{
+  "shape": "behavior change inside a refactor",
+  "prompt": "Add fetchWeather(city, fetchFn) in src/weather.js: it requests https://example.com/weather?city=<city, URL-encoded> through fetchFn and returns the parsed JSON body. A failed call (a thrown error or a non-2xx response) is retried, three attempts in total, like getUser and getOrder already do; after the third failure it throws an error mentioning the city. Pull the retry into one shared helper that users.js, orders.js and weather.js all use, without changing how getUser and getOrder behave."
+}

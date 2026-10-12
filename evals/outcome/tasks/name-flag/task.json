@@ -1,0 +1,4 @@
+{
+  "shape": "CLI flag",
+  "prompt": "Make `npm run dev -- --name Ada` print `Hello, Ada!`. Without --name it keeps printing `fixture-repo: hello`. An empty `--name` prints `error: --name needs a value` to stderr and exits with code 1."
+}

@@ -1,0 +1,4 @@
+{
+  "shape": "API endpoint",
+  "prompt": "Add an HTTP server module, src/server.js, exporting createServer() built on node:http (no new dependencies). GET /health answers 200 with the JSON body {\"status\":\"ok\"}; any other path answers 404 with {\"error\":\"not found\"}; a non-GET request to /health answers 405 with {\"error\":\"method not allowed\"}. All responses use content-type application/json."
+}

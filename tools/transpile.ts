@@ -1,250 +1,81 @@
 #!/usr/bin/env node
 /**
- * Emit dist/opencode, dist/cursor, dist/claude, dist/codex, and dist/agents/skills.
+ * Emit the role skills (dist/agents/skills for Codex and Cursor, dist/claude/skills for Claude Code) and the two shadow
+ * agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents).
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml"
-import {
-  formatClaudeModel,
-  formatCodexModel,
-  formatCursorModel,
-  formatOpenCodeModel,
-  type Host,
-  type ModelRef,
-} from "./models.ts"
-import { type OrcaRoutes, orcaAgentFile, orcaLaunchCommand, orcaRoutesByAgent } from "../src/state/orca.ts"
+import { formatCodexModel, formatCursorModel, type Host, type ModelRef } from "./models.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const srcDir = path.join(root, "src")
+const promptsDir = path.join(srcDir, "prompts")
 const distDir = path.join(root, "dist")
 
-type AgentCatalog = {
-  /** User-facing name of a skill / OpenCode agent; the catalog key when absent. */
-  command?: string
+/** Hard denies only: `edit` and `bash` maps of pattern → "deny", or a bare "deny" for the whole tool. */
+type Permission = { edit?: unknown; bash?: unknown }
+
+export type Shadow = {
   profile: string
+  /** Role skills this shadow plays; Claude Code preloads them. */
+  skills: string[]
   description: string
-  opencode: {
-    mode: "primary" | "subagent"
-    temperature?: number
-    steps?: number
-    permission?: unknown
-  }
-  cursor?: {
-    readonly?: boolean
-    skill?: boolean
-  }
+  permission?: Permission
   claude?: {
-    /** Only for agents the conductor continues: a longer TTL costs 2x per write and pays off only on reuse. */
+    /** Only for a shadow the commander continues: a longer TTL costs 2x per write and pays off only on reuse. */
     cache_ttl?: "5m" | "1h"
   }
 }
 
-type Catalog = {
+export type Skill = {
+  budget: number
+  description: string
+  /** Claude Code runs the skill on this profile's model. */
+  profile?: string
+  /** Invoked by the user only; hosts don't load it on their own. */
+  user_only?: boolean
+}
+
+export type Catalog = {
   hosts: Record<Host, { profiles: Record<string, ModelRef> }>
-  orchestrators?: { orca?: { profiles?: OrcaRoutes } }
-  agents: Record<string, AgentCatalog>
-  commands: Record<string, { description: string }>
-  opencode_config: {
-    model: string
-    small_model: string
-    default_agent: string
-    instructions: string[]
-  }
+  shadows: Record<string, Shadow>
+  skills: Record<string, Skill>
 }
 
-function resolveModel(catalog: Catalog, host: Host, agent: AgentCatalog): ModelRef {
-  const ref = catalog.hosts[host]?.profiles[agent.profile]
-  if (!ref?.id) {
-    throw new Error(`catalog: hosts.${host}.profiles.${agent.profile} missing`)
-  }
+export async function loadCatalog(): Promise<Catalog> {
+  return parseYaml(await fs.readFile(path.join(srcDir, "catalog.yaml"), "utf8")) as Catalog
+}
+
+function resolveModel(catalog: Catalog, host: Host, profile: string): ModelRef {
+  const ref = catalog.hosts[host]?.profiles[profile]
+  if (!ref?.id) throw new Error(`catalog: hosts.${host}.profiles.${profile} missing`)
   return ref
-}
-
-function isReadonly(agent: AgentCatalog): boolean {
-  if (agent.cursor?.readonly) return true
-  const edit = (agent.opencode.permission as { edit?: unknown } | undefined)?.edit
-  return edit === "deny"
-}
-
-function bashDenied(agent: AgentCatalog): boolean {
-  return (agent.opencode.permission as { bash?: unknown } | undefined)?.bash === "deny"
-}
-
-function claudeTools(agent: AgentCatalog): string {
-  const tools = isReadonly(agent) ? ["Read", "Glob", "Grep"] : ["Read", "Glob", "Grep", "Edit", "Write"]
-  if (!bashDenied(agent)) tools.push("Bash")
-  return tools.join(", ")
-}
-
-function tomlString(value: string): string {
-  return JSON.stringify(value)
-}
-
-async function loadCatalog(): Promise<Catalog> {
-  const raw = await fs.readFile(path.join(srcDir, "catalog.yaml"), "utf8")
-  return parseYaml(raw) as Catalog
-}
-
-function orcaRoutesTable(catalog: Catalog): string {
-  const rows = Object.entries(orcaRoutesByAgent(catalog)).map(([name, route]) => {
-    const profile = catalog.agents[name]!.profile
-    return `| \`${name}\` | ${profile} | \`${orcaLaunchCommand(route)}\` | \`${orcaAgentFile(route.agent, name)}\` |`
-  })
-  return ["| Specialist | Profile | Launch command | Agent file |", "| --- | --- | --- | --- |", ...rows].join("\n")
-}
-
-/**
- * Where a prompt body is emitted. `skill` and `opencode` render the conductor's on-demand references as pointers;
- * `plain` (subagents, checklists, reference files themselves) must not use those placeholders at all.
- */
-type Target = "skill" | "opencode" | "plain"
-
-const HOSTS = ["claude", "cursor", "codex", "opencode"] as const
-
-// Conductor fragments loaded on demand. Skills link a sibling references/<file>; the OpenCode agent points at the copy
-// installed under <root>/.agents/solodev/references/, beside the checklists.
-const REFERENCES = ["reply-mapping.md", "handoff.md", "orca.md", "escalation.md", "dispute.md", "design-delta.md"]
-
-// Reference fragments pulled in with a plain {{include:}}: the include becomes this pointer. The others are named at
-// their trigger with {{ref:<file>}}.
-const INCLUDE_POINTERS: Record<string, string[]> = {
-  "reply-mapping.md": [
-    "## Applying subagent replies",
-    "",
-    "Reply keys are not state keys. Read {{loc:reply-mapping.md}} before the first patch — translate every reply; never",
-    "pass one through verbatim.",
-  ],
-  "handoff.md": ["{{ref:handoff.md}}"],
-  "orca.md": [
-    "## Orca dispatch",
-    "",
-    "Applies only when state has `tools.orchestrator: orca`; otherwise skip it. Then read {{loc:orca.md}} before the",
-    "first dispatch, resume, or close.",
-  ],
-}
-
-// Read on every run, so the OpenCode agent keeps it inline rather than paying a file read (and, on a global install,
-// an external_directory lookup) each time.
-const OPENCODE_INLINE = new Set(["reply-mapping.md"])
-
-function refLocation(file: string, target: Target): string {
-  if (!REFERENCES.includes(file)) throw new Error(`transpile: ${file} is not a conductor reference`)
-  if (target === "skill") return `[references/${file}](references/${file})`
-  if (target === "opencode") {
-    return `\`<root>/.agents/solodev/references/${file}\` (\`<root>\`: the \`.agents/\` root that holds your \`quest-state\`)`
-  }
-  throw new Error(`transpile: {{ref:${file}}} used in a plain prompt`)
 }
 
 async function inlineIncludes(body: string, depth: number): Promise<string> {
   // Fragments may include fragments; the depth cap stops an include cycle.
   if (depth > 4) throw new Error("transpile: {{include:}} nested deeper than 4 — cycle?")
-  const re = /\{\{include:([^}]+)\}\}/g
   let out = body
-  for (const m of [...body.matchAll(re)]) {
-    const rel = m[1]!.trim()
-    const frag = await fs.readFile(path.join(srcDir, "prompts", rel), "utf8")
+  for (const m of [...body.matchAll(/\{\{include:([^}]+)\}\}/g)]) {
+    const frag = await fs.readFile(path.join(promptsDir, m[1]!.trim()), "utf8")
     const inlined = await inlineIncludes(frag.trim(), depth + 1)
     out = out.replace(m[0], () => inlined)
   }
   return out
 }
 
-async function hostDelegation(target: Target): Promise<string> {
-  if (target === "plain") throw new Error("transpile: {{hosts:delegation}} used in a plain prompt")
-  // The OpenCode agent only ever runs on OpenCode. Skills keep every host: Cursor and OpenCode can also load
-  // .claude/skills or .agents/skills, so a stripped copy could leave a host with no delegation instructions.
-  const hosts = target === "opencode" ? ["opencode"] : HOSTS
-  const parts = await Promise.all(
-    hosts.map((h) => fs.readFile(path.join(srcDir, "prompts", "fragments", "hosts", `${h}.md`), "utf8")),
-  )
-  return parts.map((p) => p.trim()).join("\n")
-}
-
-async function resolveIncludes(
-  body: string,
-  catalog: Catalog,
-  target: Target = "plain",
-  refs: Set<string> = new Set(),
-): Promise<string> {
-  let out = await inlineIncludes(body, 0)
-  // Generated after includes so fragments may carry them.
-  out = out.replaceAll("{{orca:routes}}", orcaRoutesTable(catalog))
-  if (out.includes("{{hosts:delegation}}")) out = out.replaceAll("{{hosts:delegation}}", await hostDelegation(target))
-  out = out.replace(/\{\{ref:([^}]+)\}\}/g, (_, file: string) => {
-    refs.add(file)
-    return `Read ${refLocation(file, target)} and follow it.`
-  })
-  out = out.replace(/\{\{loc:([^}]+)\}\}/g, (_, file: string) => {
-    refs.add(file)
-    return refLocation(file, target)
-  })
+/** A prompt body with its includes resolved. */
+export async function renderPrompt(rel: string): Promise<string> {
+  const out = await inlineIncludes((await fs.readFile(path.join(promptsDir, rel), "utf8")).trim(), 0)
   const left = out.match(/\{\{[a-z]+:[^}]*\}\}/)
-  if (left) throw new Error(`transpile: unresolved placeholder ${left[0]}`)
-  return out
+  if (left) throw new Error(`transpile: unresolved placeholder ${left[0]} in ${rel}`)
+  return `${out}\n`
 }
 
-/** Renders a prompt for `target`, collecting the references its pointers name into `refs`. */
-async function renderPrompt(rel: string, catalog: Catalog, target: Target, refs: Set<string> = new Set()) {
-  let raw = await fs.readFile(path.join(srcDir, "prompts", rel), "utf8")
-  if (target !== "plain") {
-    for (const [file, pointer] of Object.entries(INCLUDE_POINTERS)) {
-      if (target === "opencode" && OPENCODE_INLINE.has(file)) continue
-      raw = raw.replace(`{{include:fragments/${file}}}`, `${pointer.join("\n")}\n`)
-    }
-  }
-  return resolveIncludes(`${raw.trim()}\n`, catalog, target, refs)
-}
-
-async function readPrompt(rel: string, catalog: Catalog): Promise<string> {
-  return renderPrompt(rel, catalog, "plain")
-}
-
-async function writeReferences(catalog: Catalog, refs: Set<string>, outDir: string) {
-  for (const file of [...refs].sort()) {
-    await writeFile(path.join(outDir, file), await readPrompt(`fragments/${file}`, catalog))
-  }
-}
-
-function yamlFrontmatter(obj: Record<string, unknown>): string {
-  const yaml = stringifyYaml(obj, { lineWidth: 0 }).trimEnd()
-  return `---\n${yaml}\n---\n\n`
-}
-
-function cursorRestrictions(agent: AgentCatalog): string {
-  const perm = agent.opencode.permission
-  if (!perm || typeof perm !== "object") return ""
-  const edit = (perm as { edit?: unknown }).edit
-  const lines: string[] = []
-  if (edit === "deny") {
-    lines.push("- Do not edit or write any files (read-only).")
-  } else if (edit && typeof edit === "object") {
-    const map = edit as Record<string, string>
-    const denies = Object.entries(map)
-      .filter(([, v]) => v === "deny")
-      .map(([k]) => k)
-    const allows = Object.entries(map)
-      .filter(([k, v]) => v === "allow" && k !== "*")
-      .map(([k]) => k)
-    if (map["*"] === "deny" && allows.length) {
-      lines.push(`- Edit only: ${allows.join(", ")}.`)
-    }
-    // Cursor has no permission config, so deny carve-outs have to survive into
-    // the prose even when the allow list is already narrow.
-    const carveOuts = denies.filter((k) => k !== "*")
-    if (carveOuts.length) {
-      lines.push(`- Never edit: ${carveOuts.join(", ")}.`)
-    }
-  }
-  if (bashDenied(agent)) lines.push("- Do not run shell commands.")
-  if (!lines.length) return ""
-  return `\n## Tool restrictions (Cursor)\n${lines.join("\n")}\n`
-}
-
-async function rmrf(dir: string) {
-  await fs.rm(dir, { recursive: true, force: true })
+function frontmatter(obj: Record<string, unknown>): string {
+  return `---\n${stringifyYaml(obj, { lineWidth: 0 }).trimEnd()}\n---\n\n`
 }
 
 async function writeFile(filePath: string, content: string) {
@@ -252,216 +83,111 @@ async function writeFile(filePath: string, content: string) {
   await fs.writeFile(filePath, content, "utf8")
 }
 
-async function emitOpencode(catalog: Catalog) {
-  const outRoot = path.join(distDir, "opencode")
-  await rmrf(outRoot)
+async function rmrf(dir: string) {
+  await fs.rm(dir, { recursive: true, force: true })
+}
 
-  const commands: Record<string, { description: string; template: string }> = {}
-  for (const [name, meta] of Object.entries(catalog.commands)) {
-    const template = (await readPrompt(`commands/${name}.md`, catalog)).trimEnd()
-    commands[name] = { description: meta.description, template }
-  }
+export async function skillReferences(name: string): Promise<string[]> {
+  return (await fs.readdir(path.join(promptsDir, "skills", name, "references")).catch(() => [] as string[])).sort()
+}
 
-  const cfg = {
-    $schema: "https://opencode.ai/config.json",
-    model: catalog.opencode_config.model,
-    small_model: catalog.opencode_config.small_model,
-    default_agent: catalog.opencode_config.default_agent,
-    instructions: catalog.opencode_config.instructions,
-    command: commands,
-    lsp: true,
-    formatter: true,
-    permission: {
-      edit: {
-        "*": "allow",
-        "docs/feats/**/state.yaml": "deny",
-        "**/journal.ndjson": "deny",
-        ".opencode/**": "deny",
-      },
-      read: "allow",
-      webfetch: "allow",
-      // No entry may be "ask": `opencode run` has no responder for a bash/edit
-      // permission request, so an unattended run would stall mid-turn with
-      // nobody to answer. Dangerous commands are hard denies instead — a denial
-      // is refused and the model adapts. Enforced by tools/check.ts. Merge
-      // authority is governed by prompts, not this map.
-      bash: {
-        "*": "allow",
-        "rm -rf *": "deny",
-        "rm -fr *": "deny",
-        "rm -r *": "deny",
-        "git clean *": "deny",
-        "git reset --hard*": "deny",
-        "git checkout -- *": "deny",
-        "git restore *": "deny",
-        "git push --force*": "deny",
-        "git push -f *": "deny",
-        "git push* main*": "deny",
-        "git push* master*": "deny",
-        "sudo *": "deny",
-        "chmod -R *": "deny",
-        "chown -R *": "deny",
-        "* | sh": "deny",
-        "* | bash": "deny",
-        "curl * | *": "deny",
-        "wget * | *": "deny",
-      },
-    },
-  }
-
-  // JSONC-ish: pretty JSON is fine for OpenCode
-  await writeFile(path.join(outRoot, "opencode.jsonc"), `${JSON.stringify(cfg, null, 2)}\n`)
-
-  const refs = new Set<string>()
-  for (const [name, agent] of Object.entries(catalog.agents)) {
-    const body = await renderPrompt(`agents/${name}.md`, catalog, "opencode", refs)
-    const ref = resolveModel(catalog, "opencode", agent)
-    const fm: Record<string, unknown> = {
-      description: agent.description,
-      mode: agent.opencode.mode,
-      model: formatOpenCodeModel(ref),
+async function emitSkills(catalog: Catalog) {
+  const shared = path.join(distDir, "agents", "skills")
+  const claude = path.join(distDir, "claude", "skills")
+  for (const [name, skill] of Object.entries(catalog.skills)) {
+    const body = await renderPrompt(`skills/${name}/SKILL.md`)
+    const fm: Record<string, unknown> = { name, description: skill.description }
+    if (skill.user_only) fm["disable-model-invocation"] = true
+    const claudeFm = { ...fm }
+    if (skill.profile) {
+      const ref = resolveModel(catalog, "claude", skill.profile)
+      claudeFm.model = ref.id
+      if (ref.effort) claudeFm.effort = ref.effort
     }
-    if (ref.effort) fm.variant = ref.effort
-    if (agent.opencode.temperature !== undefined) fm.temperature = agent.opencode.temperature
-    if (agent.opencode.steps !== undefined) fm.steps = agent.opencode.steps
-    if (agent.opencode.permission !== undefined) fm.permission = agent.opencode.permission
-    await writeFile(path.join(outRoot, "agents", `${agent.command ?? name}.md`), yamlFrontmatter(fm) + body)
-  }
-  // Installed through the always-on .agents tree, so global and project installs both resolve them from <root>.
-  const refDir = path.join(distDir, "agents", "solodev", "references")
-  await rmrf(refDir)
-  await writeReferences(catalog, refs, refDir)
-}
-
-// Per-area review checklists, installed to <agentsRoot>/solodev/checklists/. The conductor passes the absolute path of
-// one to each shadow-code-reviewer run; the header line lets the reviewer reject a wrong file.
-const REVIEW_CHECKLISTS: Record<string, string[]> = {
-  contract: ["fragments/review-contract.md"],
-  health: ["fragments/review-health.md"],
-  design: ["fragments/review-design.md", "fragments/design-practices.md"],
-}
-
-async function emitReviewChecklists(catalog: Catalog) {
-  const outRoot = path.join(distDir, "agents", "solodev", "checklists")
-  await rmrf(outRoot)
-  for (const [area, fragments] of Object.entries(REVIEW_CHECKLISTS)) {
-    const parts: string[] = []
-    for (const rel of fragments) parts.push((await readPrompt(rel, catalog)).trim())
-    await writeFile(
-      path.join(outRoot, `review-${area}.md`),
-      `# solodev review checklist: ${area}\n\n${parts.join("\n\n")}\n`,
-    )
+    await writeFile(path.join(shared, name, "SKILL.md"), frontmatter(fm) + body)
+    await writeFile(path.join(claude, name, "SKILL.md"), frontmatter(claudeFm) + body)
+    for (const ref of await skillReferences(name)) {
+      const text = await renderPrompt(`skills/${name}/references/${ref}`)
+      await writeFile(path.join(shared, name, "references", ref), text)
+      await writeFile(path.join(claude, name, "references", ref), text)
+    }
   }
 }
 
-async function emitSharedSkills(catalog: Catalog) {
-  const outRoot = path.join(distDir, "agents", "skills")
-  await rmrf(outRoot)
+const denied = (rule: unknown) => rule === "deny"
 
-  for (const [name, agent] of Object.entries(catalog.agents)) {
-    if (!agent.cursor?.skill) continue
-    const skill = agent.command ?? name
-    const refs = new Set<string>()
-    const body = await renderPrompt(`agents/${name}.md`, catalog, "skill", refs)
-    await writeReferences(catalog, refs, path.join(outRoot, skill, "references"))
-    const restrictions = cursorRestrictions(agent)
-    const skillFm = {
-      name: skill,
-      description: agent.description,
+function claudeTools(shadow: Shadow): string {
+  const tools = ["Read", "Glob", "Grep"]
+  if (!denied(shadow.permission?.edit)) tools.push("Edit", "Write")
+  if (!denied(shadow.permission?.bash)) tools.push("Bash")
+  return tools.join(", ")
+}
+
+function denyPatterns(rule: unknown): string[] {
+  if (!rule || typeof rule !== "object") return []
+  return Object.entries(rule as Record<string, string>)
+    .filter(([, v]) => v === "deny")
+    .map(([k]) => k)
+}
+
+/** Cursor has no permission config, so the hard denies survive as prose. */
+function cursorRestrictions(shadow: Shadow): string {
+  const lines: string[] = []
+  const edit = shadow.permission?.edit
+  const bash = shadow.permission?.bash
+  if (denied(edit)) lines.push("- Do not edit or write any files.")
+  else if (denyPatterns(edit).length) lines.push(`- Do not edit: ${denyPatterns(edit).join(", ")}.`)
+  if (denied(bash)) lines.push("- Do not run shell commands.")
+  else if (denyPatterns(bash).length) lines.push(`- Do not run: ${denyPatterns(bash).join(", ")}.`)
+  return lines.length ? `\n## Restrictions\n\n${lines.join("\n")}\n` : ""
+}
+
+async function emitShadows(catalog: Catalog) {
+  for (const [name, shadow] of Object.entries(catalog.shadows)) {
+    const body = await renderPrompt(`agents/${name}.md`)
+
+    const claudeRef = resolveModel(catalog, "claude", shadow.profile)
+    const claudeFm: Record<string, unknown> = {
+      name,
+      description: shadow.description,
+      model: claudeRef.id,
+    }
+    if (claudeRef.effort) claudeFm.effort = claudeRef.effort
+    claudeFm.tools = claudeTools(shadow)
+    claudeFm.skills = shadow.skills
+    // Keeps a continued shadow's prompt cache alive past the 5m subagent default.
+    if (shadow.claude?.cache_ttl) claudeFm.experimental = { cacheTtl: shadow.claude.cache_ttl }
+    await writeFile(path.join(distDir, "claude", "agents", `${name}.md`), frontmatter(claudeFm) + body)
+
+    const cursorFm = {
+      name,
+      description: shadow.description,
+      model: formatCursorModel(resolveModel(catalog, "cursor", shadow.profile)),
     }
     await writeFile(
-      path.join(outRoot, skill, "SKILL.md"),
-      `${yamlFrontmatter(skillFm)}${body.trimEnd() + restrictions}\n`,
+      path.join(distDir, "cursor", "agents", `${name}.md`),
+      `${frontmatter(cursorFm)}${body.trimEnd()}\n${cursorRestrictions(shadow)}`,
     )
-  }
 
-  for (const [name, meta] of Object.entries(catalog.commands)) {
-    const body = await readPrompt(`commands/${name}.md`, catalog)
-    const fm = {
-      name,
-      description: meta.description,
-      "disable-model-invocation": true,
-    }
-    await writeFile(path.join(outRoot, name, "SKILL.md"), yamlFrontmatter(fm) + body)
-  }
-}
-
-async function emitCursor(catalog: Catalog) {
-  const outRoot = path.join(distDir, "cursor")
-  await rmrf(outRoot)
-
-  for (const [name, agent] of Object.entries(catalog.agents)) {
-    if (agent.cursor?.skill) continue
-    const body = await readPrompt(`agents/${name}.md`, catalog)
-    const restrictions = cursorRestrictions(agent)
-    const fullBody = `${body.trimEnd() + restrictions}\n`
-
-    const fm: Record<string, unknown> = {
-      name,
-      description: agent.description,
-      model: formatCursorModel(resolveModel(catalog, "cursor", agent)),
-    }
-    if (agent.cursor?.readonly) fm.readonly = true
-    await writeFile(path.join(outRoot, "agents", `${name}.md`), yamlFrontmatter(fm) + fullBody)
-  }
-}
-
-async function emitClaude(catalog: Catalog) {
-  const outRoot = path.join(distDir, "claude")
-  await rmrf(outRoot)
-
-  for (const [name, agent] of Object.entries(catalog.agents)) {
-    if (agent.cursor?.skill) continue
-    const body = await readPrompt(`agents/${name}.md`, catalog)
-    const ref = resolveModel(catalog, "claude", agent)
-    const fm: Record<string, unknown> = {
-      name,
-      description: agent.description,
-      model: formatClaudeModel(ref),
-    }
-    if (ref.effort) fm.effort = ref.effort
-    // Keeps a continued agent's prompt cache alive past the 5m subagent default; Claude Code < 2.1.248 ignores the key.
-    if (agent.claude?.cache_ttl) fm.experimental = { cacheTtl: agent.claude.cache_ttl }
-    fm.tools = claudeTools(agent)
-    await writeFile(path.join(outRoot, "agents", `${name}.md`), yamlFrontmatter(fm) + body)
-  }
-}
-
-async function emitCodex(catalog: Catalog) {
-  const outRoot = path.join(distDir, "codex")
-  await rmrf(outRoot)
-
-  for (const [name, agent] of Object.entries(catalog.agents)) {
-    if (agent.cursor?.skill) continue
-    const body = await readPrompt(`agents/${name}.md`, catalog)
-    const resolved = formatCodexModel(resolveModel(catalog, "codex", agent))
-    const sandbox = isReadonly(agent) ? "read-only" : "workspace-write"
-    const lines = [
-      `name = ${tomlString(name)}`,
-      `description = ${tomlString(agent.description)}`,
-      `developer_instructions = ${tomlString(body.trim())}`,
+    const codex = formatCodexModel(resolveModel(catalog, "codex", shadow.profile))
+    const toml = [
+      `name = ${JSON.stringify(name)}`,
+      `description = ${JSON.stringify(shadow.description)}`,
+      `developer_instructions = ${JSON.stringify(body.trim())}`,
+      `model = ${JSON.stringify(codex.model)}`,
+      ...(codex.reasoning ? [`model_reasoning_effort = ${JSON.stringify(codex.reasoning)}`] : []),
+      `sandbox_mode = ${JSON.stringify(denied(shadow.permission?.edit) ? "read-only" : "workspace-write")}`,
     ]
-    if (resolved.model !== "inherit") {
-      lines.push(`model = ${tomlString(resolved.model)}`)
-      if (resolved.reasoning) lines.push(`model_reasoning_effort = ${tomlString(resolved.reasoning)}`)
-    }
-    lines.push(`sandbox_mode = ${tomlString(sandbox)}`)
-    await writeFile(path.join(outRoot, "agents", `${name}.toml`), `${lines.join("\n")}\n`)
+    await writeFile(path.join(distDir, "codex", "agents", `${name}.toml`), `${toml.join("\n")}\n`)
   }
 }
 
 async function main() {
   const catalog = await loadCatalog()
-  await fs.mkdir(distDir, { recursive: true })
-  await emitOpencode(catalog)
-  await emitSharedSkills(catalog)
-  await emitReviewChecklists(catalog)
-  await emitCursor(catalog)
-  await emitClaude(catalog)
-  await emitCodex(catalog)
-  console.log(
-    "transpile: wrote dist/opencode, dist/cursor, dist/claude, dist/codex, dist/agents/skills, and dist/agents/solodev/{checklists,references}",
-  )
+  for (const dir of ["agents", "claude", "cursor", "codex"]) await rmrf(path.join(distDir, dir))
+  await emitSkills(catalog)
+  await emitShadows(catalog)
+  console.log("transpile: wrote dist/agents/skills, dist/claude/{skills,agents}, dist/cursor/agents, dist/codex/agents")
 }
 
-await main()
+if (import.meta.url === `file://${process.argv[1]}`) await main()
