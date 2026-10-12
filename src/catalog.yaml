@@ -1,252 +1,111 @@
-# Per-agent metadata. Model IDs live only under hosts.*.profiles.
-# Agents declare profile; host blocks are adapters (mode, permission, skill).
+# Model ids live only under hosts.*.profiles: `think` plans and reviews, `implement` writes code and docs. Pinned and
+# updated by hand when a better model ships; README.md's matrix must match.
 #
-# Permission maps: opencode applies the LAST matching pattern, so order is
-# load-bearing — broad rules first, narrow exceptions last. Reordering a block
-# silently changes what an agent may edit.
+# Role skills (`skills:`) carry the instructions; shadows (`shadows:`) are the two agents that play them, each a thin
+# shell with a model and hard denies. `budget` caps a skill body's lines (tools/check.ts enforces it).
 #
-# Agent maps hold hard denies only — the ones that protect pipeline integrity
-# (frozen design inputs, conductor-owned state, git/tracker writes). Every agent
-# that can reach docs/feats/** repeats the state.yaml / journal.ndjson denies: a
-# global install writes no opencode.jsonc, so the agent map is the only guard
-# there. Role scope ("edit only docs/feats/**") lives in each prompt's
-# Restrictions, as it does for Claude and Cursor. No catch-all allow: "*": allow
-# or a bare `bash: allow` lands after the global map and cancels its denies.
-#
-# The one allow class: `external_directory` for the solodev install under ~/.agents. opencode defaults it to "ask", so on
-# a global install an unattended run would stall the first time an agent reads a checklist or reference there, or runs
-# the state CLI. Keep these patterns narrow — never "**".
+# `permission` holds hard denies only. Hosts have no shared permission config, so transpile renders them: Cursor gets
+# them as prose restrictions, Claude Code drops Edit/Write or Bash from `tools` when a whole tool is denied.
 
 hosts:
-  opencode:
-    profiles:
-      conduct: { id: opencode-go/qwen3.7-plus }
-      think: { id: opencode-go/glm-5.3-flash }
-      execute: { id: opencode-go/deepseek-v4.1-flash, effort: max }
-      design-review: { id: opencode-go/kimi-k3 }
-      code-review: { id: opencode-go/kimi-k2.7-code }
-      validate: { id: opencode-go/deepseek-v4-pro, effort: max }
-      write: { id: opencode-go/kimi-k3 }
-  cursor:
-    profiles:
-      conduct: { id: inherit }
-      think: { id: grok-4.7, effort: xhigh }
-      execute: { id: grok-4.7, effort: high }
-      design-review: { id: grok-4.7, effort: high }
-      code-review: { id: claude-sonnet-5-5, effort: high }
-      validate: { id: grok-4.7, effort: medium }
-      write: { id: grok-4.7, effort: medium }
   claude:
     profiles:
-      conduct: { id: inherit }
-      think: { id: opus, effort: medium }
-      execute: { id: sonnet, effort: high }
-      design-review: { id: sonnet, effort: high }
-      code-review: { id: opus, effort: high }
-      validate: { id: sonnet, effort: medium }
-      write: { id: sonnet, effort: medium }
+      think: { id: claude-opus-5-5, effort: medium }
+      implement: { id: claude-sonnet-5-5, effort: high }
   codex:
     profiles:
-      conduct: { id: inherit }
-      think: { id: gpt-6.1-sol, effort: xhigh }
-      execute: { id: gpt-6.1-sol, effort: high }
-      design-review: { id: gpt-6.1-sol, effort: high }
-      code-review: { id: gpt-6.1-sol, effort: high }
-      validate: { id: gpt-6.1-sol, effort: high }
-      write: { id: gpt-6-luna, effort: medium }
-
-# Optional supervised dispatch. When `quest-state probe orchestrator` finds Orca
-# plus the routed CLIs, the conductor starts each specialist as an Orca worker on
-# the CLI/model below instead of the host's own subagent. `conduct` is absent:
-# the conductor is never dispatched. Cursor ids carry their effort.
-orchestrators:
-  orca:
+      think: { id: gpt-6.1-sol, effort: max }
+      implement: { id: gpt-6.1-sol, effort: medium }
+  cursor:
     profiles:
-      think: { agent: claude, id: opus, effort: medium }
-      code-review: { agent: claude, id: sonnet, effort: high }
-      design-review: { agent: claude, id: sonnet, effort: high }
-      execute: { agent: cursor, id: grok-4.7-low }
-      validate: { agent: cursor, id: grok-4.7-high }
-      write: { agent: cursor, id: grok-4.7-high }
+      think: { id: grok-4.7, effort: xhigh }
+      implement: { id: grok-4.7, effort: medium }
 
-agents:
-  # `command` is the name users invoke: the skill (/arise) and the OpenCode agent. Without it, the key is the name.
-  commander:
-    command: arise
-    profile: conduct
+shadows:
+  shadow-coder:
+    profile: implement
+    skills: [arise-coder, arise-documenter]
     description: >-
-      Drives the end-to-end spec-driven development (SDD) feature pipeline — sequences stages, manages human-in-the-loop
-      gates, routes review findings, keeps docs in sync. Use when the user asks to implement a feature, run SDD, or
-      resume/continue a pipeline. Treats a normal feature request as a request to run the full workflow. Not for product
-      or roadmap planning (arise-plan) or one-line edits such as a typo or a version bump.
-    opencode:
-      mode: primary
-      temperature: 0.2
-      steps: 100
-      permission:
-        edit:
-          "docs/feats/**/state.yaml": deny
-          "**/journal.ndjson": deny
-          ".opencode/**": deny
-        # Merged over the global map, which denies "git reset --hard*"; the clean-tree escalation needs exactly this
-        # one form.
-        bash:
-          "git reset --hard HEAD": allow
-        external_directory:
-          "~/.agents/bin/**": allow
-          "~/.agents/solodev/**": allow
-    cursor:
-      skill: true
-
-  shadow-architect:
-    profile: think
-    description: >-
-      Writes the feature design in one pass — spec (the what & why), spec-derived acceptance contracts, and the
-      implementation plan with cheapest-oracle journeys and waypoints. Use when the conductor delegates design, or when
-      a spec, its @S<n> scenarios, or a plan must be written or revised.
-    opencode:
-      mode: subagent
-      temperature: 0.3
-      steps: 50
-      permission:
-        edit:
-          "docs/feats/**/state.yaml": deny
-          "**/journal.ndjson": deny
-    cursor: {}
-    # The conductor continues this agent after critique and design-gate edits, and those waits outlast Claude Code's
-    # 5m subagent cache. 1h writes cost 2x, so set it only on agents that get continued.
+      Writes a feature's tests and code (arise-coder) or its docs (arise-documenter), following the role skill its brief
+      names. Started by the /arise commander; the only agent that edits source.
+    permission:
+      edit:
+        # The spec, plan and reports belong to the commander and the reviewers.
+        "docs/feats/**": deny
+      bash:
+        "git commit*": deny
+        "git push*": deny
+        "git reset*": deny
+        "gh pr merge*": deny
+    # The commander continues the coder for later journeys and fix rounds; those waits outlast Claude Code's 5m
+    # subagent cache. 1h writes cost 2x, so only the continued shadow sets it.
     claude:
       cache_ttl: 1h
 
-  shadow-architect-reviewer:
-    profile: design-review
+  shadow-reviewer:
+    profile: think
+    skills: [arise-reviewer, arise-verifier]
     description: >-
-      Independent critique of a feature design (spec, contracts, plan) before its gate. Fixes unambiguous issues in
-      place and reports the rest as structured findings. Use when the conductor delegates a design critique.
-    opencode:
-      mode: subagent
-      temperature: 0.1
-      steps: 30
-      permission:
-        edit:
-          "docs/feats/**/state.yaml": deny
-          "**/journal.ndjson": deny
-    cursor: {}
+      Fresh-context reviewer: reviews a spec or a diff (arise-reviewer) or checks scenarios no test covers
+      (arise-verifier), following the role skill its brief names. Report-only; writes only review.md or qa.md.
+    permission:
+      bash:
+        "git add*": deny
+        "git commit*": deny
+        "git push*": deny
+        "git reset*": deny
+        "git checkout*": deny
+        "git restore*": deny
+        "git stash*": deny
+        "gh pr merge*": deny
+        "gh pr ready*": deny
 
-  shadow-implementer:
-    profile: execute
-    description: >-
-      Writes the planned failing journey oracle, then the implementation, in one pass. Never weakens tests. Use when the
-      conductor delegates implementation, an escalation re-derive, or a targeted-test fix.
-    opencode:
-      mode: subagent
-      temperature: 0.2
-      steps: 60
-      permission:
-        edit:
-          # Frozen inputs: spec, plan, contracts. Cucumber e2e *.feature lives
-          # outside docs/feats/** and stays writable.
-          "docs/feats/**": deny
-    cursor: {}
-    # The conductor continues this agent after each failed targeted test and in the review fix round; the test runs in
-    # between outlast Claude Code's 5m subagent cache.
-    claude:
-      cache_ttl: 1h
-
-  shadow-code-reviewer:
-    profile: code-review
-    description: >-
-      Report-only review of one area of the feature implementation diff — contract, health, or design — against the
-      checklist file the conductor names. The conductor runs three in parallel, one per area, and merges the findings.
-      Use when the conductor delegates implementation review.
-    opencode:
-      mode: subagent
-      temperature: 0.1
-      steps: 40
-      permission:
-        edit:
-          # Frozen inputs, git internals, and host/agent config stay out of reach.
-          "docs/feats/**": deny
-          ".git/**": deny
-          ".agents/**": deny
-          ".claude/**": deny
-          ".codex/**": deny
-          ".cursor/**": deny
-        # Report-only: no tests or git/tracker writes; the conductor runs sensors.
-        bash:
-          "git add*": deny
-          "git rm*": deny
-          "git mv*": deny
-          "git restore*": deny
-          "git update-index*": deny
-          "git commit*": deny
-          "git push*": deny
-          "git reset*": deny
-          "git checkout*": deny
-          "git stash*": deny
-          "gh *": deny
-        external_directory:
-          "~/.agents/solodev/**": allow
-    cursor: {}
-
-  shadow-qa:
-    profile: validate
-    description: >-
-      Validates the implementation against spec + acceptance contracts. Prefers the committed journey oracle;
-      agent-browser only for uncovered UI e2e paths. Posts the evidence report as a PR comment. Use when the conductor
-      delegates QA.
-    opencode:
-      mode: subagent
-      temperature: 0.1
-      steps: 60
-      permission:
-        edit:
-          "docs/feats/**/state.yaml": deny
-          "**/journal.ndjson": deny
-    cursor: {}
-
-  shadow-docs-writer:
-    profile: write
-    description: >-
-      Writes the human-facing docs a finished feature leaves behind — the owning domain's README, plus AGENTS.md and
-      docs/ARCHITECTURE.md. Current state only, never a changelog. Use when the conductor delegates docs-sync.
-    opencode:
-      mode: subagent
-      temperature: 0.1
-      steps: 30
-      permission:
-        edit:
-          # docs/feats/** is the conductor's.
-          "docs/feats/**": deny
-    cursor: {}
-
-  shadow-product-owner:
-    command: arise-plan
+skills:
+  arise:
+    budget: 150
+    # Claude Code skills can set the session model while they run; Codex and Cursor use the session's model.
     profile: think
     description: >-
-      Product Owner planner. Refines a raw idea into a measurable goal, then writes a feature roadmap at
-      docs/product/<slug>/roadmap.md. Use when the user asks to plan a product, write a roadmap, or turn an idea into
-      sequenced features. Standalone — does not run the SDD pipeline.
-    opencode:
-      mode: primary
-      temperature: 0.4
-      steps: 80
-      permission:
-        edit:
-          "docs/feats/**/state.yaml": deny
-          "**/journal.ndjson": deny
-    cursor:
-      skill: true
-
-commands:
-  arise-setup-docs:
+      Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one
+      coder writing failing tests then code, a fresh-context review, QA and docs. Use for new features that touch
+      multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to
+      resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps
+      (arise-strategist).
+  arise-architect:
+    budget: 100
     description: >-
-      Scaffolds AGENTS.md, docs/ARCHITECTURE.md, docs/CONSTITUTION.md, and docs/feats/. Run by the user as
-      /arise-setup-docs.
-
-opencode_config:
-  model: opencode-go/glm-5.3
-  small_model: opencode-go/deepseek-v4.1-flash
-  default_agent: arise
-  instructions:
-    - AGENTS.md
+      Writes a feature's spec.md (requirements and @S<n> acceptance scenarios) and plan.md (approach and journeys) for
+      the spec gate. Used by /arise, or on its own to spec a feature without running it.
+  arise-coder:
+    budget: 80
+    description: >-
+      Implements an approved plan: for each journey, the failing test first, then the smallest change that passes it.
+      Loaded by shadow-coder for an /arise run.
+  arise-reviewer:
+    budget: 90
+    description: >-
+      Independent review of a spec and plan, or of a feature diff against its scenarios: contract, health and structure
+      in one pass, findings in review.md. Used by /arise in a fresh context, or by the user on any branch.
+  arise-verifier:
+    budget: 80
+    description: >-
+      Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
+      scenario in qa.md. Loaded by shadow-reviewer for an /arise run.
+  arise-documenter:
+    budget: 60
+    description: >-
+      Writes the docs a finished feature leaves behind: the owning domain's README, plus docs/ARCHITECTURE.md and
+      AGENTS.md where the feature changed them. Loaded by shadow-coder for an /arise run.
+  arise-strategist:
+    budget: 150
+    description: >-
+      Product strategist: turns a raw idea into a measurable goal and a feature roadmap at
+      docs/product/<slug>/roadmap.md, with one work item per feature, optionally filed as GitHub issues. Use to plan a
+      product, write a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through
+      /arise.
+  arise-scout:
+    budget: 50
+    user_only: true
+    description: >-
+      Maps the repo once before the first /arise run: writes a minimal AGENTS.md (the commands list solodev reads, plus
+      constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as /arise-scout.

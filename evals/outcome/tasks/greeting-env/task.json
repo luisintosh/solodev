@@ -1,0 +1,4 @@
+{
+  "shape": "configuration",
+  "prompt": "Let the GREETING environment variable change what `npm run dev` prints: with GREETING=Hi it prints `Hi, world!`. Unset, empty or whitespace-only GREETING keeps today's `fixture-repo: hello`. Surrounding whitespace in the value is trimmed."
+}

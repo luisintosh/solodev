@@ -8,26 +8,25 @@ once; tests use Vitest and bundles use esbuild.
 | Edit                                 | Then run                       |
 | ------------------------------------ | ------------------------------ |
 | `src/prompts/**`, `src/catalog.yaml` | `pnpm run build`               |
-| `src/state/**`                       | `pnpm run build` + `pnpm test` |
+| `src/cli/**`                         | `pnpm run build` + `pnpm test` |
 | `tools/install.ts`                   | `pnpm run build`               |
 
 `dist/` and `manifest.txt` are **generated and tracked** so clients install without a build. Never hand-edit them. After
 any `src/` change run `pnpm run build` before commit; CI fails if they drift.
 
-New catalog agents must be named `shadow-<role>` so they cannot collide with host built-ins (Cursor's `code-reviewer`,
-and similarly generic IDs on Codex/Claude/OpenCode). The only exceptions are the conductor (`arise`) and planner
-(`arise-plan`), whose names are their slash commands.
+Skills are named `arise` or `arise-<role>` and shadows `shadow-<name>`, so neither collides with host built-ins such as
+Codex's `/review` or Cursor's `code-reviewer`.
 
 ## Hygiene (`pnpm run check`)
 
 Requires a prior `pnpm run build`. Validates:
 
-- `src/catalog.yaml` shape (agents are `arise`, `arise-plan`, or `shadow-*`; no `implementer-pro` or `tester`; every
-  host × profile present)
-- Emitted dist frontmatter / Codex TOML matches catalog profiles
-- README profile × host matrix and agent → profile table match catalog
-- Prompt contracts, read from the built prompts: required phrases, and every reference a conductor pointer names is
-  emitted (skill `references/` and `dist/agents/solodev/references/` for OpenCode) with no unresolved `{{…}}`
+- `src/catalog.yaml` shape: the three hosts × `think`/`implement` with the pinned models in `tools/models.ts`, the two
+  shadows, the eight skills, and a prompt file for each
+- Prompt rules: each skill within its line budget, no capitalized MUST/NEVER/CRITICAL/ALWAYS, required phrases, every
+  `references/` link resolves and every reference is linked
+- Emitted skill and shadow frontmatter (and Codex TOML) match the catalog
+- README profile × host matrix and shadow → profile table match the catalog
 - `manifest.txt` hashes match `dist/`
 - `dist/install.js` is present and matches a rebuild of `tools/install.ts`
 
@@ -46,21 +45,26 @@ bash test/e2e-install.sh
 
 ## Evals
 
-`evals/<skill>/` holds prompt-behavior evals in the skill-creator format, run against a copy of `test/fixture-repo`:
-`evals.json` (task prompts + expectations) and `trigger-evals.json` (should/shouldn't-trigger queries for the
-description optimizer). After changing a prompt or a catalog `description`, rerun the matching set with the
-skill-creator skill.
+- `evals/<skill>/` holds prompt-behavior evals in the skill-creator format, run against a copy of `test/fixture-repo`:
+  `evals.json` (task prompts + expectations) and `trigger-evals.json` (should/shouldn't-trigger queries for the
+  description optimizer). After changing a prompt or a catalog `description`, rerun the matching set with the
+  skill-creator skill.
+- `evals/outcome/` holds outcome evals: feature tasks with held-out acceptance tests, run headless per config and scored
+  after the agent finishes. `pnpm run eval:validate` (also in CI) proves each task's tests fail on the fixture and pass
+  on its reference solution; `node tools/eval.ts run` and `report` need the coding tools and spend real usage. See
+  [evals/outcome/README.md](evals/outcome/README.md).
 
 ## Tooling (TypeScript on Node)
 
 | Script                        | Purpose                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------- |
-| `node tools/transpile.ts`     | `src/` → `dist/{opencode,cursor,claude,codex}` + `dist/agents/skills`   |
+| `node tools/transpile.ts`     | `src/` → `dist/{claude,cursor,codex}` + `dist/agents/skills`            |
 | `node tools/install.ts`       | installer source (Clack + copy); emitted as `dist/install.js`           |
-| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/quest-state.mjs`                            |
+| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/solodev.mjs`                                |
 | `node tools/build-install.ts` | `tools/install.ts` → `dist/install.js` (esbuild, Node ESM for npx/bunx) |
 | `node tools/gen-manifest.ts`  | `manifest.txt` from `dist/`                                             |
 | `node tools/check.ts`         | hygiene                                                                 |
+| `node tools/eval.ts`          | outcome evals: `validate`, `run --config <id>`, `report`                |
 | `pnpm run release`            | tag HEAD, push, publish a GitHub Release                                |
 
 `pnpm run build` runs transpile + build-cli + gen-manifest + build-install.

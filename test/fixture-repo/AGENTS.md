@@ -5,13 +5,11 @@ Tiny Node project used as a local smoke-test fixture. Not part of the published 
 ## Commands
 
 - install: `npm install`
-- dev/run: `npm run dev`
+- dev: `npm run dev`
 - build: `npm run build`
-- test: `npm test` (single file: `npx vitest run <path>`)
-- lint: `npm run lint` — n/a, no linter configured
-- typecheck: `npm run typecheck` — n/a, plain JS
+- test: `npm test`
+- test_file: `npx vitest run {file}` (one test file)
+- lint: n/a (no linter configured)
+- typecheck: n/a (plain JS)
 
-## Conventions
-
-- Plain ES modules under `src/`, one file per concern.
-- Tests live next to source as `*.test.js`, using `vitest`.
+See `docs/ARCHITECTURE.md` when it exists; tests live next to source as `*.test.js`, using `vitest`.

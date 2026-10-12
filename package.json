@@ -2,7 +2,7 @@
   "name": "solodev",
   "private": true,
   "type": "module",
-  "description": "Spec-driven development harness for OpenCode, Cursor, Claude Code, and Codex — prompts, transpile, quest-state CLI.",
+  "description": "Spec-driven development harness for Claude Code, Codex, and Cursor — role skills, transpile, solodev CLI.",
   "bin": {
     "solodev": "./dist/install.js"
   },
@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "vitest run src/state/",
+    "test": "vitest run src/cli/",
     "transpile": "node tools/transpile.ts",
     "build:cli": "node tools/build-cli.ts",
     "build:install": "node tools/build-install.ts",
@@ -26,7 +26,8 @@
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write . && prettier --write \"**/*.{md,yaml,yml}\"",
-    "format:check": "biome format . && prettier --check \"**/*.{md,yaml,yml}\""
+    "format:check": "biome format . && prettier --check \"**/*.{md,yaml,yml}\"",
+    "eval:validate": "node tools/eval.ts validate"
   },
   "dependencies": {
     "@clack/prompts": "^1.7.0",

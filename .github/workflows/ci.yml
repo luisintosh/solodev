@@ -55,7 +55,7 @@ jobs:
       - name: Hygiene checks
         run: pnpm run check
 
-  state-tests:
+  cli-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +66,19 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+
+  eval-tasks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Held-out tests fail on the fixture and pass on each reference
+        run: pnpm run eval:validate
 
   e2e-install:
     runs-on: ubuntu-latest
