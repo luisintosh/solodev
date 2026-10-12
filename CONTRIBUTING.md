@@ -79,6 +79,9 @@ Builds the payload, packs `solodev-dist.tar.gz`, writes its tag and sha256 to `r
 and publishes a GitHub Release with the tarball attached. Installers pin a ref with
 `npx -y github:luisintosh/solodev#vX.Y.Z` or `bunx github:luisintosh/solodev#vX.Y.Z` (default branch is `master`).
 
+Run it on `master`, with a clean tree and nothing to pull; it refuses otherwise. It prints the tarball's path. If it
+fails after pushing, publish that same file with `gh release create vX.Y.Z <path> --verify-tag`.
+
 ```bash
 pnpm run release            # patch bump from the latest tag (v1.2.0 → v1.2.1)
 pnpm run release --minor

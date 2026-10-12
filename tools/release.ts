@@ -75,6 +75,12 @@ async function main() {
   const dirty = await run("git", ["status", "--porcelain"])
   if (dirty) die("working tree is dirty — commit or stash first")
 
+  const branch = await run("git", ["branch", "--show-current"])
+  if (branch !== "master") die(`on ${branch || "a detached HEAD"} — releases are cut from master`)
+  await run("git", ["fetch", "origin", "master"])
+  const [, behind] = (await run("git", ["rev-list", "--left-right", "--count", "HEAD...origin/master"])).split(/\s+/)
+  if (behind !== "0") die(`master is ${behind} commit(s) behind origin/master — pull first`)
+
   const hasGh = await run("gh", ["--version"]).then(
     () => true,
     () => false,
@@ -101,6 +107,8 @@ async function main() {
   const sha256 = createHash("sha256")
     .update(await fs.readFile(archive))
     .digest("hex")
+  // If a later step fails, publish this exact file: a fresh pack would not match the sha256 in release.json.
+  console.error(`release: packed ${archive} (sha256 ${sha256})`)
   await fs.writeFile("release.json", `${JSON.stringify({ version: tag, sha256 }, null, 2)}\n`)
   await run("node", ["tools/build-install.ts"])
   await run("git", ["add", "release.json", "bin/install.js"])
