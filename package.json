@@ -2,7 +2,7 @@
   "name": "solodev",
   "private": true,
   "type": "module",
-  "description": "Spec-driven development harness for OpenCode, Cursor, Claude Code, and Codex — prompts, transpile, quest-state CLI.",
+  "description": "Spec-driven development harness for Claude Code, Codex, and Cursor — prompts, transpile, quest-state CLI.",
   "bin": {
     "solodev": "./dist/install.js"
   },

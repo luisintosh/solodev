@@ -21,8 +21,6 @@ import {
   formatCodexDisplay,
   formatCodexModel,
   formatCursorModel,
-  formatOpenCodeDisplay,
-  formatOpenCodeModel,
   GOLDEN_MODELS,
   type Host,
   type ModelRef,
@@ -66,7 +64,7 @@ type AgentCatalog = {
   command?: string
   profile?: string
   description?: string
-  opencode?: { mode?: string; temperature?: number; steps?: number; permission?: unknown }
+  permission?: unknown
   cursor?: { skill?: boolean }
   claude?: { cache_ttl?: string }
 }
@@ -75,6 +73,21 @@ type AgentCatalog = {
 const CACHE_TTLS = new Set(["5m", "1h"])
 // shadow-code-reviewer runs once per area against dist/agents/solodev/checklists/review-<area>.md.
 const REVIEW_AREAS = ["contract", "health", "design"] as const
+const HOSTS = ["cursor", "claude", "codex"] as const
+
+/** Every permission value in a nested map, flattened to "path -> value" pairs. */
+function permissionValues(node: unknown, at: string[] = []): [string, string][] {
+  if (typeof node === "string") return [[at.join("."), node]]
+  if (!node || typeof node !== "object" || Array.isArray(node)) return []
+  return Object.entries(node as Record<string, unknown>).flatMap(([k, v]) => permissionValues(v, [...at, k]))
+}
+
+/** Agent permission maps hold hard denies only; hosts have no shared allow semantics to render anything else. */
+function failOnAllow(label: string, permission: unknown) {
+  for (const [where, value] of permissionValues(permission)) {
+    if (value !== "deny") fail(`${label}: permission "${where || "(root)"}" is "${value}" — only deny is rendered`)
+  }
+}
 
 type Catalog = {
   hosts?: Record<string, { profiles?: Record<string, ModelRef> }>
@@ -85,59 +98,6 @@ type Catalog = {
 
 function resolveRef(catalog: Catalog, host: Host, profile: string): ModelRef | undefined {
   return catalog.hosts?.[host]?.profiles?.[profile]
-}
-
-/**
- * Agents whose permission maps may contain "ask". Only interactive-only agents
- * qualify: an "ask" anywhere else can be reached by an unattended `opencode run`
- * with no human to answer it, stalling that run indefinitely. See tools/transpile.ts.
- */
-const ASK_ALLOWED = new Set(["shadow-product-owner"])
-
-/** Every permission value in a nested map, flattened to "path -> value" pairs. */
-function permissionValues(node: unknown, path: string[] = []): [string, string][] {
-  if (typeof node === "string") return [[path.join("."), node]]
-  if (!node || typeof node !== "object" || Array.isArray(node)) return []
-  return Object.entries(node as Record<string, unknown>).flatMap(([k, v]) => permissionValues(v, [...path, k]))
-}
-
-function failOnAsk(label: string, permission: unknown) {
-  for (const [where, value] of permissionValues(permission)) {
-    if (value === "ask") {
-      fail(`${label}: permission "${where}" is "ask" — a detached opencode run cannot answer it; use allow or deny`)
-    }
-  }
-}
-
-const CATCH_ALLS = new Set(["*", "**", "**/*"])
-
-/**
- * Agent maps carry narrow hard denies. A catch-all allow (`bash: allow`, `"*": allow`, or a bare `permission: allow`)
- * lands after the global map, cancelling its destructive-command and state-file denies. A catch-all deny only
- * tightens, so it stays legal (a read-only agent is `edit: deny`).
- */
-function failOnCatchAllAllow(label: string, permission: unknown) {
-  const loose = (value: unknown) => value === "allow" || value === "ask"
-  if (loose(permission)) fail(`${label}: permission is a bare "${permission}" — list narrow denies`)
-  if (!permission || typeof permission !== "object") return
-  for (const [tool, rules] of Object.entries(permission as Record<string, unknown>)) {
-    if (loose(rules)) fail(`${label}: permission "${tool}" is a bare "${rules}" — it cancels the global denies`)
-    else if (rules && typeof rules === "object") {
-      for (const [pattern, value] of Object.entries(rules as Record<string, unknown>)) {
-        if (CATCH_ALLS.has(pattern) && loose(value)) {
-          fail(`${label}: permission "${tool}.${pattern}" is "${value}" — it cancels the global denies`)
-        }
-      }
-    }
-  }
-}
-
-/** Key-sorted JSON so comparisons don't depend on YAML key order. */
-function stable(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null"
-  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`
-  const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => (a < b ? -1 : 1))
-  return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stable(v)}`).join(",")}}`
 }
 
 const catalogPath = path.join(root, "src", "catalog.yaml")
@@ -152,9 +112,6 @@ const agentNames = catalog ? Object.keys(catalog.agents || {}).sort() : []
 
 if (catalog) {
   if (!catalog.agents?.commander) fail("catalog: missing agents.commander")
-  else if (catalog.agents.commander.opencode?.mode !== "primary") {
-    fail("catalog: commander.opencode.mode must be primary")
-  }
   if (catalog.agents?.commander?.command !== "arise") fail('catalog: agents.commander.command must be "arise"')
   if (catalog.agents?.["shadow-product-owner"]?.command !== "arise-plan") {
     fail('catalog: agents.shadow-product-owner.command must be "arise-plan"')
@@ -184,13 +141,12 @@ if (catalog) {
     if (!a.description?.trim()) fail(`catalog: agents.${name}.description required`)
     if (!a.profile) fail(`catalog: agents.${name}.profile required`)
     else {
-      for (const host of ["opencode", "cursor", "claude", "codex"] as const) {
+      for (const host of HOSTS) {
         const ref = resolveRef(catalog, host, a.profile)
         if (!ref?.id) fail(`catalog: hosts.${host}.profiles.${a.profile} required for agents.${name}`)
       }
     }
-    if (!ASK_ALLOWED.has(name)) failOnAsk(`catalog: agents.${name}`, a.opencode?.permission)
-    failOnCatchAllAllow(`catalog: agents.${name}`, a.opencode?.permission)
+    failOnAllow(`catalog: agents.${name}`, a.permission)
     const ttl = a.claude?.cache_ttl
     if (ttl !== undefined && !CACHE_TTLS.has(ttl)) {
       fail(`catalog: agents.${name}.claude.cache_ttl must be 5m or 1h, got ${ttl}`)
@@ -201,7 +157,8 @@ if (catalog) {
       fail(`src/prompts/agents/${name}.md missing`)
     }
   }
-  for (const host of ["opencode", "cursor", "claude", "codex"] as const) {
+  if (catalog.hosts?.opencode) fail("catalog: hosts.opencode was dropped in v2 — OpenCode users stay on v1.x")
+  for (const host of HOSTS) {
     for (const profile of PROFILE_NAMES) {
       if (!resolveRef(catalog, host, profile)?.id) {
         fail(`catalog: hosts.${host}.profiles.${profile} required`)
@@ -298,59 +255,11 @@ for (const area of REVIEW_AREAS) {
   }
 }
 
-const distOc = path.join(root, "dist", "opencode")
 const distCu = path.join(root, "dist", "cursor")
-
-let ocConfig: { permission?: unknown } | undefined
-try {
-  ocConfig = JSON.parse(await readFile(path.join(distOc, "opencode.jsonc"), "utf8"))
-} catch {
-  fail("dist/opencode/opencode.jsonc missing or unparseable — run pnpm run build")
-}
-if (ocConfig) failOnAsk("dist/opencode/opencode.jsonc", ocConfig.permission)
 
 if (catalog) {
   for (const name of agentNames) {
     const emitted = catalog.agents![name]!.command ?? name
-    const ocPath = path.join(distOc, "agents", `${emitted}.md`)
-    try {
-      const raw = await readFile(ocPath, "utf8")
-      const m = raw.match(/^---\n([\s\S]*?)\n---\n/)
-      if (!m) {
-        fail(`dist/opencode/agents/${emitted}.md: missing frontmatter`)
-        continue
-      }
-      const fm = parseYaml(m[1]!) as {
-        model?: string
-        variant?: string
-        temperature?: number
-        steps?: number
-        permission?: unknown
-      }
-      const oc = catalog.agents![name]!.opencode!
-      const ocRef = resolveRef(catalog, "opencode", catalog.agents![name]!.profile!)!
-      const wantOc = formatOpenCodeModel(ocRef)
-      if (fm.model !== wantOc) {
-        fail(`dist drift: opencode ${name} model ${fm.model} != catalog ${wantOc} — run pnpm run build`)
-      }
-      if (fm.variant !== ocRef.effort) {
-        fail(`dist drift: opencode ${name} variant ${fm.variant} != catalog ${ocRef.effort} — run pnpm run build`)
-      }
-      if (fm.temperature !== oc.temperature) {
-        fail(
-          `dist drift: opencode ${name} temperature ${fm.temperature} != catalog ${oc.temperature} — run pnpm run build`,
-        )
-      }
-      if (fm.steps !== oc.steps) {
-        fail(`dist drift: opencode ${name} steps ${fm.steps} != catalog ${oc.steps} — run pnpm run build`)
-      }
-      if (stable(fm.permission) !== stable(oc.permission)) {
-        fail(`dist drift: opencode ${name} permission block != catalog — run pnpm run build`)
-      }
-    } catch {
-      fail(`dist/opencode/agents/${emitted}.md missing — run pnpm run build`)
-    }
-
     const agent = catalog.agents![name]!
     if (agent.cursor?.skill) {
       try {
@@ -444,12 +353,12 @@ for (const stale of ["quest-state", "quest-state.js"]) {
 
 const readme = await readFile(path.join(root, "README.md"), "utf8")
 const modelsSection = readme.split("## Models")[1]?.split(/^## /m)[0] ?? ""
-const profileRowRe = /^\|\s*`([a-z0-9-]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|/gm
+const profileRowRe = /^\|\s*`([a-z0-9-]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|/gm
 const agentRowRe = /^\|\s*`([a-z0-9-]+)`\s*\|\s*`([a-z0-9-]+)`\s*\|/gm
-const readmeProfiles = new Map<string, { opencode: string; cursor: string; claude: string; codex: string }>()
+const readmeProfiles = new Map<string, { cursor: string; claude: string; codex: string }>()
 const readmeAgents = new Map<string, string>()
 for (const m of modelsSection.matchAll(profileRowRe)) {
-  readmeProfiles.set(m[1]!, { opencode: m[2]!, cursor: m[3]!, claude: m[4]!, codex: m[5]! })
+  readmeProfiles.set(m[1]!, { cursor: m[2]!, claude: m[3]!, codex: m[4]! })
 }
 for (const m of modelsSection.matchAll(agentRowRe)) {
   if (readmeProfiles.has(m[1]!)) continue
@@ -466,11 +375,9 @@ if (catalog) {
         fail(`README.md: profile matrix missing row for "${profile}"`)
         continue
       }
-      const wantOc = formatOpenCodeDisplay(resolveRef(catalog, "opencode", profile)!)
       const wantCu = formatCursorModel(resolveRef(catalog, "cursor", profile)!)
       const wantCl = formatClaudeDisplay(resolveRef(catalog, "claude", profile)!)
       const wantCx = formatCodexDisplay(resolveRef(catalog, "codex", profile)!)
-      if (row.opencode !== wantOc) fail(`README.md: ${profile} OpenCode ${row.opencode} != catalog ${wantOc}`)
       if (row.cursor !== wantCu) fail(`README.md: ${profile} Cursor ${row.cursor} != catalog ${wantCu}`)
       if (row.claude !== wantCl) fail(`README.md: ${profile} Claude ${row.claude} != catalog ${wantCl}`)
       if (row.codex !== wantCx) fail(`README.md: ${profile} Codex ${row.codex} != catalog ${wantCx}`)
@@ -550,31 +457,18 @@ if (catalog) {
     if (!body.includes(phrase)) fail(`prompt contract missing ${label}: "${phrase}"`)
   }
 
-  // Every reference a pointer names ships beside the skill, and every reference the OpenCode agent names ships under
-  // dist/agents/solodev/references/ (installed to <root>/.agents/solodev/references/).
+  // Every reference a pointer names ships beside the skill.
   const skill = await readOr(path.join(skillDir, "SKILL.md"))
   for (const m of skill.matchAll(/\]\(references\/([\w.-]+)\)/g)) {
     if (!refNames.includes(m[1]!)) fail(`dist: conductor skill points at references/${m[1]}, which was not emitted`)
   }
-  const ocDir = path.join(root, "dist", "agents", "solodev", "references")
-  const ocRefs = await readdir(ocDir).catch(() => [] as string[])
-  const ocConductor = await readOr(path.join(root, "dist", "opencode", "agents", "arise.md"))
-  for (const m of ocConductor.matchAll(/<root>\/\.agents\/solodev\/references\/([\w.-]+)/g)) {
-    if (!ocRefs.includes(m[1]!)) fail(`dist: opencode conductor points at references/${m[1]}, which was not emitted`)
-  }
-  if (ocConductor.includes("**Dispatch.**"))
-    fail("dist: opencode conductor inlines Orca dispatch instead of pointing at it")
-  for (const file of [
-    ...refNames.map((f) => path.join(skillDir, "references", f)),
-    ...ocRefs.map((f) => path.join(ocDir, f)),
-  ]) {
+  for (const file of refNames.map((f) => path.join(skillDir, "references", f))) {
     if ((await readOr(file)).includes("{{")) fail(`${path.relative(root, file)}: unresolved {{...}} placeholder`)
   }
 }
 
 async function expectedManifestEntries() {
   const files = [
-    ...(await walkFiles(path.join(root, "dist", "opencode"))),
     ...(await walkFiles(path.join(root, "dist", "cursor"))),
     ...(await walkFiles(path.join(root, "dist", "claude"))),
     ...(await walkFiles(path.join(root, "dist", "codex"))),

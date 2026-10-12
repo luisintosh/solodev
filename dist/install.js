@@ -1203,7 +1203,7 @@ ${f}
 var i = `${styleText("gray", S_BAR)}  `;
 
 // tools/install.ts
-var HOSTS = ["cursor", "claude", "codex", "opencode"];
+var HOSTS = ["cursor", "claude", "codex"];
 var REPO_NAME = "solodev";
 function log(message) {
   console.error(message);
@@ -1221,8 +1221,7 @@ function detect() {
   return {
     cursor: onPath("cursor", "cursor-agent"),
     claude: onPath("claude"),
-    codex: onPath("codex"),
-    opencode: onPath("opencode")
+    codex: onPath("codex")
   };
 }
 function hostOnPath(host) {
@@ -1272,7 +1271,7 @@ function normalizeTargets(raw) {
   if (target === "all") return target;
   for (const part of target.split(",")) {
     if (!HOSTS.includes(part)) {
-      die(`invalid INSTALL_TARGET host: ${part} (use all or comma list: cursor,claude,codex,opencode)`);
+      die(`invalid INSTALL_TARGET host: ${part} (use all or comma list: cursor,claude,codex)`);
     }
   }
   return target;
@@ -1358,8 +1357,7 @@ function resolveDests(scope, targetDir, home) {
       claudeAgents: path.join(home, ".claude", "agents"),
       claudeSkills: path.join(home, ".claude", "skills"),
       codexAgents: path.join(process.env.CODEX_HOME || path.join(home, ".codex"), "agents"),
-      opencodeDest: path.join(home, ".config", "opencode", "agents"),
-      opencodePrefix: "opencode/agents"
+      legacyOpencode: path.join(home, ".config", "opencode", "agents")
     };
   }
   return {
@@ -1368,8 +1366,7 @@ function resolveDests(scope, targetDir, home) {
     claudeAgents: path.join(targetDir, ".claude", "agents"),
     claudeSkills: path.join(targetDir, ".claude", "skills"),
     codexAgents: path.join(targetDir, ".codex", "agents"),
-    opencodeDest: path.join(targetDir, ".opencode"),
-    opencodePrefix: "opencode"
+    legacyOpencode: path.join(targetDir, ".opencode")
   };
 }
 function opLine(op) {
@@ -1568,6 +1565,24 @@ function planLegacyCursorSkills(scope, targetDir, home) {
   }
   return ops;
 }
+async function planLegacyOpencode(destRoot, label) {
+  const manifestPath = path.join(destRoot, ".harness-manifest");
+  let listed;
+  try {
+    listed = parseManifest(await fs.readFile(manifestPath, "utf8"));
+  } catch {
+    return [];
+  }
+  const ops = [];
+  for (const [rel, hash] of listed) {
+    const dest = fromPosix(destRoot, rel);
+    if (!fsSync.existsSync(dest) || !fsSync.statSync(dest).isFile()) continue;
+    const localEdit = await sha256File(dest) !== hash;
+    ops.push({ kind: "delete", label: `${label}/${rel}`, dest, localEdit, extra: "(OpenCode support ended in v2)" });
+  }
+  ops.push({ kind: "delete", label: `${label}/.harness-manifest`, dest: manifestPath, localEdit: false });
+  return ops;
+}
 function doctor(targetDir, home) {
   log("");
   log("Doctor:");
@@ -1586,7 +1601,6 @@ function doctor(targetDir, home) {
   log(`    claude agents   ${targetDir}/.claude/agents/  or  ${home}/.claude/agents/`);
   log(`    claude skills   ${targetDir}/.claude/skills/  or  ${home}/.claude/skills/`);
   log(`    codex agents    ${targetDir}/.codex/agents/  or  \${CODEX_HOME:-${home}/.codex}/agents/`);
-  log(`    opencode        ${targetDir}/.opencode/  or  ${home}/.config/opencode/agents/ (no jsonc)`);
   const stateBin = stateBinInUse(targetDir, home);
   if (stateBin) log(`  [ok]   quest-state: ${stateBin}`);
   else log("  [warn] quest-state missing \u2014 re-run the installer");
@@ -1617,14 +1631,13 @@ function suggestNextSteps() {
     log("  2. gh is on PATH \u2014 run 'gh auth login' if you aren't logged in");
   }
   log("");
-  log("Optional: arise-plan \u2014 Product Owner planner (/arise-plan skill, or the");
-  log("  OpenCode arise-plan agent) turns a raw idea into a feature roadmap at");
-  log("  docs/product/<slug>/roadmap.md. Run each feature through arise one at a");
+  log("Optional: arise-plan \u2014 Product Owner planner (/arise-plan skill) turns a");
+  log("  raw idea into a feature roadmap at docs/product/<slug>/roadmap.md. Run");
+  log("  each feature through arise one at a");
   log("  time \u2014 it hands you the next feature's invocation when one is done.");
   log("");
   log("Optional: rtk (filters noisy bash output for agents)");
   log("  brew install rtk   # or see https://github.com/rtk-ai/rtk");
-  log("  rtk init --opencode   # OpenCode");
   log("  # Quick start: exclude git diff/show from rewriting so shadow-code-reviewer");
   log("  # and shadow-docs-writer see full diffs \u2014 in ~/.config/rtk/config.toml:");
   log("  #   [hooks]");
@@ -1750,19 +1763,10 @@ async function main() {
         })
       );
     }
-    if (wantsHost(installTarget, "opencode")) {
-      trees.push(
-        await planTree({
-          prefix: dests.opencodePrefix,
-          destRoot: dests.opencodeDest,
-          stageDir,
-          newManifest: manifest
-        })
-      );
-    }
     const extraOps = [
       ...await planBin({ scope, targetDir, home, stageDir, newManifest: manifest }),
-      ...planLegacyCursorSkills(scope, targetDir, home)
+      ...planLegacyCursorSkills(scope, targetDir, home),
+      ...await planLegacyOpencode(dests.legacyOpencode, scope === "global" ? "~/.config/opencode/agents" : ".opencode")
     ];
     for (const tree of trees) printTreePlan(tree);
     for (const op of extraOps) log(opLine(op));

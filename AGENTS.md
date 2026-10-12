@@ -6,13 +6,13 @@ file.
 ## What this is
 
 solodev ships no runtime app. It ships agent prompts plus a small state CLI that `npx`/`bunx github:luisintosh/solodev`
-installs into a _consuming_ repo or `$HOME` (`.opencode/`, `.cursor/agents/`, `.claude/`, `.codex/agents/`,
-`.agents/skills/`, `.agents/bin/quest-state.mjs`). Nothing here runs against this repo's own code.
+installs into a _consuming_ repo or `$HOME` (`.cursor/agents/`, `.claude/`, `.codex/agents/`, `.agents/skills/`,
+`.agents/bin/quest-state.mjs`). Nothing here runs against this repo's own code.
 
 ## Generation model
 
 `src/catalog.yaml` (host × profile models; per-agent mode, temperature, steps, permissions) and `src/prompts/**` are the
-**only** sources of truth. `tools/transpile.ts` emits OpenCode, Cursor, Claude Code, Codex, and shared skills.
+**only** sources of truth. `tools/transpile.ts` emits Cursor, Claude Code, Codex, and shared skills.
 
 - Never hand-edit `dist/` or `manifest.txt` — both are generated and **tracked**. Fix the catalog or the prompt body,
   then `pnpm run build` before commit.
@@ -48,6 +48,5 @@ conventions already in the tree, so keep to them:
 
 ## Commits
 
-Conventional Commits, lowercase, imperative, no scope:
-`fix: allow openai/ model prefix for opencode agents, sync README`. Types in use: `feat`, `fix`, `refactor`, `chore`,
-`docs`. Feature branches are `feat/<slug>`.
+Conventional Commits, lowercase, imperative, no scope: `fix: allow openai/ model prefix for codex agents, sync README`.
+Types in use: `feat`, `fix`, `refactor`, `chore`, `docs`. Feature branches are `feat/<slug>`.

@@ -44,9 +44,6 @@ the next stage — except the parallel steps: step 6 runs `shadow-code-reviewer`
 - **Codex:** `spawn_agent` with role name equal to the specialist `name` (the TOML `name` field). A parallel step spawns
   all its agents, then waits on all. Continue: `send_input` to the spawned agent (`resume_agent` first if it was
   closed), then wait on it.
-- **OpenCode:** delegate to the named subagent. Parallel steps run in turn: step 6 areas contract → health → design;
-  step 9 `shadow-docs-writer`, then `shadow-qa`; escalation one worktree after the other. Continue: pass the prior
-  call's `task_id` to the task tool.
 - **Orca** (`tools.orchestrator: orca`, any host): dispatch per **Orca dispatch** instead of the host tool; continue by
   reusing the worker's terminal (**Orca dispatch → Continue**).
 
@@ -491,5 +488,5 @@ pass one through verbatim.
 `stage: complete` — with `pr.url` recorded, `qa.pr_ready: true` (when the host has drafts), and `qa.pr_comment_url` when
 the tool returned one; GitHub-issue-linked runs additionally print the handoff.
 ## Tool restrictions (Cursor)
-- Never edit: docs/feats/**/state.yaml, **/journal.ndjson, .opencode/**.
+- Never edit: docs/feats/**/state.yaml, **/journal.ndjson.
 

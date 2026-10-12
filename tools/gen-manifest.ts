@@ -34,7 +34,7 @@ async function sha256(filePath: string): Promise<string> {
   return createHash("sha256").update(buf).digest("hex")
 }
 
-const distRoots = ["opencode", "cursor", "claude", "codex", "agents"].map((d) => path.join(root, "dist", d))
+const distRoots = ["cursor", "claude", "codex", "agents"].map((d) => path.join(root, "dist", d))
 const bin = path.join(root, "dist", "bin", "quest-state.mjs")
 
 try {

@@ -9,7 +9,7 @@ import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import * as p from "@clack/prompts"
 
-const HOSTS = ["cursor", "claude", "codex", "opencode"] as const
+const HOSTS = ["cursor", "claude", "codex"] as const
 type Host = (typeof HOSTS)[number]
 type Scope = "project" | "global"
 type Manifest = Map<string, string>
@@ -36,7 +36,6 @@ function detect(): Record<Host, boolean> {
     cursor: onPath("cursor", "cursor-agent"),
     claude: onPath("claude"),
     codex: onPath("codex"),
-    opencode: onPath("opencode"),
   }
 }
 
@@ -126,7 +125,7 @@ function normalizeTargets(raw: string): string {
   if (target === "all") return target
   for (const part of target.split(",")) {
     if (!(HOSTS as readonly string[]).includes(part)) {
-      die(`invalid INSTALL_TARGET host: ${part} (use all or comma list: cursor,claude,codex,opencode)`)
+      die(`invalid INSTALL_TARGET host: ${part} (use all or comma list: cursor,claude,codex)`)
     }
   }
   return target
@@ -225,8 +224,7 @@ function resolveDests(scope: Scope, targetDir: string, home: string) {
       claudeAgents: path.join(home, ".claude", "agents"),
       claudeSkills: path.join(home, ".claude", "skills"),
       codexAgents: path.join(process.env.CODEX_HOME || path.join(home, ".codex"), "agents"),
-      opencodeDest: path.join(home, ".config", "opencode", "agents"),
-      opencodePrefix: "opencode/agents",
+      legacyOpencode: path.join(home, ".config", "opencode", "agents"),
     }
   }
   return {
@@ -235,8 +233,7 @@ function resolveDests(scope: Scope, targetDir: string, home: string) {
     claudeAgents: path.join(targetDir, ".claude", "agents"),
     claudeSkills: path.join(targetDir, ".claude", "skills"),
     codexAgents: path.join(targetDir, ".codex", "agents"),
-    opencodeDest: path.join(targetDir, ".opencode"),
-    opencodePrefix: "opencode",
+    legacyOpencode: path.join(targetDir, ".opencode"),
   }
 }
 
@@ -474,6 +471,29 @@ function planLegacyCursorSkills(scope: Scope, targetDir: string, home: string): 
   return ops
 }
 
+/**
+ * v2 dropped OpenCode. A v1 install recorded every file it wrote in `.harness-manifest` under the OpenCode root; delete
+ * exactly those (plus the manifest) and nothing the user added there.
+ */
+async function planLegacyOpencode(destRoot: string, label: string): Promise<FileOp[]> {
+  const manifestPath = path.join(destRoot, ".harness-manifest")
+  let listed: Manifest
+  try {
+    listed = parseManifest(await fs.readFile(manifestPath, "utf8"))
+  } catch {
+    return []
+  }
+  const ops: FileOp[] = []
+  for (const [rel, hash] of listed) {
+    const dest = fromPosix(destRoot, rel)
+    if (!fsSync.existsSync(dest) || !fsSync.statSync(dest).isFile()) continue
+    const localEdit = (await sha256File(dest)) !== hash
+    ops.push({ kind: "delete", label: `${label}/${rel}`, dest, localEdit, extra: "(OpenCode support ended in v2)" })
+  }
+  ops.push({ kind: "delete", label: `${label}/.harness-manifest`, dest: manifestPath, localEdit: false })
+  return ops
+}
+
 function doctor(targetDir: string, home: string) {
   log("")
   log("Doctor:")
@@ -496,7 +516,6 @@ function doctor(targetDir: string, home: string) {
   log(`    claude agents   ${targetDir}/.claude/agents/  or  ${home}/.claude/agents/`)
   log(`    claude skills   ${targetDir}/.claude/skills/  or  ${home}/.claude/skills/`)
   log(`    codex agents    ${targetDir}/.codex/agents/  or  \${CODEX_HOME:-${home}/.codex}/agents/`)
-  log(`    opencode        ${targetDir}/.opencode/  or  ${home}/.config/opencode/agents/ (no jsonc)`)
 
   const stateBin = stateBinInUse(targetDir, home)
   if (stateBin) log(`  [ok]   quest-state: ${stateBin}`)
@@ -533,14 +552,13 @@ function suggestNextSteps() {
     log("  2. gh is on PATH — run 'gh auth login' if you aren't logged in")
   }
   log("")
-  log("Optional: arise-plan — Product Owner planner (/arise-plan skill, or the")
-  log("  OpenCode arise-plan agent) turns a raw idea into a feature roadmap at")
-  log("  docs/product/<slug>/roadmap.md. Run each feature through arise one at a")
+  log("Optional: arise-plan — Product Owner planner (/arise-plan skill) turns a")
+  log("  raw idea into a feature roadmap at docs/product/<slug>/roadmap.md. Run")
+  log("  each feature through arise one at a")
   log("  time — it hands you the next feature's invocation when one is done.")
   log("")
   log("Optional: rtk (filters noisy bash output for agents)")
   log("  brew install rtk   # or see https://github.com/rtk-ai/rtk")
-  log("  rtk init --opencode   # OpenCode")
   log("  # Quick start: exclude git diff/show from rewriting so shadow-code-reviewer")
   log("  # and shadow-docs-writer see full diffs — in ~/.config/rtk/config.toml:")
   log("  #   [hooks]")
@@ -676,20 +694,11 @@ async function main() {
         }),
       )
     }
-    if (wantsHost(installTarget, "opencode")) {
-      trees.push(
-        await planTree({
-          prefix: dests.opencodePrefix,
-          destRoot: dests.opencodeDest,
-          stageDir,
-          newManifest: manifest,
-        }),
-      )
-    }
 
     const extraOps = [
       ...(await planBin({ scope, targetDir, home, stageDir, newManifest: manifest })),
       ...planLegacyCursorSkills(scope, targetDir, home),
+      ...(await planLegacyOpencode(dests.legacyOpencode, scope === "global" ? "~/.config/opencode/agents" : ".opencode")),
     ]
 
     for (const tree of trees) printTreePlan(tree)
