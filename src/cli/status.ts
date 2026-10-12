@@ -1,10 +1,10 @@
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { run } from "./exec.ts"
-import { exists, featureDir, parsePlan, parseQa, parseReview, readIfExists } from "./feature.ts"
-import { currentBranch, gateCommits } from "./git.ts"
+import { currentApproval, exists, featureDir, parsePlan, parseQa, parseReview, readIfExists } from "./feature.ts"
+import { currentBranch } from "./git.ts"
 
-export const STAGES = ["spec", "gate", "implement", "review", "pr", "qa", "done", "v1"] as const
+export const STAGES = ["spec", "gate", "implement", "review", "pr", "qa", "done"] as const
 export type Stage = (typeof STAGES)[number]
 
 export type PrInfo = { url: string; isDraft: boolean; state: string }
@@ -13,8 +13,8 @@ export type FeatureStatus = {
   slug: string
   stage: Stage
   next: string
-  gate?: string
-  writer?: string
+  /** The approval in force: `<date> at <sha>`. */
+  approved?: string
   pr?: PrInfo
   notes: string[]
 }
@@ -37,7 +37,7 @@ export async function ghPr(root: string): Promise<PrInfo | null | undefined> {
 
 const NEXT: Record<Stage, (slug: string) => string> = {
   spec: () => "write spec.md and plan.md (arise-architect), asking the user what the code can't answer",
-  gate: (s) => `show the gate card; on approval run \`solodev approve ${s} --writer <tool>\``,
+  gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
   implement: (s) =>
     `arise-coder writes each journey's test, then the code; then \`solodev check ${s} --for implement\``,
   review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
@@ -45,12 +45,16 @@ const NEXT: Record<Stage, (slug: string) => string> = {
   qa: (s) =>
     `arise-verifier for uncovered scenarios (if any); then \`solodev check ${s} --for done\` and mark the PR ready`,
   done: () => "the user reviews and merges the PR",
-  v1: () =>
-    "a run from solodev v2.1.1 or earlier: finish it with `npx -y github:luisintosh/solodev#v2.1.1`, or restart from its approved spec",
 }
 
-export async function featureStatus(root: string, slug: string, deps: StatusDeps): Promise<FeatureStatus> {
-  const dir = featureDir(root, slug)
+/** `root` is the project, `state` the repo's folder of features (state.ts). */
+export async function featureStatus(
+  root: string,
+  state: string,
+  slug: string,
+  deps: StatusDeps,
+): Promise<FeatureStatus> {
+  const dir = featureDir(state, slug)
   const notes: string[] = []
   const done = (stage: Stage, extra: Partial<FeatureStatus> = {}): FeatureStatus => ({
     slug,
@@ -60,30 +64,31 @@ export async function featureStatus(root: string, slug: string, deps: StatusDeps
     ...extra,
   })
 
-  const gates = await gateCommits(root, slug)
-  if (!gates.length && (await exists(path.join(dir, "state.yaml")))) return done("v1")
-  const spec = await readIfExists(path.join(dir, "spec.md"))
   const plan = await readIfExists(path.join(dir, "plan.md"))
-  if (spec === undefined || plan === undefined) return done("spec")
-  if (!gates.length) return done("gate")
+  if (plan === undefined || !(await exists(path.join(dir, "spec.md")))) return done("spec")
+  const { approval, matches } = await currentApproval(dir)
+  if (!approval) return done("gate")
+  if (!matches) {
+    notes.push("spec.md or plan.md changed since approval")
+    return done("gate")
+  }
 
-  const gate = gates[0]!.sha
-  const writer = gates[gates.length - 1]!.writer
+  const approved = `${approval.date} at ${approval.at.slice(0, 7)}`
   const review = await readIfExists(path.join(dir, "review.md"))
-  if (review === undefined) return done("implement", { gate, writer })
+  if (review === undefined) return done("implement", { approved })
   const open = parseReview(review).filter(
     (f) => f.status === "open" && (f.severity === "blocker" || f.severity === "major"),
   )
   if (open.length) {
     notes.push(`open: ${open.map((f) => f.id).join(", ")}`)
-    return done("review", { gate, writer })
+    return done("review", { approved })
   }
 
   const pr = await deps.pr(root)
   if (pr === undefined) notes.push("couldn't read the PR (is gh installed and logged in?)")
-  if (!pr) return done("pr", { gate, writer, pr: pr ?? undefined })
-  if (pr.state === "MERGED") return done("done", { gate, writer, pr, notes: [...notes, "merged"] })
-  if (!pr.isDraft) return done("done", { gate, writer, pr })
+  if (!pr) return done("pr", { approved, pr: pr ?? undefined })
+  if (pr.state === "MERGED") return done("done", { approved, pr, notes: [...notes, "merged"] })
+  if (!pr.isDraft) return done("done", { approved, pr })
 
   try {
     const uncovered = parsePlan(plan).uncovered
@@ -95,12 +100,12 @@ export async function featureStatus(root: string, slug: string, deps: StatusDeps
   } catch (err) {
     notes.push((err as Error).message)
   }
-  return done("qa", { gate, writer, pr })
+  return done("qa", { approved, pr })
 }
 
-/** Feature slugs under docs/feats/, newest directory first. */
-export async function listFeatures(root: string): Promise<string[]> {
-  const base = path.join(root, "docs", "feats")
+/** Feature slugs in the repo's state folder, newest directory first. */
+export async function listFeatures(state: string): Promise<string[]> {
+  const base = state
   let entries: string[]
   try {
     entries = await fs.readdir(base)
@@ -116,16 +121,16 @@ export async function listFeatures(root: string): Promise<string[]> {
 }
 
 /** The slug the current branch names (`feat/<slug>`), when that feature exists. */
-export async function branchFeature(root: string): Promise<string | undefined> {
+export async function branchFeature(root: string, state: string): Promise<string | undefined> {
   const branch = await currentBranch(root)
   const slug = branch.match(/^feat\/(.+)$/)?.[1]
-  if (slug && (await exists(featureDir(root, slug)))) return slug
+  if (slug && (await exists(featureDir(state, slug)))) return slug
   return undefined
 }
 
 export function formatStatus(s: FeatureStatus): string {
   const lines = [`${s.slug}: ${s.stage}`]
-  if (s.gate) lines.push(`  gate: ${s.gate.slice(0, 7)}${s.writer ? ` · writer ${s.writer}` : ""}`)
+  if (s.approved) lines.push(`  approved: ${s.approved}`)
   if (s.pr) lines.push(`  pr: ${s.pr.url}${s.pr.isDraft ? " (draft)" : ""}`)
   for (const n of s.notes) lines.push(`  note: ${n}`)
   lines.push(`  next: ${s.next}`)

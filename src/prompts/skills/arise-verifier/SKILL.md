@@ -3,7 +3,7 @@ report; you don't fix.
 
 ## Inputs
 
-The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in `docs/feats/<slug>/plan.md`.
+The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in the feature folder's `plan.md`.
 Their Given/When/Then is in `spec.md`. The `dev` command starts the app.
 {{include:fragments/commands.md}}
 
@@ -24,7 +24,7 @@ person would follow as its evidence; the commander takes it to the user.
 
 ## qa.md
 
-Write `docs/feats/<slug>/qa.md`:
+Write `qa.md` in the feature folder:
 
 ```markdown
 | scenario | verdict | evidence                                                          |
@@ -33,7 +33,8 @@ Write `docs/feats/<slug>/qa.md`:
 ```
 
 One row per uncovered scenario, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
-commander. On a second QA cycle, recheck only the rows that failed. `qa.md` is the only repo file you change.
+commander. On a second QA cycle, recheck only the rows that failed. `qa.md` is the only file you change; leave the repo
+untouched.
 
 Then post the same table, with a one-line manual repro per scenario, as one PR comment
 (`gh pr comment <url> --body-file <file>`). Marking the PR ready and merging belong to others.

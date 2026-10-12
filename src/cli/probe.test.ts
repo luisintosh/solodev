@@ -20,7 +20,9 @@ function deps(over: Partial<ProbeDeps> = {}): ProbeDeps {
     env: { CLAUDECODE: "1" },
     platform: "darwin",
     root: "/repo",
+    state: "/home/u/.agents/skills/solodev/acme/repo",
     home: "/home/u",
+    writable: async () => true,
     exec: async (cmd, args) => {
       const key = `${cmd} ${args.join(" ")}`
       if (key === "orca status --json") return { code: 0, stdout: ready }
@@ -49,7 +51,16 @@ describe("probe", () => {
     expect(p.tools.claude.launch.think).toEqual({ agent: "claude", model: "claude-opus-5-5", effort: "medium" })
     expect(p.defaults).toEqual({ writer: "ask", dispatch: "auto" })
     expect(p.agentsMd.missing).toEqual([])
+    expect(p.state).toEqual({ dir: "/home/u/.agents/skills/solodev/acme/repo", writable: true })
     expect(p.warnings).toEqual([])
+  })
+
+  test("warns when this session can't write the state folder", async () => {
+    const p = await probe(deps({ writable: async () => false }), models)
+    expect(p.state.writable).toBe(false)
+    expect(p.warnings).toContain(
+      "can't write to /home/u/.agents/skills/solodev/acme/repo; allow it in this tool's sandbox before /arise",
+    )
   })
 
   test("without Orca's orchestration skill only the home tool can write", async () => {

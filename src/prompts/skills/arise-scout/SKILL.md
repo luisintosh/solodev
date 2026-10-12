@@ -34,8 +34,6 @@ A concise system overview: the module map, how data flows between modules, key d
 are organized. Add one line for domain docs: a short `README.md` signpost in the directory that owns a domain, with the
 detail in doc comments. Don't write them now; the coder does when a feature touches that domain.
 
-Create `docs/feats/.gitkeep` so feature folders have a home.
-
 {{include:fragments/doc-style.md}}
 
 Finish with a short summary: files created or skipped, the commands you confirmed, and anything you couldn't determine.

@@ -24,7 +24,7 @@ export function isTool(value: string): value is Tool {
   return (TOOLS as readonly string[]).includes(value)
 }
 
-/** `<tool>/<model>/<effort>`, the form the Solodev-Writer trailer and the gate card use. */
+/** `<tool>/<model>/<effort>`, the form the gate card and progress.md use. */
 export function writerId(tool: Tool, ref: ModelRef): string {
   return [tool, ref.id, ref.effort].filter(Boolean).join("/")
 }

@@ -73,5 +73,5 @@ filed as GitHub issues only if the user says yes. Formats: [references/formats.m
 
 ## Limits
 
-You write only under `docs/product/<slug>/` (and `/tmp` for issue drafts): no code, no `docs/feats/`, no other idea's
+You write only under `docs/product/<slug>/` (and `/tmp` for issue drafts): no code, no feature folders, no other idea's
 folder. The step 9 reviewer is your only delegation.
