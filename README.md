@@ -165,8 +165,13 @@ run only when they add something.
 
 Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
 security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
-[agent-browser](https://github.com/vercel-labs/agent-browser). Budgets: two attempts per journey, one fix round and one
-re-review, two QA cycles; a spent budget asks you instead of thrashing.
+[agent-browser](https://github.com/vercel-labs/agent-browser); one it can't automate comes to you to check or waive.
+Budgets: two attempts per journey (a failing test or build command at the PR step gets a fix round from the same
+budget), one review fix round and one re-review, two QA cycles; a spent budget asks you instead of thrashing.
+
+You're asked only at the spec questions, the gate, findings left after the re-review, a shadow's question or blocker, a
+QA scenario that needs a person, a spent budget, a failed Orca worker, and the ready PR. Open minor findings, waived
+scenarios and deferred findings show up on the finish card as follow-up tickets.
 
 ### The `solodev` CLI
 
@@ -180,16 +185,16 @@ solodev check <slug> [--for implement|pr|done]   the checks that gate the next s
 solodev help [<command>]               what each command does
 ```
 
-| Check | Proves                                                                                                    |
-| ----- | --------------------------------------------------------------------------------------------------------- |
-| C1    | typecheck, lint, test and build from the AGENTS.md commands pass                                          |
-| C2    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists |
-| C3    | each journey test fails against the gate commit's code and passes now                                     |
-| C4    | no journey test gained skip/only markers, lost assertions or was deleted since it was first committed     |
-| C5    | no code was committed before the gate                                                                     |
-| C6    | reviewer and verifier commits changed only their report                                                   |
-| C7    | `review.md` has no open blocker or major                                                                  |
-| C8    | every uncovered scenario has a passing verdict in `qa.md`                                                 |
+| Check | Proves                                                                                                      |
+| ----- | ----------------------------------------------------------------------------------------------------------- |
+| C1    | typecheck, lint, test and build from the AGENTS.md commands pass                                            |
+| C2    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists   |
+| C3    | each journey test fails against the gate commit's code and passes now                                       |
+| C4    | no test was skipped, deleted or lost assertions: journey tests since first committed, others since the gate |
+| C5    | no code was committed before the gate                                                                       |
+| C6    | reviewer and verifier commits changed only their report                                                     |
+| C7    | `review.md` has no open blocker or major                                                                    |
+| C8    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                               |
 
 ## Models
 
@@ -230,9 +235,9 @@ docs/
   feats/<feature>/
     spec.md                     what and why, with @S<n> acceptance scenarios
     plan.md                     approach and journeys (one test file each)
-    review.md                   review findings and their status
-    qa.md                       verdicts for scenarios no test covers
-    progress.md                 decisions and attempts, for resuming
+    review.md                   review findings and their status (written even when clean)
+    qa.md                       verdicts for scenarios no test covers (pass, fail, manual, waived)
+    progress.md                 the request verbatim, decisions and attempts, for resuming
   product/<slug>/roadmap.md     optional, from /arise-planner
 src/<domain>/README.md          domain docs, kept current by arise-documenter
 .agents/bin/solodev.mjs         the workflow CLI

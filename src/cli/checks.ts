@@ -211,6 +211,10 @@ const ASSERTIONS =
 
 const count = (text: string, re: RegExp) => [...text.matchAll(re)].length
 
+/** Test files by the common JS, Python and Go naming conventions. */
+const TEST_FILE =
+  /(^|\/)(tests?|__tests__|spec)\/|[._-](test|spec)\.[cm]?[jt]sx?$|_test\.(go|py)$|(^|\/)test_[^/]*\.py$/
+
 async function c4(ctx: CheckContext): Promise<CheckResult> {
   let plan: Plan
   try {
@@ -222,16 +226,16 @@ async function c4(ctx: CheckContext): Promise<CheckResult> {
   let deleted = false
   let flagged = false
   let checked = 0
-  for (const j of plan.journeys) {
-    const first = await firstAdded(ctx.root, j.test)
-    if (!first) continue
+
+  /** Compares a test's current text with `original` (its text at `ref`). */
+  const compare = async (file: string, original: string, ref: string) => {
     checked++
-    const original = await git(ctx.root, ["show", `${first}:${j.test}`])
-    const current = await readIfExists(path.join(ctx.root, j.test))
+    const short = ref.slice(0, 7)
+    const current = await readIfExists(path.join(ctx.root, file))
     if (current === undefined) {
       deleted = true
-      details.push(`${j.test} was deleted after ${first.slice(0, 7)} added it`)
-      continue
+      details.push(`${file} was deleted since ${short}`)
+      return
     }
     const skips = count(current, SKIP_MARKERS) - count(original, SKIP_MARKERS)
     const lost = count(original, ASSERTIONS) - count(current, ASSERTIONS)
@@ -242,14 +246,33 @@ async function c4(ctx: CheckContext): Promise<CheckResult> {
         lost > 0 ? `${lost} assertion(s) removed` : "",
       ]
       details.push(
-        `${j.test}: ${what.filter(Boolean).join(", ")} since ${first.slice(0, 7)} — show the user \`git diff ${first.slice(0, 7)} -- ${j.test}\` and ask`,
+        `${file}: ${what.filter(Boolean).join(", ")} since ${short} — show the user \`git diff ${short} -- ${file}\` and ask`,
       )
     }
   }
+
+  // Journey tests: against the version first committed, which is the contract.
+  const journeyTests = new Set(plan.journeys.map((j) => j.test))
+  for (const test of journeyTests) {
+    const first = await firstAdded(ctx.root, test)
+    if (first) await compare(test, await git(ctx.root, ["show", `${first}:${test}`]), first)
+  }
+
+  // Every other test the feature touched: against the gate commit, where it already protected existing behavior.
+  const gate = (await gateCommits(ctx.root, ctx.slug))[0]
+  if (gate) {
+    const changed = (await git(ctx.root, ["diff", "--name-only", gate.sha])).split("\n").filter(Boolean)
+    for (const file of changed) {
+      if (journeyTests.has(file) || file.startsWith(featurePath(ctx.slug)) || !TEST_FILE.test(file)) continue
+      const before = await run("git", ["show", `${gate.sha}:${file}`], { cwd: ctx.root })
+      if (before.code === 0) await compare(file, before.stdout, gate.sha)
+    }
+  }
+
   if (deleted) return result("C4", "fail", details[0]!, details.slice(1))
-  if (flagged) return result("C4", "warn", "a journey test may have been weakened", details)
-  if (!checked) return result("C4", "skip", "no journey test committed yet")
-  return result("C4", "pass", `${checked} journey test${checked === 1 ? "" : "s"} unchanged in strength`)
+  if (flagged) return result("C4", "warn", "a test may have been weakened", details)
+  if (!checked) return result("C4", "skip", "no committed test to compare yet")
+  return result("C4", "pass", `${checked} test${checked === 1 ? "" : "s"} unchanged in strength`)
 }
 
 async function c5(ctx: CheckContext): Promise<CheckResult> {
@@ -324,6 +347,9 @@ async function c7(ctx: CheckContext): Promise<CheckResult> {
   )
 }
 
+/** `waived` is the user's call on a scenario nobody could automate; the finish card lists it. */
+const PASSING_VERDICTS = ["pass", "waived"]
+
 async function c8(ctx: CheckContext): Promise<CheckResult> {
   let plan: Plan
   try {
@@ -339,7 +365,8 @@ async function c8(ctx: CheckContext): Promise<CheckResult> {
   for (const s of plan.uncovered) {
     const v = verdicts.get(s)
     if (!v) details.push(`${s} has no verdict in qa.md`)
-    else if (v.verdict !== "pass") details.push(`${s} ${v.verdict}: ${v.evidence}`)
+    else if (v.verdict === "manual") details.push(`${s} needs a person: ask the user to check it or waive it`)
+    else if (!PASSING_VERDICTS.includes(v.verdict)) details.push(`${s} ${v.verdict}: ${v.evidence}`)
   }
   if (details.length) return result("C8", "fail", details[0]!, details.slice(1))
   return result("C8", "pass", `${plan.uncovered.length} uncovered scenario(s) verified`)

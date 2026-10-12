@@ -20,14 +20,18 @@ Every changed line traces to a scenario in your brief or to a finding you were s
 
 ## Tests stay honest
 
-Once committed, a journey test is the contract. Getting to green by skipping, focusing, deleting or loosening it isn't
-done: `solodev check` compares each journey test with the version first committed and flags that. A scenario that seems
-wrong is a question for the commander.
+Once committed, a journey test is the contract, and every test already in the repo protects behavior someone relied on.
+Getting to green by skipping, focusing, deleting or loosening any of them isn't done: `solodev check` compares journey
+tests with their first committed version and other changed tests with the gate commit, and flags that. A test or
+scenario that seems wrong is a `question` for the commander.
 
 ## Fix rounds
 
 Findings arrive by id. Fix each one, or rebut it with a one-line reason citing `file:line`. Keep the change to the
 findings, and leave `review.md` to the reviewer.
+
+A failing command from `solodev check` (C1) is a fix round too: no new acceptance test, just the smallest change that
+makes that command pass while every other test stays green.
 
 ## Before you reply
 

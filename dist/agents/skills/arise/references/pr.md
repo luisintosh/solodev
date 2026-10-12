@@ -10,8 +10,8 @@ issue run.
    body under `## Setup required`, naming its README. Replace an existing section rather than adding a second.
 2. `gh pr ready <url>`.
 3. The finish card: the PR link, the QA comment link if any, scenarios passing, review rounds and attempts used, the
-   setup lines, and each deferred finding as a follow-up ticket with a title and body ready to paste. You don't file
-   them.
+   setup lines, `waived` QA scenarios, and each `deferred` finding and open `minor` (including `Tech debt:` ones) as a
+   follow-up ticket with a title and body ready to paste. You don't file them.
 4. Handoff, for an issue that belongs to a roadmap epic: take the first unchecked `- [ ] #<n>` entry in the epic that
    isn't this feature. If its `Blocked by` issues are all closed, say it's ready; otherwise say this PR has to merge
    first. Print the line to run next: `/arise #<n>`.

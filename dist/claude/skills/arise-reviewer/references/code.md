@@ -18,7 +18,7 @@ One pass over the whole diff covers all three areas. Test files in the diff are 
 - **Security:** authorization on every newly reachable path, validation where input crosses a trust boundary, no secrets
   or tokens in code or logs.
 - **Test quality:** tests assert behavior, not implementation; none passes only because a mock was called or relies on
-  another test's order or leftovers.
+  another test's order or leftovers. Any existing test skipped, deleted or loosened to get green is a `blocker`.
 - **Residue:** no comments narrating the change ("changed from X per review"), no commented-out old code, no debug
   output.
 
@@ -43,7 +43,7 @@ coincidence, the third is a pattern; apply a pattern only where its trigger is i
 A structural finding counts only when the diff introduces or extends the smell; search for the other sites before
 claiming two or more. A convention written in `docs/ARCHITECTURE.md` counts as a project rule. Sites in the diff are
 fixed now; sites outside it are fixed in the same round when that stays within about five files and 150 lines and each
-has a test that runs it. The rest becomes a `minor` finding whose text starts `Tech debt:`, which the commander defers
-and suggests as a ticket.
+has a test that runs it. The rest becomes a `minor` finding whose text starts `Tech debt:`; open minors don't block, and
+the finish card suggests each as a ticket.
 
 A large diff: review the riskiest files first and name in your reply what you didn't reach.
