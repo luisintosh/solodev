@@ -1,9 +1,11 @@
 # PR and finish
 
-**Draft PR (step 7).** `gh pr create --draft` against the default branch. The spec and plan stay outside the repo, so
-the body carries what a reviewer needs from them: what changed in three to five bullets, each scenario (`@S<n>` and its
-Then) with the journey test that proves it or `uncovered`, findings deferred or dropped, and `Closes #<n>` for an issue
-run.
+**Draft PR (step 7).** `gh pr create --draft` against the default branch. The body opens with the approval as a quote
+block: `**Spec approved** <date> by @<login>` (`gh api user --jq .login`; "the user" without gh), then the approval line
+from `progress.md` and the coder. Re-approved after an edit → the latest line, plus
+`(re-approved after: <one-line reason>)`. The spec and plan stay outside the repo, so the rest carries what a reviewer
+needs from them: what changed in three to five bullets, each scenario (`@S<n>` and its Then) with the journey test that
+proves it or `uncovered`, findings deferred or dropped, and `Closes #<n>` for an issue run.
 
 **Finish (step 9).**
 
