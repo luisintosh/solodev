@@ -22,12 +22,13 @@
     {
       "id": 2,
       "prompt": "Add a --version flag to the CLI that prints the package.json version.",
-      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander stops at start and asks the user to run /arise-scout.",
+      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander mentions /arise-scout as optional, finds the commands from package.json and continues to the spec.",
       "files": ["test/fixture-repo"],
       "expectations": [
         "The commander ran `solodev probe` and noticed AGENTS.md was missing",
-        "The reply asks the user to run /arise-scout, then re-invoke /arise",
-        "No branch, feature folder or code was created"
+        "The reply mentions /arise-scout as optional and does not wait for it",
+        "The commander found the test commands from package.json (npm test, vitest) and went on to cut feat/<slug> and write the spec",
+        "No AGENTS.md was written"
       ]
     },
     {

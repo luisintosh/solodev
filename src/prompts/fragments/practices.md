@@ -25,8 +25,9 @@
 
 ## Structure
 
-Follow the repo's existing idiom first (`docs/ARCHITECTURE.md`, neighbouring modules). One occurrence is code, two is a
-coincidence, the third is a pattern; apply a pattern only where its trigger is in code this change writes or touches.
+Follow the repo's existing idiom first (`docs/ARCHITECTURE.md` when present, neighbouring modules). One occurrence is
+code, two is a coincidence, the third is a pattern; apply a pattern only where its trigger is in code this change writes
+or touches.
 
 - **Duplicated logic:** the same branch on a kind at two or more sites (a factory or a `kind → handler` map), the same
   sequence of three or more calls (one function), the same wrapper for retry, cache, auth or timing (one decorator), an

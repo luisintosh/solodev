@@ -1621,7 +1621,7 @@ function doctor(targetDir, home) {
   if (isGitRepo(targetDir)) log(`  [ok]   ${targetDir} is a git repository`);
   else log(`  [warn] ${targetDir} is not a git repository`);
   if (fsSync.existsSync(path.join(targetDir, "AGENTS.md"))) log("  [ok]   AGENTS.md present");
-  else log("  [warn] AGENTS.md missing \u2014 run /arise-scout first");
+  else log("  [info] AGENTS.md missing \u2014 optional: /arise-scout");
   log("  paths:");
   log(`    skills          ${targetDir}/.agents/skills/  or  ${home}/.agents/skills/`);
   log(`    solodev CLI     ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`);
@@ -1646,7 +1646,7 @@ function doctor(targetDir, home) {
 }
 function suggestNextSteps() {
   log("Next steps:");
-  log("  1. /arise-scout \u2014 write AGENTS.md (the commands list) + docs/ARCHITECTURE.md");
+  log("  1. Optional: /arise-scout \u2014 write AGENTS.md (the commands list) + docs/ARCHITECTURE.md once");
   if (!onPath("gh")) {
     log("  2. Install gh (required by the pipeline):");
     log("       brew install gh && gh auth login");

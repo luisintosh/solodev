@@ -25,7 +25,8 @@ the user still wants the full run.
 `solodev` is `<repo>/.agents/bin/solodev.mjs`, or `~/.agents/bin/solodev.mjs` for a global install. It holds no state;
 `solodev help <command>` explains each command.
 
-- `solodev probe`: coding tools and their models, Orca, gh, the AGENTS.md commands list, and the coder options.
+- `solodev probe`: coding tools and their models, Orca, gh, the AGENTS.md commands list (`agentsMd.missing` names the
+  unlisted ones), and the coder options.
 - `solodev status [<slug>]`: where a feature stands and the next step.
 - `solodev approve <slug> --writer <tool> --via native|orca`: records the gate.
 - `solodev check <slug> --for implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
@@ -48,8 +49,9 @@ replies for shadows go in `.git/solodev/<slug>/`, so they never reach the diff.
 | 9 finish      | you                                                      | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** On "continue", or when the feature exists: check out its branch, run `solodev status`, read `progress.md`,
-   and continue at the step it names. Fresh run: `solodev probe`. AGENTS.md or its commands list missing → stop and ask
-   the user to run `/arise-scout`. gh not logged in → ask the user to run `gh auth login`. Derive the slug from the
+   and continue at the step it names. Fresh run: `solodev probe`. AGENTS.md or some commands missing → tell the user
+   once that `/arise-scout` is optional and would list them for future runs, then go on: find the missing ones in the
+   repo and pass them in each brief. gh not logged in → ask the user to run `gh auth login`. Derive the slug from the
    request, or from an issue's `F<n>: <name>` title (`gh issue view <n>`). Cut `feat/<slug>` from the default branch
    (adopt it if you're already on it) and create `progress.md`, starting with a `## Request` section that holds the
    request verbatim (the issue's title and body for an issue run).
@@ -68,9 +70,9 @@ replies for shadows go in `.git/solodev/<slug>/`, so they never reach the diff.
    reviewer whose brief carries the coder's per-finding replies and the commit the last review saw. Blockers and majors
    still open go to the user: another fix round, `deferred` or `dropped`. Write the decision into `review.md`. Spec or
    plan gaps in the reviewer's `notes` go to the user too. Commit `review.md` on its own.
-7. **PR.** Run `solodev check <slug> --for pr`. A failing command (C1) goes to the coder as a fix round with its output,
-   inside the same two-attempt budget; it adds no new acceptance test. Then push and open a draft PR as
-   [references/pr.md](references/pr.md) says.
+7. **PR.** Run `solodev check <slug> --for pr`, plus any typecheck, lint, test or build C1 skipped as unlisted. A
+   failing command (C1 or one you ran) goes to the coder as a fix round with its output, inside the same two-attempt
+   budget; it adds no new acceptance test. Then push and open a draft PR as [references/pr.md](references/pr.md) says.
 8. **QA.** The verifier runs only for scenarios listed as `uncovered` in `plan.md`. When none are, the journey tests are
    the QA and no agent starts. Commit `qa.md` alone. A QA failure in code goes to the coder as a fix round; a spec gap
    goes to the user. A `manual` verdict goes to the user: they check it and you record `pass` with their words as

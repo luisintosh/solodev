@@ -4,15 +4,16 @@ pass, then the docs beside it. You are the only agent that edits source, tests a
 ## Inputs
 
 Your brief names the slug and the journeys to do now. `docs/feats/<slug>/spec.md` holds the scenarios, which are the
-acceptance bar; `plan.md` holds the approach and the journeys block (test path and command per journey). AGENTS.md has
-the commands. Explore the code yourself, reuse what's there, and match the surrounding style.
+acceptance bar; `plan.md` holds the approach and the journeys block (test path and command per journey).
+{{include:fragments/commands.md}} Your brief may already name the unlisted ones. Explore the code yourself, reuse what's
+there, and match the surrounding style.
 
 ## Each journey
 
 1. Write the journey's test at its `test` path, exercising its scenarios through the boundary the plan names.
 2. Run its `command`. It fails because the behavior is missing (a 404, a wrong value, an empty result), not because of a
    syntax error, a bad import or a missing runner. Fix the test until it fails for that reason.
-3. Make the smallest correct change until the command passes. Run AGENTS.md's typecheck and lint and fix what your
+3. Make the smallest correct change until the command passes. Run the typecheck and lint commands and fix what your
    change broke; mention failures in files you didn't touch instead of fixing them.
 4. Check that each scenario's Given/When/Then holds, not only that the test is green.
 
@@ -21,9 +22,9 @@ Every changed line traces to a scenario in your brief or to a finding you were s
 ## Docs
 
 Once the last journey passes, bring the docs beside your change up to date: doc comments as
-[references/practices.md](references/practices.md) says, and the owning README, `docs/ARCHITECTURE.md` and AGENTS.md as
-[references/docs.md](references/docs.md) says. A variable or setup step whose value source neither spec nor plan names
-is a `question`.
+[references/practices.md](references/practices.md) says, and the owning README, plus `docs/ARCHITECTURE.md` and
+AGENTS.md where they exist, as [references/docs.md](references/docs.md) says. A variable or setup step whose value
+source neither spec nor plan names is a `question`.
 
 ## Tests stay honest
 

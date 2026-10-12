@@ -509,7 +509,7 @@ function doctor(targetDir: string, home: string) {
   else log(`  [warn] ${targetDir} is not a git repository`)
 
   if (fsSync.existsSync(path.join(targetDir, "AGENTS.md"))) log("  [ok]   AGENTS.md present")
-  else log("  [warn] AGENTS.md missing — run /arise-scout first")
+  else log("  [info] AGENTS.md missing — optional: /arise-scout")
 
   log("  paths:")
   log(`    skills          ${targetDir}/.agents/skills/  or  ${home}/.agents/skills/`)
@@ -540,7 +540,7 @@ function doctor(targetDir: string, home: string) {
 
 function suggestNextSteps() {
   log("Next steps:")
-  log("  1. /arise-scout — write AGENTS.md (the commands list) + docs/ARCHITECTURE.md")
+  log("  1. Optional: /arise-scout — write AGENTS.md (the commands list) + docs/ARCHITECTURE.md once")
   if (!onPath("gh")) {
     log("  2. Install gh (required by the pipeline):")
     log("       brew install gh && gh auth login")
