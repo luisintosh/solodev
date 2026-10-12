@@ -68,8 +68,8 @@ describe("repoKey", () => {
     expect(await repoKey(path.join(base, "hola-app-wt"))).toBe("hola-app")
   })
 
-  test("lives under SOLODEV_STATE or ~/.agents/skills/solodev", async () => {
-    expect(stateRoot({}, "/home/u")).toBe("/home/u/.agents/skills/solodev")
+  test("lives under SOLODEV_STATE or ~/.agents/solodev", async () => {
+    expect(stateRoot({}, "/home/u")).toBe("/home/u/.agents/solodev")
     expect(await stateDir(path.join(base, "hola-app"), { SOLODEV_STATE: "/tmp/s" }, "/home/u")).toBe("/tmp/s/hola-app")
   })
 })
