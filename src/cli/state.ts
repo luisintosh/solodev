@@ -1,9 +1,9 @@
 import * as path from "node:path"
 import { run } from "./exec.ts"
 
-/** Where feature folders live, outside every repo: `SOLODEV_STATE`, else `~/.agents/skills/solodev`. */
+/** Where feature folders live, outside every repo: `SOLODEV_STATE`, else `~/.agents/solodev`. */
 export function stateRoot(env: NodeJS.ProcessEnv, home: string): string {
-  return env.SOLODEV_STATE ? path.resolve(env.SOLODEV_STATE) : path.join(home, ".agents", "skills", "solodev")
+  return env.SOLODEV_STATE ? path.resolve(env.SOLODEV_STATE) : path.join(home, ".agents", "solodev")
 }
 
 const SEGMENT = /^[A-Za-z0-9._-]+$/
