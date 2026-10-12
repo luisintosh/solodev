@@ -1,6 +1,7 @@
 import * as path from "node:path"
+import { parse as parseYaml } from "yaml"
 import { COMMAND_NAMES, parseCommands } from "./feature.ts"
-import { type Models, TOOLS, type Tool, writerId } from "./models.ts"
+import { isTool, type ModelRef, type Models, TOOLS, type Tool, writerId } from "./models.ts"
 
 export type ProbeDeps = {
   env: Record<string, string | undefined>
@@ -14,6 +15,9 @@ export type ProbeDeps = {
   read: (filePath: string) => Promise<string | undefined>
 }
 
+/** What `orca orchestration worker-start --agent <agent> --model <model> --effort <effort>` takes. */
+export type Launch = { agent: Tool; model: string; effort?: string }
+
 export type ToolProbe = {
   cli: string
   installed: boolean
@@ -23,9 +27,13 @@ export type ToolProbe = {
   skills: boolean
   think: string
   implement: string
+  launch: { think: Launch; implement: Launch }
 }
 
-export type WriterOption = { tool: Tool; via: "native" | "orca"; model: string; recommended: boolean }
+export type WriterOption = { tool: Tool; via: "native" | "orca"; model: string; launch: Launch; recommended: boolean }
+
+/** Personal defaults from `~/.agents/solodev.yaml`; usage limits belong to a person, not a repo. */
+export type Defaults = { writer: Tool | "ask"; dispatch: "auto" | "orca" }
 
 export type Probe = {
   home: Tool | null
@@ -33,6 +41,7 @@ export type Probe = {
   orca: { cli: string; ready: boolean; reason: string }
   gh: { installed: boolean; loggedIn: boolean }
   agentsMd: { found: boolean; lines: number; commands: Record<string, string | null>; missing: string[] }
+  defaults: Defaults
   writers: WriterOption[]
   warnings: string[]
 }
@@ -45,6 +54,31 @@ const SKILL_DIRS: Record<Tool, string[]> = {
   claude: [".claude/skills"],
   codex: [".agents/skills"],
   cursor: [".agents/skills", ".cursor/skills", ".claude/skills"],
+}
+
+function launch(tool: Tool, ref: ModelRef): Launch {
+  return ref.effort ? { agent: tool, model: ref.id, effort: ref.effort } : { agent: tool, model: ref.id }
+}
+
+export function parseDefaults(raw: string | undefined, warnings: string[]): Defaults {
+  const out: Defaults = { writer: "ask", dispatch: "auto" }
+  if (raw === undefined) return out
+  let doc: { writer?: unknown; dispatch?: unknown }
+  try {
+    doc = (parseYaml(raw) ?? {}) as typeof doc
+  } catch {
+    warnings.push("~/.agents/solodev.yaml is not valid YAML; using writer: ask, dispatch: auto")
+    return out
+  }
+  if (doc.writer !== undefined) {
+    if (doc.writer === "ask" || (typeof doc.writer === "string" && isTool(doc.writer))) out.writer = doc.writer
+    else warnings.push(`~/.agents/solodev.yaml: writer must be ask, claude, codex or cursor (got ${doc.writer})`)
+  }
+  if (doc.dispatch !== undefined) {
+    if (doc.dispatch === "auto" || doc.dispatch === "orca") out.dispatch = doc.dispatch
+    else warnings.push(`~/.agents/solodev.yaml: dispatch must be auto or orca (got ${doc.dispatch})`)
+  }
+  return out
 }
 
 /** Same resolution order as Orca's orchestration skill. */
@@ -128,6 +162,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
           skills: await hasSkill(deps, tool),
           think: writerId(tool, models[tool].think),
           implement: writerId(tool, models[tool].implement),
+          launch: { think: launch(tool, models[tool].think), implement: launch(tool, models[tool].implement) },
         },
       ]
     }),
@@ -146,14 +181,30 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     warnings.push(`AGENTS.md is ${lines} lines; keep it near the commands list (about 100 lines at most)`)
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
 
+  const defaults = parseDefaults(await deps.read(path.join(deps.home, ".agents", "solodev.yaml")), warnings)
+  if (defaults.dispatch === "orca" && !orca.ready) {
+    warnings.push(`dispatch: orca, but Orca isn't ready (${orca.reason}); shadows run natively`)
+  }
+
   // Another tool first: it saves the home tool's usage and gives every PR a review from another model family.
   const writers: WriterOption[] = []
+  const offer = (tool: Tool, via: WriterOption["via"]) =>
+    writers.push({
+      tool,
+      via,
+      model: tools[tool].implement,
+      launch: tools[tool].launch.implement,
+      recommended: writers.length === 0,
+    })
   for (const tool of TOOLS) {
     const t = tools[tool]
     if (tool === home || !orca.ready || !t.installed || t.loggedIn === false || !t.skills) continue
-    writers.push({ tool, via: "orca", model: t.implement, recommended: writers.length === 0 })
+    offer(tool, "orca")
   }
-  if (home) writers.push({ tool: home, via: "native", model: tools[home].implement, recommended: writers.length === 0 })
+  if (home) offer(home, defaults.dispatch === "orca" && orca.ready ? "orca" : "native")
+  if (defaults.writer !== "ask" && !writers.some((w) => w.tool === defaults.writer)) {
+    warnings.push(`writer: ${defaults.writer} is set, but that tool can't write here; ask at the gate instead`)
+  }
 
   return {
     home,
@@ -161,6 +212,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     orca,
     gh: { installed: ghInstalled, loggedIn: ghLoggedIn },
     agentsMd: { found: agents !== undefined, lines, commands: Object.fromEntries(commands), missing },
+    defaults,
     writers,
     warnings,
   }
