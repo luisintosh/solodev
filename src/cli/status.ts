@@ -45,7 +45,8 @@ const NEXT: Record<Stage, (slug: string) => string> = {
   "qa-docs": (s) =>
     `arise-verifier for uncovered scenarios (if any) and arise-documenter; then \`solodev check ${s} --for done\` and mark the PR ready`,
   done: () => "the user reviews and merges the PR",
-  v1: () => "a v1 run: finish it with `npx -y github:luisintosh/solodev#v1.x`, or restart from its approved spec",
+  v1: () =>
+    "a run from solodev v2.1.1 or earlier: finish it with `npx -y github:luisintosh/solodev#v2.1.1`, or restart from its approved spec",
 }
 
 export async function featureStatus(root: string, slug: string, deps: StatusDeps): Promise<FeatureStatus> {
