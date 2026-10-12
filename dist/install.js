@@ -1219,7 +1219,7 @@ function onPath(...bins) {
 }
 function detect() {
   return {
-    cursor: onPath("cursor", "cursor-agent"),
+    cursor: onPath("cursor", "agent"),
     claude: onPath("claude"),
     codex: onPath("codex")
   };

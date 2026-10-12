@@ -33,7 +33,7 @@ function onPath(...bins: string[]): boolean {
 
 function detect(): Record<Host, boolean> {
   return {
-    cursor: onPath("cursor", "cursor-agent"),
+    cursor: onPath("cursor", "agent"),
     claude: onPath("claude"),
     codex: onPath("codex"),
   }

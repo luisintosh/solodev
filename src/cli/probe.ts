@@ -46,7 +46,7 @@ export type Probe = {
   warnings: string[]
 }
 
-const BINARIES: Record<Tool, string> = { claude: "claude", codex: "codex", cursor: "cursor-agent" }
+const BINARIES: Record<Tool, string> = { claude: "claude", codex: "codex", cursor: "agent" }
 
 /** The skill a coder on this tool loads, relative to the repo or $HOME. */
 export const CODER_SKILL = "arise-coder"
@@ -113,7 +113,7 @@ async function loggedIn(deps: ProbeDeps, tool: Tool): Promise<boolean | null> {
     const r = await deps.exec("codex", ["login", "status"])
     return r.code === null ? false : r.code === 0
   }
-  const r = await deps.exec("cursor-agent", ["status"])
+  const r = await deps.exec("agent", ["status"])
   if (r.code !== 0) return r.code === null ? false : null
   return /logged in/i.test(r.stdout) && !/not logged in/i.test(r.stdout)
 }
