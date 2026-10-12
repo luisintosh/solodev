@@ -20,9 +20,14 @@ node tools/eval.ts report                              # mean ± spread per conf
 ```
 
 `run` installs solodev into a throwaway repo (`local` from this checkout's `dist/`, or `ref:<tag>` through npx), runs
-the home tool headless with approvals off, pre-approves the gate in the prompt, and skips the PR (there is no remote).
-It records held-out passes, wall time, cost and tokens where the tool reports them, whether an approval commit was made,
-and the diff size.
+the home tool headless, pre-approves the gate in the prompt, and skips the PR (there is no remote).
+
+**`run` executes agents unattended on your machine**, with your environment and credentials. Each tool is limited as far
+as its CLI allows: Claude Code to an allowlist of edits and git, node and npm commands; Codex to its `workspace-write`
+sandbox. Cursor's headless mode can only approve every command, so Cursor configs refuse to start unless you pass
+`--allow-unsandboxed`; do that only inside a container or VM. Running the whole harness in one is the safer choice for
+any tool. It records held-out passes, wall time, cost and tokens where the tool reports them, whether an approval commit
+was made, and the diff size.
 
 **Release bar:** every `v2-<tool>` config matches or beats the baseline's held-out pass rate, at lower cost and lower
 wall time, over at least three runs per task. The ablation configs justify each cut on its own: spec review and the
