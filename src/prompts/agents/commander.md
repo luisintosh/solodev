@@ -87,8 +87,8 @@ that blocker, and continue at `resume_step` with the decision. `step: 9-delta` �
    remaining failure → record the exact missing piece as a blocker and stop.
 
    `AGENTS.md` must exist and name the install, dev/run, build, test, lint, and typecheck commands (`n/a` counts) —
-   targeted tests, verify, and QA run exactly those. Missing → stop and tell the human to run `/arise-setup-docs`
-   themselves, then re-invoke the pipeline. That skill is user-invoked only; never write `AGENTS.md` yourself.
+   targeted tests, verify, and QA run exactly those. Missing → stop and tell the human to run `/arise-scout` themselves,
+   then re-invoke the pipeline. That skill is user-invoked only; never write `AGENTS.md` yourself.
 
    _Slug_ — resolve it before touching git. "Resume/continue" with no feature named → the `feature` from
    `quest-state next`. Invocation names a GitHub issue → `gh issue view <n> --json number,title,body,state` (or the

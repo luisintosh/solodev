@@ -64,11 +64,12 @@ MCP, skill, or CLI). [rtk](https://github.com/rtk-ai/rtk) is optional.
 ### 2. Set up project docs (once)
 
 ```text
-/arise-setup-docs
+/arise-scout
 ```
 
-This creates `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/CONSTITUTION.md`, and `docs/feats/` if they are missing.
-`AGENTS.md` must list your install, dev, build, test, lint, and typecheck commands, plus how to run a single test file.
+This writes a short `AGENTS.md` and `docs/ARCHITECTURE.md`, and creates `docs/feats/`, if they are missing. `AGENTS.md`
+holds a `## Commands` list (install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none) that
+the `solodev` CLI reads, plus only the constraints the code doesn't show.
 
 ### 3. Plan a whole product (optional)
 
@@ -242,7 +243,8 @@ docs/
   product/<slug>/roadmap.md     optional, from arise-plan
 src/<domain>/README.md          domain docs, kept current by shadow-docs-writer
 .agents/bin/quest-state.mjs    state CLI
-.agents/skills/                 arise, arise-plan, arise-setup-docs
+.agents/bin/solodev.mjs        workflow checks (`solodev.mjs help`)
+.agents/skills/                 arise, arise-plan, arise-scout
 .agents/solodev/checklists/      per-area review checklists
 .claude/  .cursor/agents/  .codex/agents/               host-specific agents
 ```
@@ -261,9 +263,10 @@ The conductor writes all state through the CLI. You can use it to inspect a run:
 src/
   catalog.yaml          host × profile models, per-agent settings  ← source of truth
   prompts/agents/       agent prompt bodies                         ← source of truth
-  prompts/commands/     arise-setup-docs
+  prompts/commands/     arise-scout
   prompts/fragments/    shared includes
   state/                quest-state CLI
+  cli/                  solodev workflow CLI (probe, status, approve, check, help)
 tools/                  transpile, build, install, hygiene check
 evals/                  prompt-behavior and trigger evals
 test/                   e2e install script, fixture repo

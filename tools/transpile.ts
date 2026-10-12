@@ -6,13 +6,7 @@ import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml"
-import {
-  formatClaudeModel,
-  formatCodexModel,
-  formatCursorModel,
-  type Host,
-  type ModelRef,
-} from "./models.ts"
+import { formatClaudeModel, formatCodexModel, formatCursorModel, type Host, type ModelRef } from "./models.ts"
 import { type OrcaRoutes, orcaAgentFile, orcaLaunchCommand, orcaRoutesByAgent } from "../src/state/orca.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")

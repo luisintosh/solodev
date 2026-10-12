@@ -334,13 +334,13 @@ if (catalog) {
   }
 }
 
-try {
-  const stateBin = await readFile(path.join(root, "dist", "bin", "quest-state.mjs"), "utf8")
-  if (!stateBin.startsWith("#!/usr/bin/env node\n")) {
-    fail("dist/bin/quest-state.mjs missing node shebang — run pnpm run build")
+for (const bin of ["quest-state.mjs", "solodev.mjs"]) {
+  try {
+    const body = await readFile(path.join(root, "dist", "bin", bin), "utf8")
+    if (!body.startsWith("#!/usr/bin/env node\n")) fail(`dist/bin/${bin} missing node shebang — run pnpm run build`)
+  } catch {
+    fail(`dist/bin/${bin} missing — run pnpm run build`)
   }
-} catch {
-  fail("dist/bin/quest-state.mjs missing — run pnpm run build")
 }
 for (const stale of ["quest-state", "quest-state.js"]) {
   try {
@@ -474,6 +474,7 @@ async function expectedManifestEntries() {
     ...(await walkFiles(path.join(root, "dist", "codex"))),
     ...(await walkFiles(path.join(root, "dist", "agents"))),
     path.join(root, "dist", "bin", "quest-state.mjs"),
+    path.join(root, "dist", "bin", "solodev.mjs"),
   ]
   const entries: [string, string][] = []
   for (const abs of files.sort()) {

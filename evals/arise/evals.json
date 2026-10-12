@@ -27,7 +27,7 @@
       "files": ["test/fixture-repo"],
       "expectations": [
         "The conductor stopped before running `quest-state init`",
-        "The reply tells the human to run /arise-setup-docs themselves, then re-invoke the pipeline",
+        "The reply tells the human to run /arise-scout themselves, then re-invoke the pipeline",
         "AGENTS.md was not created"
       ]
     },
