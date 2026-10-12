@@ -145,7 +145,16 @@ describe("checks", () => {
     implement()
     const results = await runChecks({ root, slug: "hello", set: "pr", timeoutMs: 30_000 })
     const byId = Object.fromEntries(results.map((r) => [r.id, r.status]))
-    expect(byId).toEqual({ C1: "pass", C2: "pass", C3: "pass", C4: "pass", C5: "pass", C6: "pass", C7: "fail" })
+    expect(byId).toEqual({
+      C1: "pass",
+      C2: "pass",
+      C3: "pass",
+      C4: "pass",
+      C5: "pass",
+      C6: "pass",
+      C7: "fail",
+      C9: "pass",
+    })
   })
 
   test("C1 names a missing command and shows a failing one's output", async () => {
@@ -256,6 +265,28 @@ describe("checks", () => {
     write("docs/feats/hello/qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | pass | ran it |\n")
     expect((await check("C8")).status).toBe("pass")
   })
+  test("C9 fails an env var read since the gate until a README or .env.example names it", async () => {
+    expect((await check("C9")).status).toBe("skip")
+    await gate()
+    implement()
+    expect((await check("C9")).summary).toBe("no new env reads")
+    write("src/pay.js", 'export const key = () => process.env.PAY_KEY ?? process.env["NODE_ENV"]\n')
+    write("test/pay.test.js", "process.env.TEST_ONLY_VAR\n")
+    const r = await check("C9")
+    expect(r.status).toBe("fail")
+    expect(r.details).toEqual([
+      "PAY_KEY read in src/pay.js — add it to the owning README's ## Configuration or .env.example",
+    ])
+    write("docs/feats/hello/plan.md", `${plan()}\nNeeds PAY_KEY.\n`)
+    expect((await check("C9")).status).toBe("fail")
+    write("src/README.md", "# Pay\n\n## Configuration\n\n| PAY_KEY | yes | charges | dashboard |\n")
+    expect((await check("C9")).summary).toBe("1 env var(s) read, all documented")
+    commit("feat: pay")
+    write("src/hook.py", 'secret = os.environ.get("HOOK_SECRET")\n')
+    expect((await check("C9")).details[0]).toContain("HOOK_SECRET read in src/hook.py")
+    write(".env.example", "HOOK_SECRET=\n")
+    expect((await check("C9")).status).toBe("pass")
+  })
 })
 
 describe("status", () => {
@@ -283,7 +314,7 @@ describe("status", () => {
     )
     expect((await featureStatus(root, "hello", pr(null))).stage).toBe("pr")
     const draft = { url: "https://example.com/pr/1", isDraft: true, state: "OPEN" }
-    expect((await featureStatus(root, "hello", pr(draft))).stage).toBe("qa-docs")
+    expect((await featureStatus(root, "hello", pr(draft))).stage).toBe("qa")
     expect((await featureStatus(root, "hello", pr({ ...draft, isDraft: false }))).stage).toBe("done")
   })
 

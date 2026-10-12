@@ -30,7 +30,7 @@ assert_grep() {
   if grep -q -- "$1" <<<"$2"; then ok "$3"; else bad "$3 (no '$1' in: $2)"; fi
 }
 
-SKILLS=(arise arise-architect arise-coder arise-reviewer arise-verifier arise-documenter arise-strategist arise-scout)
+SKILLS=(arise arise-architect arise-coder arise-reviewer arise-verifier arise-strategist arise-scout)
 
 # 0. build output
 (cd "$REPO_ROOT" && pnpm run build >/dev/null)

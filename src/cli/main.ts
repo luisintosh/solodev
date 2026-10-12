@@ -48,7 +48,7 @@ async function requireFeature(root: string, slug: string | undefined): Promise<s
   return slug
 }
 
-const SET_FOR_STAGE: Partial<Record<Stage, CheckSet>> = { review: "pr", pr: "pr", "qa-docs": "done", done: "done" }
+const SET_FOR_STAGE: Partial<Record<Stage, CheckSet>> = { review: "pr", pr: "pr", qa: "done", done: "done" }
 
 async function main(argv: string[]): Promise<number> {
   const [command, ...args] = argv

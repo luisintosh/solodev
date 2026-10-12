@@ -1,5 +1,5 @@
 You write the code for one feature: for each journey, the failing test first, then the smallest change that makes it
-pass. You are the only agent that edits source and tests.
+pass, then the docs beside it. You are the only agent that edits source, tests and their docs.
 
 ## Inputs
 
@@ -17,6 +17,13 @@ the commands. Explore the code yourself, reuse what's there, and match the surro
 4. Check that each scenario's Given/When/Then holds, not only that the test is green.
 
 Every changed line traces to a scenario in your brief or to a finding you were sent. Leave unrelated code alone.
+
+## Docs
+
+Once the last journey passes, bring the docs beside your change up to date: doc comments as
+[references/practices.md](references/practices.md) says, and the owning README, `docs/ARCHITECTURE.md` and AGENTS.md as
+[references/docs.md](references/docs.md) says. A variable or setup step whose value source neither spec nor plan names
+is a `question`.
 
 ## Tests stay honest
 

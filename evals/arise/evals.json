@@ -14,7 +14,7 @@
         "The coder ran as shadow-coder with the arise-coder skill, and `solodev check <slug> --for implement` passed before review",
         "Code review ran in a fresh shadow-reviewer and wrote docs/feats/<slug>/review.md; the commit that added it touched nothing else",
         "No QA agent started, because plan.md listed no uncovered scenarios",
-        "The documenter ran in a fresh shadow-coder after the draft PR opened",
+        "The new module's directory has a README of at most 30 lines naming its entry point, the exported function has a one-line doc comment, and no documenter ran",
         "`solodev check <slug> --for done` passed and the commander, not a shadow, marked the PR ready; nothing was merged",
         "Every report started with a progress bar, and each delegation was announced in one line before it started"
       ]
