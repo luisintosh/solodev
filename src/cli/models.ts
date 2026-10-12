@@ -13,8 +13,7 @@ export function modelsFromCatalog(catalog: CatalogSlice): Models {
   for (const tool of TOOLS) {
     const profiles = catalog.hosts?.[tool]?.profiles ?? {}
     const think = profiles.think
-    // v1 catalogs name the coder's row `execute`.
-    const implement = profiles.implement ?? profiles.execute
+    const implement = profiles.implement
     if (!think?.id || !implement?.id) throw new Error(`catalog: hosts.${tool} needs think and implement profiles`)
     out[tool] = { think, implement }
   }

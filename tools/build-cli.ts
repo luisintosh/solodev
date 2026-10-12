@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build portable Node ESM bundles into dist/bin/: quest-state.mjs (v1 state CLI) and solodev.mjs (workflow CLI).
+ * Build the portable Node ESM workflow CLI into dist/bin/solodev.mjs.
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
@@ -10,10 +10,7 @@ import { parse as parseYaml } from "yaml"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const outDir = path.join(root, "dist", "bin")
-const BUNDLES = [
-  { entry: path.join(root, "src", "state", "cli.ts"), out: path.join(outDir, "quest-state.mjs") },
-  { entry: path.join(root, "src", "cli", "main.ts"), out: path.join(outDir, "solodev.mjs") },
-]
+const BUNDLES = [{ entry: path.join(root, "src", "cli", "main.ts"), out: path.join(outDir, "solodev.mjs") }]
 
 /** Inline `import x from "*.yaml"` as parsed JSON. */
 const yamlPlugin: Plugin = {
@@ -49,7 +46,7 @@ async function bundle(entry: string, outJs: string) {
   await fs.writeFile(outJs, `#!/usr/bin/env node\n${body}`, { mode: 0o755 })
   await fs.chmod(outJs, 0o755)
 }
-await fs.rm(path.join(outDir, "quest-state"), { force: true })
-await fs.rm(path.join(outDir, "quest-state.js"), { force: true })
+for (const stale of ["quest-state.mjs", "quest-state", "quest-state.js"])
+  await fs.rm(path.join(outDir, stale), { force: true })
 
-console.log("build-cli: wrote portable dist/bin/quest-state.mjs and dist/bin/solodev.mjs")
+console.log("build-cli: wrote portable dist/bin/solodev.mjs")

@@ -40,7 +40,7 @@ export type Probe = {
 const BINARIES: Record<Tool, string> = { claude: "claude", codex: "codex", cursor: "cursor-agent" }
 
 /** The skill a coder on this tool loads, relative to the repo or $HOME. */
-export const CODER_SKILL = "arise"
+export const CODER_SKILL = "arise-coder"
 const SKILL_DIRS: Record<Tool, string[]> = {
   claude: [".claude/skills"],
   codex: [".agents/skills"],
