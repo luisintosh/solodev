@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Bundle tools/install.ts for npx/bunx (Node ESM). */
+/** Bundle tools/install.ts for npx/bunx (Node ESM), baking in the release from release.json. */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
@@ -11,7 +11,18 @@ const entry = path.join(root, "tools", "install.ts")
 function parseOutfile(argv: string[]): string {
   const idx = argv.indexOf("--outfile")
   if (idx >= 0 && argv[idx + 1]) return path.resolve(argv[idx + 1])
-  return path.join(root, "dist", "install.js")
+  return path.join(root, "bin", "install.js")
+}
+
+// release.json is written by tools/release.ts: the tag and sha256 of the payload the installer downloads.
+async function readRelease(): Promise<{ version: string; sha256: string } | null> {
+  try {
+    const { version, sha256 } = JSON.parse(await fs.readFile(path.join(root, "release.json"), "utf8"))
+    return { version, sha256 }
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null
+    throw err
+  }
 }
 
 const out = parseOutfile(process.argv.slice(2))
@@ -24,6 +35,7 @@ await build({
   platform: "node",
   format: "esm",
   target: "node20",
+  define: { __SOLODEV_RELEASE__: JSON.stringify(await readRelease()) },
   // Bundled CJS deps (yaml) call require() for node builtins; ESM output needs a real require.
   banner: { js: 'import { createRequire } from "node:module";const require=createRequire(import.meta.url);' },
   logLevel: "warning",

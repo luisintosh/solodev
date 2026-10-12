@@ -6,7 +6,7 @@
  *   3. dist/ skills, references and shadow frontmatter match the catalog
  *   4. README profile × host matrix and shadow table match the catalog
  *   5. manifest.txt matches dist/ hashes
- *   6. dist/install.js (npx/bunx CLI) is present and not stale
+ *   6. bin/install.js (npx/bunx CLI) is present and not stale
  */
 import { createHash } from "node:crypto"
 import type { Dirent } from "node:fs"
@@ -326,18 +326,18 @@ if (manifestRaw === undefined) {
   for (const rel of actual.keys()) if (!expected.has(rel)) fail(`manifest.txt: lists ${rel}, which isn't installed`)
 }
 
-// 6. dist/install.js.
+// 6. bin/install.js.
 {
-  const current = await readOr(path.join(root, "dist", "install.js"))
-  if (current === undefined) fail("dist/install.js missing — run pnpm run build")
+  const current = await readOr(path.join(root, "bin", "install.js"))
+  if (current === undefined) fail("bin/install.js missing — run pnpm run build")
   else {
-    if (!current.startsWith("#!/usr/bin/env node\n")) fail("dist/install.js missing node shebang — run pnpm run build")
+    if (!current.startsWith("#!/usr/bin/env node\n")) fail("bin/install.js missing node shebang — run pnpm run build")
     const tmp = path.join(os.tmpdir(), `solodev-install-check-${process.pid}.js`)
     try {
       await run(process.execPath, [path.join(root, "tools", "build-install.ts"), "--outfile", tmp])
-      if (current !== (await readFile(tmp, "utf8"))) fail("dist/install.js stale — run pnpm run build")
+      if (current !== (await readFile(tmp, "utf8"))) fail("bin/install.js stale — run pnpm run build")
     } catch {
-      fail("dist/install.js rebuild failed — run pnpm run build")
+      fail("bin/install.js rebuild failed — run pnpm run build")
     } finally {
       await rm(tmp, { force: true })
     }

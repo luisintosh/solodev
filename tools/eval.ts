@@ -132,7 +132,7 @@ function install(ws: string, config: Config) {
   const env = { TARGET_DIR: ws, INSTALL_SCOPE: "project", INSTALL_TARGET: "all", CI: "1" }
   const r =
     config.install === "local"
-      ? sh(process.execPath, [path.join(root, "dist", "install.js"), "--yes"], ws, {
+      ? sh(process.execPath, [path.join(root, "bin", "install.js"), "--yes"], ws, {
           env: { ...env, LOCAL_SOURCE: root },
         })
       : sh("npx", ["-y", `github:luisintosh/solodev#${config.install.replace(/^ref:/, "")}`, "--yes"], ws, { env })

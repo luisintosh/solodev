@@ -11,8 +11,11 @@ once; tests use Vitest and bundles use esbuild.
 | `src/cli/**`                         | `pnpm run build` + `pnpm test` |
 | `tools/install.ts`                   | `pnpm run build`               |
 
-`dist/` and `manifest.txt` are **generated and tracked** so clients install without a build. Never hand-edit them. After
-any `src/` change run `pnpm run build` before commit; CI fails if they drift.
+`dist/`, `manifest.txt` and `bin/install.js` are generated. Never hand-edit them. Git tracks only `bin/install.js`,
+which npx/bunx run from a git ref. That installer downloads `solodev-dist.tar.gz` (`dist/` plus `manifest.txt`) from the
+GitHub Release named in `release.json` and checks its sha256 before installing. In a built checkout it uses the local
+`dist/` instead. After a `tools/install.ts` change run `pnpm run build` before commit; CI fails if `bin/install.js`
+drifts.
 
 Skills are named `arise` or `arise-<role>` and shadows `shadow-<name>`, so neither collides with host built-ins such as
 Codex's `/review` or Cursor's `code-reviewer`.
@@ -28,7 +31,7 @@ Requires a prior `pnpm run build`. Validates:
 - Emitted skill and shadow frontmatter (and Codex TOML) match the catalog
 - README profile × host matrix and shadow → profile table match the catalog
 - `manifest.txt` hashes match `dist/`
-- `dist/install.js` is present and matches a rebuild of `tools/install.ts`
+- `bin/install.js` is present and matches a rebuild of `tools/install.ts`
 
 ## Before committing
 
@@ -56,22 +59,24 @@ bash test/e2e-install.sh
 
 ## Tooling (TypeScript on Node)
 
-| Script                        | Purpose                                                                 |
-| ----------------------------- | ----------------------------------------------------------------------- |
-| `node tools/transpile.ts`     | `src/` → `dist/{claude,cursor,codex}` + `dist/agents/skills`            |
-| `node tools/install.ts`       | installer source (Clack + copy); emitted as `dist/install.js`           |
-| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/solodev.mjs`                                |
-| `node tools/build-install.ts` | `tools/install.ts` → `dist/install.js` (esbuild, Node ESM for npx/bunx) |
-| `node tools/gen-manifest.ts`  | `manifest.txt` from `dist/`                                             |
-| `node tools/check.ts`         | hygiene                                                                 |
-| `node tools/eval.ts`          | outcome evals: `validate`, `run --config <id>`, `report`                |
-| `pnpm run release`            | tag HEAD, push, publish a GitHub Release                                |
+| Script                        | Purpose                                                                |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| `node tools/transpile.ts`     | `src/` → `dist/{claude,cursor,codex}` + `dist/agents/skills`           |
+| `node tools/install.ts`       | installer source (Clack + copy); emitted as `bin/install.js`           |
+| `node tools/build-cli.ts`     | portable Node ESM `dist/bin/solodev.mjs`                               |
+| `node tools/build-install.ts` | `tools/install.ts` → `bin/install.js` (esbuild, Node ESM for npx/bunx) |
+| `node tools/gen-manifest.ts`  | `manifest.txt` from `dist/`                                            |
+| `node tools/check.ts`         | hygiene                                                                |
+| `node tools/eval.ts`          | outcome evals: `validate`, `run --config <id>`, `report`               |
+| `pnpm run release`            | tag HEAD, push, publish a GitHub Release                               |
 
 `pnpm run build` runs transpile + build-cli + gen-manifest + build-install.
 
 ## Releasing
 
-Tags HEAD (the latest commit), pushes the branch and tag, and publishes a GitHub Release. Installers pin a ref with
+Builds the payload, packs `solodev-dist.tar.gz`, writes its tag and sha256 to `release.json`, and rebuilds
+`bin/install.js`. It commits both as `chore: release vX.Y.Z` and tags that commit. Then it pushes the branch and the tag
+and publishes a GitHub Release with the tarball attached. Installers pin a ref with
 `npx -y github:luisintosh/solodev#vX.Y.Z` or `bunx github:luisintosh/solodev#vX.Y.Z` (default branch is `master`).
 
 ```bash
@@ -81,5 +86,5 @@ pnpm run release --major
 pnpm run release v1.3.0  # explicit version
 ```
 
-Publishing a GitHub Release runs CI’s `release-assets` job, which uploads `solodev-dist.tar.gz` (`dist/` +
-`manifest.txt`). Annotated tags; don’t move published tags — cut a new patch instead.
+The installer on `master` installs the release that `release.json` names, so commits after a release reach users only at
+the next release. Annotated tags; don’t move published tags — cut a new patch instead.
