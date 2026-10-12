@@ -1,13 +1,21 @@
 #!/usr/bin/env node
 /**
- * Tag HEAD and publish a GitHub Release (npx/bunx pin a git ref; default is master).
+ * Build the payload, record its tag and sha256 in release.json, commit that with the rebuilt bin/install.js, tag the
+ * commit, push, and publish a GitHub Release carrying solodev-dist.tar.gz. The installer at a ref downloads exactly the
+ * payload that release.json names, so the asset is attached as the release is created.
  *
  *   pnpm run release              # patch bump from the latest vX.Y.Z
  *   pnpm run release --minor
  *   pnpm run release --major
  *   pnpm run release v1.3.0
  */
+import { createHash } from "node:crypto"
+import * as fs from "node:fs/promises"
+import * as os from "node:os"
+import * as path from "node:path"
 import { run } from "./sh.ts"
+
+const PAYLOAD_ASSET = "solodev-dist.tar.gz"
 
 type Bump = "major" | "minor" | "patch"
 
@@ -82,14 +90,29 @@ async function main() {
   const remote = await run("git", ["ls-remote", "--tags", "origin", `refs/tags/${tag}`])
   if (remote) die(`tag ${tag} already exists on origin`)
 
-  const subject = await run("git", ["log", "-1", "--format=%s"])
-  const sha = await run("git", ["rev-parse", "HEAD"])
+  console.error("release: building the payload")
+  await run("pnpm", ["run", "build"])
+  await run("pnpm", ["run", "check"])
+  const outDir = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-release-"))
+  const archive = path.join(outDir, PAYLOAD_ASSET)
+  // macOS tar would otherwise add AppleDouble ._ files.
+  process.env.COPYFILE_DISABLE = "1"
+  await run("tar", ["-czf", archive, "manifest.txt", "dist"])
+  const sha256 = createHash("sha256")
+    .update(await fs.readFile(archive))
+    .digest("hex")
+  await fs.writeFile("release.json", `${JSON.stringify({ version: tag, sha256 }, null, 2)}\n`)
+  await run("node", ["tools/build-install.ts"])
+  await run("git", ["add", "release.json", "bin/install.js"])
+  await run("git", ["commit", "-m", `chore: release ${tag}`])
 
+  const sha = await run("git", ["rev-parse", "HEAD"])
   console.error(`release: tagging ${sha.slice(0, 7)} as ${tag}${previous ? ` (was ${previous})` : ""}`)
-  await run("git", ["tag", "-a", tag, "-m", subject])
+  await run("git", ["tag", "-a", tag, "-m", `release ${tag}`])
   await run("git", ["push", "origin", "HEAD"])
   await run("git", ["push", "origin", tag])
-  await run("gh", ["release", "create", tag, "--title", tag, "--generate-notes", "--verify-tag"])
+  await run("gh", ["release", "create", tag, archive, "--title", tag, "--generate-notes", "--verify-tag"])
+  await fs.rm(outDir, { recursive: true, force: true })
   console.error(`release: published ${tag} — pin with npx/bunx github:luisintosh/solodev#${tag}`)
 }
 

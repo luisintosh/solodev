@@ -4,11 +4,10 @@
   "type": "module",
   "description": "Spec-driven development harness for Claude Code, Codex, and Cursor — role skills, transpile, solodev CLI.",
   "bin": {
-    "solodev": "./dist/install.js"
+    "solodev": "./bin/install.js"
   },
   "files": [
-    "dist",
-    "manifest.txt",
+    "bin/install.js",
     "README.md"
   ],
   "engines": {
