@@ -92,7 +92,7 @@ Optional:
   `npm install -g agent-browser && agent-browser install`
 - [rtk](https://github.com/rtk-ai/rtk), to trim noisy command output for agents: `brew install rtk`
 
-### 2. Map the repo (once)
+### 2. Map the repo (optional, once)
 
 ```text
 /arise-scout
@@ -100,7 +100,8 @@ Optional:
 
 This writes a short `AGENTS.md` and `docs/ARCHITECTURE.md`, and creates `docs/feats/`, if they are missing. `AGENTS.md`
 holds a `## Commands` list (install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none) that
-the `solodev` CLI reads, plus only the constraints the code doesn't show.
+the `solodev` CLI reads, plus only the constraints the code doesn't show. Without it, each `/arise` run finds the
+commands itself and `solodev check` skips the ones AGENTS.md doesn't list.
 
 ### 3. Plan a whole product (optional)
 
@@ -202,7 +203,7 @@ solodev help [<command>]               what each command does
 
 | Check | Proves                                                                                                      |
 | ----- | ----------------------------------------------------------------------------------------------------------- |
-| C1    | typecheck, lint, test and build from the AGENTS.md commands pass                                            |
+| C1    | typecheck, lint, test and build from the AGENTS.md commands pass; unlisted ones are skipped                 |
 | C2    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists   |
 | C3    | each journey test fails against the gate commit's code and passes now                                       |
 | C4    | no test was skipped, deleted or lost assertions: journey tests since first committed, others since the gate |

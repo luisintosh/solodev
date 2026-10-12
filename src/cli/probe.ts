@@ -175,8 +175,12 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   const commands = parseCommands(agents ?? "")
   const missing = COMMAND_NAMES.filter((n) => !commands.has(n))
   const lines = agents ? agents.split("\n").length : 0
-  if (!agents) warnings.push("AGENTS.md not found — run /arise-scout")
-  else if (missing.length) warnings.push(`AGENTS.md ## Commands is missing ${missing.join(", ")}`)
+  if (!agents) warnings.push("AGENTS.md not found; find the commands this session (optional: run /arise-scout)")
+  else if (missing.length) {
+    warnings.push(
+      `AGENTS.md ## Commands doesn't list ${missing.join(", ")}; find them this session (optional: run /arise-scout)`,
+    )
+  }
   if (lines > 100)
     warnings.push(`AGENTS.md is ${lines} lines; keep it near the commands list (about 100 lines at most)`)
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")

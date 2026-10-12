@@ -76,18 +76,20 @@ async function loadPlan(root: string, slug: string): Promise<Plan> {
 }
 
 async function c1(ctx: CheckContext): Promise<CheckResult> {
-  const agents = await readIfExists(path.join(ctx.root, "AGENTS.md"))
-  if (agents === undefined) return result("C1", "fail", "AGENTS.md not found — run /arise-scout")
-  const commands = parseCommands(agents)
+  // /arise-scout is optional: a command AGENTS.md doesn't list is skipped here and run by the agent that found it.
+  const commands = parseCommands((await readIfExists(path.join(ctx.root, "AGENTS.md"))) ?? "")
   const names = ctx.set === "implement" ? ["typecheck", "lint"] : ["typecheck", "lint", "test", "build"]
+  const unlisted = names.filter((name) => !commands.has(name))
+  if (unlisted.length === names.length) {
+    return result("C1", "skip", "no commands in AGENTS.md; run them yourself (optional: /arise-scout)")
+  }
   const parts: string[] = []
   const details: string[] = []
   let failed = false
   for (const name of names) {
     if (!commands.has(name)) {
-      failed = true
-      parts.push(`${name} missing`)
-      details.push(`AGENTS.md ## Commands has no \`- ${name}:\` line; write n/a when the repo has none`)
+      parts.push(`${name} not listed`)
+      details.push(`${name} not in AGENTS.md; run it yourself (optional: /arise-scout lists it for next time)`)
       continue
     }
     const command = commands.get(name)

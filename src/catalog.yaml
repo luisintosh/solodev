@@ -101,5 +101,5 @@ skills:
     budget: 50
     user_only: true
     description: >-
-      Maps the repo once before the first /arise run: writes a minimal AGENTS.md (the commands list solodev reads, plus
-      constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as /arise-scout.
+      Optional: maps the repo once so /arise runs don't rediscover it: writes a minimal AGENTS.md (the commands list
+      solodev reads, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as /arise-scout.
