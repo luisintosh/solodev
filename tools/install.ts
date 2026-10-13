@@ -549,9 +549,9 @@ function suggestNextSteps() {
     log("  2. gh is on PATH — run 'gh auth login' if you aren't logged in")
   }
   log("")
-  log("Optional: /arise-strategist turns a raw idea into a feature roadmap at")
-  log("  docs/product/<slug>/roadmap.md. Run each feature through /arise, one at")
-  log("  a time; each run ends by naming the next one.")
+  log("Optional: /arise-strategist turns a raw idea into a feature roadmap, filed")
+  log("  as a GitHub epic with one issue per feature. Run each feature through")
+  log("  /arise, one at a time; each run ends by naming the next one.")
   log("")
   log("Optional: rtk (filters noisy bash output for agents)")
   log("  brew install rtk   # or see https://github.com/rtk-ai/rtk")
