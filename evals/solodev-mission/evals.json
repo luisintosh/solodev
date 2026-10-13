@@ -1,9 +1,9 @@
 {
-  "skill_name": "arise",
+  "skill_name": "solodev-mission",
   "evals": [
     {
       "id": 1,
-      "prompt": "Add a greet(name) function in a new module that returns \"Hello, <name>!\", and make `npm run dev -- --name Ada` print it. Take it through /arise; I approve the spec as soon as you present it, and the coder can be this tool.",
+      "prompt": "Add a greet(name) function in a new module that returns \"Hello, <name>!\", and make `npm run dev -- --name Ada` print it. Take it through /solodev-mission; I approve the spec as soon as you present it, and the coder can be this tool.",
       "expected_output": "Run in a copy of test/fixture-repo. One spec and plan in the feature folder under `solodev probe`'s state.dir, one gate, an approval line in progress.md, one coder writing a failing test then code, one fresh review, and a ready, unmerged PR.",
       "files": ["test/fixture-repo"],
       "expectations": [
@@ -11,7 +11,7 @@
         "The user saw exactly one gate, and its last question offered the coder options from `solodev probe`",
         "Spec review was skipped (one journey, nothing risky) and the commander said why",
         "`solodev approve` appended the approval line to progress.md before any source file was committed, and the coder choice was logged there",
-        "The coder ran as shadow-coder with the arise-coder skill, and `solodev check <slug> --for implement` passed before review",
+        "The coder ran as shadow-coder with the solodev-code skill, and `solodev check <slug> --for implement` passed before review",
         "Code review ran in a fresh shadow-reviewer and wrote review.md in the feature folder; no file of the feature folder was committed to the repo",
         "No QA agent started, because plan.md listed no uncovered scenarios",
         "The new module's directory has a README of at most 30 lines naming its entry point, the exported function has a one-line doc comment, and no documenter ran",
@@ -22,18 +22,18 @@
     {
       "id": 2,
       "prompt": "Add a --version flag to the CLI that prints the package.json version.",
-      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander mentions /arise-scout as optional, finds the commands from package.json and continues to the spec.",
+      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander mentions /solodev-scout as optional, finds the commands from package.json and continues to the spec.",
       "files": ["test/fixture-repo"],
       "expectations": [
         "The commander ran `solodev probe` and noticed AGENTS.md was missing",
-        "The reply mentions /arise-scout as optional and does not wait for it",
+        "The reply mentions /solodev-scout as optional and does not wait for it",
         "The commander found the test commands from package.json (npm test, vitest) and went on to cut feat/<slug> and write the spec",
         "No AGENTS.md was written"
       ]
     },
     {
       "id": 3,
-      "prompt": "/arise fix the typo 'Helo' in src/index.js",
+      "prompt": "/solodev-mission fix the typo 'Helo' in src/index.js",
       "expected_output": "Run in a copy of test/fixture-repo. The commander says this is a trivial change better suited to /plan or a direct edit, and asks before starting the full run.",
       "files": ["test/fixture-repo"],
       "expectations": [

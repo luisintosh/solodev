@@ -30,7 +30,7 @@ assert_grep() {
   if grep -q -- "$1" <<<"$2"; then ok "$3"; else bad "$3 (no '$1' in: $2)"; fi
 }
 
-SKILLS=(arise arise-architect arise-coder arise-reviewer arise-verifier arise-strategist arise-scout)
+SKILLS=(solodev-mission solodev-plan solodev-code solodev-review solodev-verify solodev-roadmap solodev-scout)
 
 # 0. build output
 (cd "$REPO_ROOT" && pnpm run build >/dev/null)
@@ -41,10 +41,10 @@ for host in claude cursor; do
   done
 done
 assert_file_exists "${REPO_ROOT}/dist/codex/agents/shadow-coder.toml" "transpile emits codex shadow-coder"
-assert_grep 'spawn_agent' "$(cat "${REPO_ROOT}/dist/agents/skills/arise/SKILL.md")" "arise skill documents Codex spawn_agent"
-assert_grep 'model: claude-opus-5-5' "$(cat "${REPO_ROOT}/dist/claude/skills/arise/SKILL.md")" \
-  "claude arise skill runs on the think model"
-assert_grep '- arise-coder' "$(cat "${REPO_ROOT}/dist/claude/agents/shadow-coder.md")" "claude shadow-coder preloads arise-coder"
+assert_grep 'spawn_agent' "$(cat "${REPO_ROOT}/dist/agents/skills/solodev-mission/SKILL.md")" "solodev-mission skill documents Codex spawn_agent"
+assert_grep 'model: claude-opus-5-5' "$(cat "${REPO_ROOT}/dist/claude/skills/solodev-mission/SKILL.md")" \
+  "claude solodev-mission skill runs on the think model"
+assert_grep '- solodev-code' "$(cat "${REPO_ROOT}/dist/claude/agents/shadow-coder.md")" "claude shadow-coder preloads solodev-code"
 assert_file_exists "${INSTALL_JS}" "build emits npx/bunx installer"
 
 UPSTREAM="${WORK}/upstream"
@@ -77,10 +77,10 @@ for skill in "${SKILLS[@]}"; do
   assert_file_exists "${TARGET}/.claude/skills/${skill}/SKILL.md" "${skill} skill installed under .claude"
 done
 for ref in gate orca pr; do
-  assert_file_exists "${TARGET}/.agents/skills/arise/references/${ref}.md" "arise ${ref} reference installed"
+  assert_file_exists "${TARGET}/.agents/skills/solodev-mission/references/${ref}.md" "solodev-mission ${ref} reference installed"
 done
-assert_file_exists "${TARGET}/.claude/skills/arise-reviewer/references/code.md" "reviewer checklist installed for claude"
-if [[ -L "${TARGET}/.claude/skills/arise/SKILL.md" ]]; then
+assert_file_exists "${TARGET}/.claude/skills/solodev-review/references/code.md" "reviewer checklist installed for claude"
+if [[ -L "${TARGET}/.claude/skills/solodev-mission/SKILL.md" ]]; then
   bad "claude skills must be a copy, not a symlink"
 else
   ok "claude skills are a copy, not a symlink"
@@ -137,12 +137,12 @@ assert_file_absent "${TARGET}/.agents/bin/quest-state.mjs" "v1 quest-state.mjs r
 assert_file_exists "${TARGET}/.claude/agents/shadow-reviewer.md" "v2 shadow-reviewer present after upgrade"
 
 # 4b. prune a whole skill (rename) leaves no empty folder behind
-rm -r "${UPSTREAM}/dist/agents/skills/arise-strategist" "${UPSTREAM}/dist/claude/skills/arise-strategist"
+rm -r "${UPSTREAM}/dist/agents/skills/solodev-roadmap" "${UPSTREAM}/dist/claude/skills/solodev-roadmap"
 HARNESS_ROOT="$UPSTREAM" node "${REPO_ROOT}/tools/gen-manifest.ts" >/dev/null
 LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all node "$INSTALL_JS" >/dev/null 2>&1
-assert_file_absent "${TARGET}/.agents/skills/arise-strategist" "removed skill folder pruned from .agents/skills"
-assert_file_absent "${TARGET}/.claude/skills/arise-strategist" "removed skill folder pruned from .claude/skills"
-assert_file_exists "${TARGET}/.agents/skills/arise/SKILL.md" "other skills kept after prune"
+assert_file_absent "${TARGET}/.agents/skills/solodev-roadmap" "removed skill folder pruned from .agents/skills"
+assert_file_absent "${TARGET}/.claude/skills/solodev-roadmap" "removed skill folder pruned from .claude/skills"
+assert_file_exists "${TARGET}/.agents/skills/solodev-mission/SKILL.md" "other skills kept after prune"
 restore_upstream
 LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all node "$INSTALL_JS" >/dev/null 2>&1
 
@@ -171,7 +171,7 @@ assert_eq "$after_hash" "$before_hash" "no partial write after checksum mismatch
 # 7. doctor reports the solodev CLI and skills
 doctor_output="$(TARGET_DIR="$TARGET" node "$INSTALL_JS" --doctor 2>&1)"
 assert_grep 'solodev CLI:' "$doctor_output" "doctor reports the solodev CLI"
-assert_grep 'arise skills installed' "$doctor_output" "doctor reports the skills"
+assert_grep 'solodev skills installed' "$doctor_output" "doctor reports the skills"
 if grep -q 'rtk' <<<"$doctor_output"; then bad "doctor should not mention rtk"; else ok "doctor does not mention rtk"; fi
 
 # 8. cursor-only target
@@ -183,7 +183,7 @@ assert_file_exists "${TARGET2}/.cursor/agents/shadow-coder.md" "cursor-only inst
 assert_file_absent "${TARGET2}/.claude" "cursor-only skips .claude"
 assert_file_absent "${TARGET2}/.codex" "cursor-only skips .codex"
 assert_file_exists "${TARGET2}/.agents/bin/solodev.mjs" "cursor-only still installs the solodev CLI"
-assert_file_exists "${TARGET2}/.agents/skills/arise/SKILL.md" "cursor-only installs shared skills"
+assert_file_exists "${TARGET2}/.agents/skills/solodev-mission/SKILL.md" "cursor-only installs shared skills"
 
 # 8b. prune leftover ./bin and .cursor/skills
 mkdir -p "${TARGET2}/bin" "${TARGET2}/.cursor/skills/sddkit" "${TARGET2}/.cursor/skills/sddkit-epic" "${TARGET2}/.agents/bin"
@@ -270,7 +270,7 @@ assert_eq "$usage_rc" "2" "solodev exits 2 on a usage error"
 
 # 10. post-install next-step hints
 hints="$(LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=claude node "$INSTALL_JS" 2>&1)"
-assert_grep '/arise-scout' "$hints" "suggests /arise-scout"
+assert_grep '/solodev-scout' "$hints" "suggests /solodev-scout"
 if grep -qE 'brew install gh|gh is on PATH|cli.github.com' <<<"$hints"; then ok "suggests gh CLI"; else bad "missing gh CLI hint"; fi
 
 # 11. missing dist fails (no client-side build)
@@ -294,12 +294,12 @@ mkdir -p "$GLOBAL_TARGET"
 HOME="$FAKE_HOME" CODEX_HOME="${FAKE_HOME}/.codex" INSTALL_SCOPE=global INSTALL_TARGET=all \
   LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$GLOBAL_TARGET" node "$INSTALL_JS" >/dev/null
 
-assert_file_exists "${FAKE_HOME}/.agents/skills/arise/SKILL.md" "global skills land in ~/.agents"
+assert_file_exists "${FAKE_HOME}/.agents/skills/solodev-mission/SKILL.md" "global skills land in ~/.agents"
 assert_file_exists "${FAKE_HOME}/.agents/bin/solodev.mjs" "global solodev CLI lands in ~/.agents/bin"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/shadow-coder.md" "global cursor agents leaf"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/user-agent.md" "global install keeps planted cursor agent"
 assert_file_exists "${FAKE_HOME}/.claude/agents/shadow-coder.md" "global claude agents leaf"
-assert_file_exists "${FAKE_HOME}/.claude/skills/arise/SKILL.md" "global claude skills copy"
+assert_file_exists "${FAKE_HOME}/.claude/skills/solodev-mission/SKILL.md" "global claude skills copy"
 assert_file_exists "${FAKE_HOME}/.codex/agents/shadow-coder.toml" "global codex agents leaf"
 assert_file_absent "${GLOBAL_TARGET}/.claude" "global install does not write claude into TARGET_DIR"
 assert_file_absent "${GLOBAL_TARGET}/.agents" "global install does not write .agents into TARGET_DIR"

@@ -78,7 +78,7 @@ MVP line: through wave <n>.
 ## Work item
 
 One file per feature, `<state.dir>/roadmaps/<slug>/items/F<n>.md`. It is the issue body when filed, and the scope
-`/arise` runs against.
+`/solodev-mission` runs against.
 
 ````markdown
 # F<n>: <short, specific, outcome-oriented title>

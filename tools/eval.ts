@@ -2,7 +2,7 @@
 /**
  * Outcome evals on test/fixture-repo (evals/outcome/):
  *   validate   each task's held-out tests fail on the seeded fixture and pass with its reference solution (no agents)
- *   run        run /arise for a config over the tasks, then score with the held-out tests; appends to results/
+ *   run        run /solodev-mission for a config over the tasks, then score with the held-out tests; appends to results/
  *   report     mean and spread per config, and the release bar against the baseline
  */
 import { spawnSync } from "node:child_process"
@@ -117,7 +117,7 @@ async function validate(only?: string): Promise<number> {
 
 function prompt(task: Task, config: Config): string {
   return [
-    `/arise ${task.prompt}`,
+    `/solodev-mission ${task.prompt}`,
     "",
     `This is an unattended eval run. I approve the spec as soon as you present it, and the coder is ${config.writer}.`,
     "There is no git remote: skip pushing, the pull request and PR comments, and stop once the work is committed and",
@@ -143,7 +143,7 @@ function install(ws: string, config: Config) {
 
 /**
  * Commands an unattended Claude Code run may use without asking: edits, plus the git, node and package-manager calls an
- * /arise run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
+ * /solodev-mission run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
  */
 const CLAUDE_ALLOWED = [
   "Read",

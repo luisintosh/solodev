@@ -160,7 +160,7 @@ describe("checks", () => {
     expect(r.status).toBe("fail")
     expect(r.summary).toContain("lint not listed")
     expect(r.summary).toContain("build FAIL")
-    expect(r.details.join("\n")).toMatch(/lint not in AGENTS.md.*optional: \/arise-scout/)
+    expect(r.details.join("\n")).toMatch(/lint not in AGENTS.md.*optional: \/solodev-scout/)
   })
 
   test("C1 passes with an unlisted command when the listed ones pass", async () => {
@@ -170,11 +170,11 @@ describe("checks", () => {
     expect(r.summary).toContain("lint not listed")
   })
 
-  test("C1 skips without AGENTS.md and suggests /arise-scout as optional", async () => {
+  test("C1 skips without AGENTS.md and suggests /solodev-scout as optional", async () => {
     fs.rmSync(path.join(root, "AGENTS.md"))
     const r = await check("C1", "pr")
     expect(r.status).toBe("skip")
-    expect(r.summary).toMatch(/optional: \/arise-scout/)
+    expect(r.summary).toMatch(/optional: \/solodev-scout/)
   })
 
   test("C2 requires each journey's test file once past the gate", async () => {

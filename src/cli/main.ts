@@ -115,7 +115,7 @@ async function main(argv: string[]): Promise<number> {
       }
       const slugs = await listFeatures(state)
       if (!slugs.length) {
-        console.log(`no features in ${state} — start one with /arise`)
+        console.log(`no features in ${state} — start one with /solodev-mission`)
         if (await exists(path.join(root, "docs", "feats"))) console.log(`note: ${LEGACY}`)
         return 0
       }

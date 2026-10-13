@@ -1,4 +1,4 @@
-Map this repository once, before the first `/arise` run, so agents start from facts instead of guesses.
+Map this repository once, before the first `/solodev-mission` run, so agents start from facts instead of guesses.
 
 Create what's missing; refresh an existing file only when the user asks. Confirm every command against the project's
 manifests and scripts before writing it.
