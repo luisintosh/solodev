@@ -22,13 +22,15 @@ have everything?" again, and name what is still unread or unresolved.
 - Requirements, each testable as written. A number, a threshold or a named behavior instead of "fast" or "robust".
 - Out of scope, stated.
 - `## Assumptions`: numbered. Each states the default you picked and what breaks if it's wrong. One that would change
-  scope or visible behavior if wrong is an open question instead.
+  scope or visible behavior if wrong is an open question instead. One the user settled starts with `Decided:`.
 - `## Open questions`, each tagged `blocker` (the work can't start without it) or `question` (it needs an answer), in
   plain words, with who answers it: the user, or a role such as product owner or the owner of a sibling issue. Ask them
   before the gate; the answers become requirements or assumptions. Drop the answered ones. One already asked elsewhere
   stays, marked where it was asked, and isn't asked again.
 - `## Acceptance`: Given/When/Then scenarios, each tagged `@S1`, `@S2`, …. Ids are append-only: a removed scenario
   leaves a gap, and a new one takes the next number.
+- `## Blocked`, only when a scenario waits on another ticket: per ticket, its id and title, then each scenario it holds
+  as a blockquote.
 
 Give each happy path its counterparts where they apply: empty or missing input, permission denied, a duplicate or
 concurrent action, an upstream failure, a limit reached. Write scenarios that are observable from outside the system,
