@@ -42,7 +42,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var define_SOLODEV_RELEASE_default;
 var init_define_SOLODEV_RELEASE = __esm({
   "<define:__SOLODEV_RELEASE__>"() {
-    define_SOLODEV_RELEASE_default = { version: "v3.2.1", sha256: "98dc395146702e8fb57b9a20115fe27d924d81592da09cdafa01e51f565b13b8" };
+    define_SOLODEV_RELEASE_default = { version: "v3.3.0", sha256: "096ec9d8f35c63ad2b23407f3bf03f4b7146323b8b27befb0024fe46288c325a" };
   }
 });
 
