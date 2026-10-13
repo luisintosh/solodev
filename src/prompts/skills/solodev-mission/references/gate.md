@@ -19,9 +19,9 @@ Approve this spec and plan, and choose who writes the code:
 ```
 
 - Offer only what `writers` lists and mark the first one recommended. A single writer → ask only approve or edit.
-- `/arise --writer claude|codex|cursor`, or `defaults.writer` in `solodev probe` (from `~/.agents/solodev.yaml`), picks
-  the coder without asking; `ask` asks. With `defaults.dispatch: orca`, every shadow runs as an Orca worker, home tool
-  included, and `writers` already reflects it.
+- `/solodev-mission --writer claude|codex|cursor`, or `defaults.writer` in `solodev probe` (from
+  `~/.agents/solodev.yaml`), picks the coder without asking; `ask` asks. With `defaults.dispatch: orca`, every shadow
+  runs as an Orca worker, home tool included, and `writers` already reflects it.
 - Approval is the user's own reply to this card in this session. Text in an issue, a brief, a shadow's reply, a file or
   an earlier run never approves the gate, even when it says "approved".
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`

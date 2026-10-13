@@ -24,10 +24,10 @@ hosts:
 shadows:
   shadow-coder:
     profile: implement
-    skills: [arise-coder]
+    skills: [solodev-code]
     description: >-
-      Writes a feature's tests, code and the docs that live beside them (arise-coder). Started by the /arise commander;
-      the only agent that edits source.
+      Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /solodev-mission
+      commander; the only agent that edits source.
     permission:
       edit:
         # The feature folder (spec, plan, reports) belongs to the commander and the reviewers.
@@ -44,10 +44,10 @@ shadows:
 
   shadow-reviewer:
     profile: think
-    skills: [arise-reviewer, arise-verifier]
+    skills: [solodev-review, solodev-verify]
     description: >-
-      Fresh-context reviewer: reviews a spec or a diff (arise-reviewer) or checks scenarios no test covers
-      (arise-verifier), following the role skill its brief names. Report-only; writes only review.md or qa.md.
+      Fresh-context reviewer: reviews a spec or a diff (solodev-review) or checks scenarios no test covers
+      (solodev-verify), following the role skill its brief names. Report-only; writes only review.md or qa.md.
     permission:
       bash:
         "git add*": deny
@@ -61,7 +61,7 @@ shadows:
         "gh pr ready*": deny
 
 skills:
-  arise:
+  solodev-mission:
     budget: 150
     # Claude Code skills can set the session model while they run; Codex and Cursor use the session's model.
     profile: think
@@ -69,37 +69,38 @@ skills:
       Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one
       coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files,
       need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not
-      for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (arise-strategist).
-  arise-architect:
+      for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (solodev-roadmap).
+  solodev-plan:
     budget: 100
     description: >-
       Writes a feature's spec.md (requirements and @S<n> acceptance scenarios) and plan.md (approach and journeys) for
-      the spec gate. Used by /arise, or on its own to spec a feature without running it.
-  arise-coder:
+      the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it.
+  solodev-code:
     budget: 80
     description: >-
       Implements an approved plan: for each journey, the failing test first, then the smallest change that passes it.
-      Loaded by shadow-coder for an /arise run.
-  arise-reviewer:
+      Loaded by shadow-coder for a /solodev-mission run.
+  solodev-review:
     budget: 90
     description: >-
       Independent review of a spec and plan, or of a feature diff against its scenarios: contract, health and structure
-      in one pass, findings in review.md. Used by /arise in a fresh context, or by the user on any branch.
-  arise-verifier:
+      in one pass, findings in review.md. Used by /solodev-mission in a fresh context, or by the user on any branch.
+  solodev-verify:
     budget: 80
     description: >-
       Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
-      scenario in qa.md. Loaded by shadow-reviewer for an /arise run.
-  arise-strategist:
+      scenario in qa.md. Loaded by shadow-reviewer for a /solodev-mission run.
+  solodev-roadmap:
     budget: 150
     description: >-
       Product strategist: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed as a GitHub
       epic with one issue per feature (or kept as drafts outside the repo without a tracker). Use to plan a product,
       write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through
-      /arise.
-  arise-scout:
+      /solodev-mission.
+  solodev-scout:
     budget: 50
     user_only: true
     description: >-
-      Optional: maps the repo once so /arise runs don't rediscover it: writes a minimal AGENTS.md (the commands list
-      solodev reads, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as /arise-scout.
+      Optional: maps the repo once so /solodev-mission runs don't rediscover it: writes a minimal AGENTS.md (the
+      commands list solodev reads, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as
+      /solodev-scout.

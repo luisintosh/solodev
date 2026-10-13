@@ -17,8 +17,8 @@ GitHub Release named in `release.json` and checks its sha256 before installing. 
 `dist/` instead. After a `tools/install.ts` change run `pnpm run build` before commit; CI fails if `bin/install.js`
 drifts.
 
-Skills are named `arise` or `arise-<role>` and shadows `shadow-<name>`, so neither collides with host built-ins such as
-Codex's `/review` or Cursor's `code-reviewer`.
+Skills are named `solodev-mission` or `solodev-<action>` and shadows `shadow-<name>`, so neither collides with host
+built-ins such as Codex's `/review` or Cursor's `code-reviewer`.
 
 ## Hygiene (`pnpm run check`)
 

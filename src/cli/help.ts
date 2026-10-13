@@ -71,7 +71,7 @@ export function helpText(command?: string): string {
   }
   const width = Math.max(...Object.keys(HELP).map((k) => k.length))
   return [
-    "solodev: checks and evidence for an /arise feature run. Reads git and the feature folder; commits nothing.",
+    "solodev: checks and evidence for a /solodev-mission feature run. Reads git and the feature folder; commits nothing.",
     "",
     ...Object.entries(HELP).map(([name, h]) => `  ${name.padEnd(width)}  ${h.summary}`),
   ].join("\n")

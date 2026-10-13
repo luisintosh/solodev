@@ -83,12 +83,12 @@ const baseOf = (ctx: CheckContext) => resolveBase(ctx.root, { ...process.env, ..
 const NO_BASE = "can't find the base branch — set SOLODEV_BASE"
 
 async function c1(ctx: CheckContext): Promise<CheckResult> {
-  // /arise-scout is optional: a command AGENTS.md doesn't list is skipped here and run by the agent that found it.
+  // /solodev-scout is optional: a command AGENTS.md doesn't list is skipped here and run by the agent that found it.
   const commands = parseCommands((await readIfExists(path.join(ctx.root, "AGENTS.md"))) ?? "")
   const names = ctx.set === "implement" ? ["typecheck", "lint"] : ["typecheck", "lint", "test", "build"]
   const unlisted = names.filter((name) => !commands.has(name))
   if (unlisted.length === names.length) {
-    return result("C1", "skip", "no commands in AGENTS.md; run them yourself (optional: /arise-scout)")
+    return result("C1", "skip", "no commands in AGENTS.md; run them yourself (optional: /solodev-scout)")
   }
   const parts: string[] = []
   const details: string[] = []
@@ -96,7 +96,7 @@ async function c1(ctx: CheckContext): Promise<CheckResult> {
   for (const name of names) {
     if (!commands.has(name)) {
       parts.push(`${name} not listed`)
-      details.push(`${name} not in AGENTS.md; run it yourself (optional: /arise-scout lists it for next time)`)
+      details.push(`${name} not in AGENTS.md; run it yourself (optional: /solodev-scout lists it for next time)`)
       continue
     }
     const command = commands.get(name)
@@ -324,7 +324,7 @@ async function c6(ctx: CheckContext): Promise<CheckResult> {
 
 async function c7(ctx: CheckContext): Promise<CheckResult> {
   const raw = await readIfExists(path.join(ctx.dir, "review.md"))
-  if (raw === undefined) return result("C7", "fail", "no review.md — run arise-reviewer")
+  if (raw === undefined) return result("C7", "fail", "no review.md — run solodev-review")
   const findings = parseReview(raw)
   const bad = findings.filter(
     (f) =>
@@ -366,7 +366,7 @@ async function c8(ctx: CheckContext): Promise<CheckResult> {
   }
   if (!plan.uncovered.length) return result("C8", "pass", "every scenario has a journey test")
   const raw = await readIfExists(path.join(ctx.dir, "qa.md"))
-  if (raw === undefined) return result("C8", "fail", `no qa.md for ${plan.uncovered.join(", ")} — run arise-verifier`)
+  if (raw === undefined) return result("C8", "fail", `no qa.md for ${plan.uncovered.join(", ")} — run solodev-verify`)
   const verdicts = parseQa(raw)
   const details: string[] = []
   for (const s of plan.uncovered) {

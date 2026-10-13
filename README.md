@@ -11,14 +11,15 @@ checks the work. Your main session writes the spec and plan with you; one coder 
 with a fresh context checks it. You approve the spec at the gate and merge the PR.
 
 ```text
-/arise Add CSV export to the accounts page
+/solodev-mission Add CSV export to the accounts page
 ```
 
 ## The name
 
 solodev takes its name from the anime _Solo Leveling_, where one hunter commands an army of shadows. You are the solo
-dev: `/arise` summons the shadows, each playing one role (`arise-coder`, `arise-reviewer`, …), and they bring back a
-reviewed, tested pull request.
+dev, and your army is a group of shadows: the strategist, the architect, the coder, the reviewer and QA.
+`/solodev-mission` sends them commands (`solodev-plan`, `solodev-code`, `solodev-review`, `solodev-verify`), and they
+bring back a reviewed, tested pull request. The strategist answers to `/solodev-roadmap`.
 
 ## Why
 
@@ -39,7 +40,7 @@ things they can't give themselves:
   only when a step needs it.
 - **You stay in charge.** solodev opens the PR and marks it ready. It never merges.
 
-## When to use `/arise`
+## When to use `/solodev-mission`
 
 Use it for:
 
@@ -54,8 +55,8 @@ Don't use it for:
 - Trivial changes
 - Well-defined, simple tasks
 
-For those, use your tool's plan mode (`/plan`), or just ask for the change. `/arise` says so when a request looks like
-one of them, and continues if you still want the full run.
+For those, use your tool's plan mode (`/plan`), or just ask for the change. `/solodev-mission` says so when a request
+looks like one of them, and continues if you still want the full run.
 
 ## Quick start
 
@@ -96,52 +97,52 @@ Optional:
 ### 2. Map the repo (optional, once)
 
 ```text
-/arise-scout
+/solodev-scout
 ```
 
 This writes a short `AGENTS.md` and `docs/ARCHITECTURE.md` if they are missing. `AGENTS.md` holds a `## Commands` list
 (install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none) that the `solodev` CLI reads, plus
-only the constraints the code doesn't show. Without it, each `/arise` run finds the commands itself and `solodev check`
-skips the ones AGENTS.md doesn't list.
+only the constraints the code doesn't show. Without it, each `/solodev-mission` run finds the commands itself and
+`solodev check` skips the ones AGENTS.md doesn't list.
 
 ### 3. Plan a whole product (optional)
 
-Run `/arise-strategist` and describe the idea. It explores the codebase, turns the idea into a measurable goal, agrees a
+Run `/solodev-roadmap` and describe the idea. It explores the codebase, turns the idea into a measurable goal, agrees a
 data model with you, and drafts a roadmap with dependency-ordered waves and one work item per feature, each reviewed by
 an adversarial subagent. It files the roadmap as a GitHub epic with one issue per feature, wired with `Blocked by #N`;
 the tracker is the source of truth. Without one, the drafts in `~/.agents/solodev/<repo>/roadmaps/<slug>/` are the
 record. Nothing is written to your repo.
 
-### 4. Build a feature with `/arise`
+### 4. Build a feature with `/solodev-mission`
 
 ```text
-/arise Add CSV export to the accounts page
-/arise #42
+/solodev-mission Add CSV export to the accounts page
+/solodev-mission #42
 ```
 
-Run it on your most capable session model. `/arise` creates `feat/<slug>`, writes the spec and plan with you, stops at
-the gate, and finishes with a ready PR. At the gate you also pick who writes the code: the tool you're in, or another
-one through Orca, which saves your usage on this one. To resume an interrupted run, ask it to continue.
+Run it on your most capable session model. `/solodev-mission` creates `feat/<slug>`, writes the spec and plan with you,
+stops at the gate, and finishes with a ready PR. At the gate you also pick who writes the code: the tool you're in, or
+another one through Orca, which saves your usage on this one. To resume an interrupted run, ask it to continue.
 
-The roles also work on their own: `/arise-reviewer` reviews any branch, and `/arise-architect` writes a spec without
+The roles also work on their own: `/solodev-review` reviews any branch, and `/solodev-plan` writes a spec without
 running the feature.
 
 ## How it works
 
 ```mermaid
 flowchart TD
-  req(["/arise request or #issue"]):::human
-  spec["spec · arise-architect<br/>spec · scenarios · plan"]:::think
+  req(["/solodev-mission request or #issue"]):::human
+  spec["spec · solodev-plan<br/>spec · scenarios · plan"]:::think
   ask{{"questions the code<br/>can't answer"}}:::human
-  sreview["spec review · arise-reviewer<br/>only for multi-journey or risky plans"]:::review
+  sreview["spec review · solodev-review<br/>only for multi-journey or risky plans"]:::review
   gate{{"⏸ spec gate<br/>approve + pick the coder"}}:::human
-  impl["implement · arise-coder<br/>per journey: failing test → code<br/>then docs beside the code"]:::writer
+  impl["implement · solodev-code<br/>per journey: failing test → code<br/>then docs beside the code"]:::writer
   stuck{{"stuck after 2 attempts<br/>retry · second opinion · take over"}}:::human
-  review["code review · arise-reviewer<br/>fresh shadow-reviewer"]:::review
+  review["code review · solodev-review<br/>fresh shadow-reviewer"]:::review
   fix["fix round · same coder"]:::writer
   dispute{{"left after re-review<br/>fix · defer · drop"}}:::human
   pr["solodev check → draft PR"]:::think
-  qa["QA · arise-verifier<br/>only for scenarios no test covers"]:::review
+  qa["QA · solodev-verify<br/>only for scenarios no test covers"]:::review
   done(["solodev check --for done → PR ready<br/>you merge"]):::human
 
   req --> spec
@@ -169,17 +170,17 @@ flowchart TD
 Blue runs in your main session, green is the one coder, pink is a fresh-context reviewer, yellow is you. Dotted steps
 run only when they add something.
 
-| Step          | Who                                     | Leaves when                                              |
-| ------------- | --------------------------------------- | -------------------------------------------------------- |
-| 1 start       | the commander (`/arise`)                | `solodev probe` done, branch `feat/<slug>` cut           |
-| 2 spec        | `arise-architect`, in your main session | `spec.md` and `plan.md` written, your questions answered |
-| 3 spec review | `arise-reviewer`, only when needed      | the commander applied the findings it agrees with        |
-| 4 ⏸ gate      | you                                     | `solodev approve` recorded                               |
-| 5 implement   | `arise-coder`, the one writer           | `solodev check --for implement` passes                   |
-| 6 code review | `arise-reviewer`, fresh                 | `review.md` has no open blocker or major                 |
-| 7 PR          | the commander                           | `solodev check --for pr` passes, draft PR open           |
-| 8 QA          | `arise-verifier`, if needed             | uncovered scenarios have verdicts                        |
-| 9 finish      | the commander                           | `solodev check --for done` passes, PR marked ready       |
+| Step          | Who                                  | Leaves when                                              |
+| ------------- | ------------------------------------ | -------------------------------------------------------- |
+| 1 start       | the commander (`/solodev-mission`)   | `solodev probe` done, branch `feat/<slug>` cut           |
+| 2 spec        | `solodev-plan`, in your main session | `spec.md` and `plan.md` written, your questions answered |
+| 3 spec review | `solodev-review`, only when needed   | the commander applied the findings it agrees with        |
+| 4 ⏸ gate      | you                                  | `solodev approve` recorded                               |
+| 5 implement   | `solodev-code`, the one writer       | `solodev check --for implement` passes                   |
+| 6 code review | `solodev-review`, fresh              | `review.md` has no open blocker or major                 |
+| 7 PR          | the commander                        | `solodev check --for pr` passes, draft PR open           |
+| 8 QA          | `solodev-verify`, if needed          | uncovered scenarios have verdicts                        |
+| 9 finish      | the commander                        | `solodev check --for done` passes, PR marked ready       |
 
 Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
 security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
@@ -231,8 +232,8 @@ solodev help [<command>]               what each command does
 | `shadow-coder`    | `implement` |
 | `shadow-reviewer` | `think`     |
 
-The commander is your session. On Claude Code the `/arise` skill switches to the `think` model while it runs; on Codex
-and Cursor, start the session on the `think` model yourself. CI checks both tables against the catalog.
+The commander is your session. On Claude Code the `/solodev-mission` skill switches to the `think` model while it runs;
+on Codex and Cursor, start the session on the `think` model yourself. CI checks both tables against the catalog.
 
 ### A coder on another tool (Orca)
 
@@ -269,7 +270,7 @@ The PR body carries the scenarios and journeys, since the spec isn't on the bran
 Only the feature's code, tests and the docs beside them, plus what you ask for:
 
 ```text
-AGENTS.md  docs/ARCHITECTURE.md   optional, from /arise-scout
+AGENTS.md  docs/ARCHITECTURE.md   optional, from /solodev-scout
 .agents/  .claude/  .cursor/  .codex/   a project-scope install only; a global install puts these under $HOME
 ```
 

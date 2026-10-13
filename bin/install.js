@@ -1621,7 +1621,7 @@ function doctor(targetDir, home) {
   if (isGitRepo(targetDir)) log(`  [ok]   ${targetDir} is a git repository`);
   else log(`  [warn] ${targetDir} is not a git repository`);
   if (fsSync.existsSync(path.join(targetDir, "AGENTS.md"))) log("  [ok]   AGENTS.md present");
-  else log("  [info] AGENTS.md missing \u2014 optional: /arise-scout");
+  else log("  [info] AGENTS.md missing \u2014 optional: /solodev-scout");
   log("  paths:");
   log(`    skills          ${targetDir}/.agents/skills/  or  ${home}/.agents/skills/`);
   log(`    solodev CLI     ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`);
@@ -1633,9 +1633,9 @@ function doctor(targetDir, home) {
   if (bin) log(`  [ok]   solodev CLI: ${bin}`);
   else log("  [warn] solodev CLI missing \u2014 re-run the installer");
   const skills = [path.join(targetDir, ".agents", "skills"), path.join(home, ".agents", "skills")];
-  if (skills.some((dir) => fsSync.existsSync(path.join(dir, "arise", "SKILL.md"))))
-    log("  [ok]   arise skills installed");
-  else log("  [warn] arise skills missing \u2014 re-run the installer");
+  if (skills.some((dir) => fsSync.existsSync(path.join(dir, "solodev-mission", "SKILL.md"))))
+    log("  [ok]   solodev skills installed");
+  else log("  [warn] solodev skills missing \u2014 re-run the installer");
   if (onPath("node")) log("  [ok]   node is on PATH (needed to run the solodev CLI)");
   else log("  [warn] node not found \u2014 install Node.js 20+ to run the solodev CLI");
   const gh = ghStatus();
@@ -1646,7 +1646,7 @@ function doctor(targetDir, home) {
 }
 function suggestNextSteps() {
   log("Next steps:");
-  log("  1. Optional: /arise-scout \u2014 write AGENTS.md (the commands list) + docs/ARCHITECTURE.md once");
+  log("  1. Optional: /solodev-scout \u2014 write AGENTS.md (the commands list) + docs/ARCHITECTURE.md once");
   if (!onPath("gh")) {
     log("  2. Install gh (required by the pipeline):");
     log("       brew install gh && gh auth login");
@@ -1655,9 +1655,9 @@ function suggestNextSteps() {
     log("  2. gh is on PATH \u2014 run 'gh auth login' if you aren't logged in");
   }
   log("");
-  log("Optional: /arise-strategist turns a raw idea into a feature roadmap, filed");
+  log("Optional: /solodev-roadmap turns a raw idea into a feature roadmap, filed");
   log("  as a GitHub epic with one issue per feature. Run each feature through");
-  log("  /arise, one at a time; each run ends by naming the next one.");
+  log("  /solodev-mission, one at a time; each run ends by naming the next one.");
   log("");
   log("Optional: rtk (filters noisy bash output for agents)");
   log("  brew install rtk   # or see https://github.com/rtk-ai/rtk");

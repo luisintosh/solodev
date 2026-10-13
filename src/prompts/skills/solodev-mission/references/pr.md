@@ -20,7 +20,7 @@ proves it or `uncovered`, findings deferred or dropped, and `Closes #<n>` for an
    setup lines, and the follow-ups again, each as a ticket title and body ready to paste. You don't file them.
 5. Handoff, for an issue that belongs to a roadmap epic: take the first unchecked `- [ ] #<n>` entry in the epic that
    isn't this feature. If its `Blocked by` issues are all closed, say it's ready; otherwise say this PR has to merge
-   first. Print the line to run next: `/arise #<n>`.
+   first. Print the line to run next: `/solodev-mission #<n>`.
 
 Without gh, use a connected tool that can do the same (an MCP server, a skill or a CLI) and name it in one line. If
 nothing can open a PR, tell the user and stop.

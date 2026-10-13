@@ -36,14 +36,14 @@ export async function ghPr(root: string): Promise<PrInfo | null | undefined> {
 }
 
 const NEXT: Record<Stage, (slug: string) => string> = {
-  spec: () => "write spec.md and plan.md (arise-architect), asking the user what the code can't answer",
+  spec: () => "write spec.md and plan.md (solodev-plan), asking the user what the code can't answer",
   gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
   implement: (s) =>
-    `arise-coder writes each journey's test, then the code; then \`solodev check ${s} --for implement\``,
+    `solodev-code writes each journey's test, then the code; then \`solodev check ${s} --for implement\``,
   review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
   pr: (s) => `\`solodev check ${s} --for pr\`, then push and open the draft PR`,
   qa: (s) =>
-    `arise-verifier for uncovered scenarios (if any); then \`solodev check ${s} --for done\` and mark the PR ready`,
+    `solodev-verify for uncovered scenarios (if any); then \`solodev check ${s} --for done\` and mark the PR ready`,
   done: () => "the user reviews and merges the PR",
 }
 
@@ -103,7 +103,7 @@ export async function featureStatus(
   return done("qa", { approved, pr })
 }
 
-/** Where /arise-strategist keeps roadmap drafts, beside the feature folders; not a feature. */
+/** Where /solodev-roadmap keeps roadmap drafts, beside the feature folders; not a feature. */
 export const ROADMAPS_DIR = "roadmaps"
 
 /** Feature slugs in the repo's state folder, newest directory first. */

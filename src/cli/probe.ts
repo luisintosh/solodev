@@ -55,7 +55,7 @@ export type Probe = {
 const BINARIES: Record<Tool, string> = { claude: "claude", codex: "codex", cursor: "agent" }
 
 /** The skill a coder on this tool loads, relative to the repo or $HOME. */
-export const CODER_SKILL = "arise-coder"
+export const CODER_SKILL = "solodev-code"
 const SKILL_DIRS: Record<Tool, string[]> = {
   claude: [".claude/skills"],
   codex: [".agents/skills"],
@@ -181,10 +181,10 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   const commands = parseCommands(agents ?? "")
   const missing = COMMAND_NAMES.filter((n) => !commands.has(n))
   const lines = agents ? agents.split("\n").length : 0
-  if (!agents) warnings.push("AGENTS.md not found; find the commands this session (optional: run /arise-scout)")
+  if (!agents) warnings.push("AGENTS.md not found; find the commands this session (optional: run /solodev-scout)")
   else if (missing.length) {
     warnings.push(
-      `AGENTS.md ## Commands doesn't list ${missing.join(", ")}; find them this session (optional: run /arise-scout)`,
+      `AGENTS.md ## Commands doesn't list ${missing.join(", ")}; find them this session (optional: run /solodev-scout)`,
     )
   }
   if (lines > 100)
@@ -192,7 +192,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
 
   const writable = await deps.writable(deps.state)
-  if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /arise`)
+  if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /solodev-mission`)
 
   const defaults = parseDefaults(await deps.read(path.join(deps.home, ".agents", "solodev.yaml")), warnings)
   if (defaults.dispatch === "orca" && !orca.ready) {
