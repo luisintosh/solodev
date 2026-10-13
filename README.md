@@ -106,9 +106,11 @@ skips the ones AGENTS.md doesn't list.
 
 ### 3. Plan a whole product (optional)
 
-Run `/arise-strategist` and describe the idea. It explores the codebase, turns the idea into a measurable goal, and
-writes `docs/product/<slug>/roadmap.md` with dependency-ordered waves and one work item per feature, each reviewed by an
-adversarial subagent. It can also open the GitHub issues, wired with `Blocked by #N`.
+Run `/arise-strategist` and describe the idea. It explores the codebase, turns the idea into a measurable goal, agrees a
+data model with you, and drafts a roadmap with dependency-ordered waves and one work item per feature, each reviewed by
+an adversarial subagent. It files the roadmap as a GitHub epic with one issue per feature, wired with `Blocked by #N`;
+the tracker is the source of truth. Without one, the drafts in `~/.agents/solodev/<repo>/roadmaps/<slug>/` are the
+record. Nothing is written to your repo.
 
 ### 4. Build a feature with `/arise`
 
@@ -268,7 +270,6 @@ Only the feature's code, tests and the docs beside them, plus what you ask for:
 
 ```text
 AGENTS.md  docs/ARCHITECTURE.md   optional, from /arise-scout
-docs/product/<slug>/roadmap.md    optional, from /arise-strategist
 .agents/  .claude/  .cursor/  .codex/   a project-scope install only; a global install puts these under $HOME
 ```
 

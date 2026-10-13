@@ -93,9 +93,9 @@ skills:
   arise-strategist:
     budget: 150
     description: >-
-      Product strategist: turns a raw idea into a measurable goal and a feature roadmap at
-      docs/product/<slug>/roadmap.md, with one work item per feature, optionally filed as GitHub issues. Use to plan a
-      product, write a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through
+      Product strategist: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed as a GitHub
+      epic with one issue per feature (or kept as drafts outside the repo without a tracker). Use to plan a product,
+      write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through
       /arise.
   arise-scout:
     budget: 50
