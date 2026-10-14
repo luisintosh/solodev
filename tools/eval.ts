@@ -5,23 +5,19 @@
  *   run        run /solodev-mission for a config over the tasks, then score with the held-out tests; appends to results/
  *   report     mean and spread per config, and the release bar against the baseline
  */
-import { spawnSync } from "node:child_process"
 import * as fs from "node:fs/promises"
-import * as os from "node:os"
 import * as path from "node:path"
-import { fileURLToPath } from "node:url"
+import { CLAUDE_ALLOWED, copyDir, install, root, sh, stateIn, type Usage, usage, workspace } from "./eval-lib.ts"
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const evalDir = path.join(root, "evals", "outcome")
 const tasksDir = path.join(evalDir, "tasks")
 const resultsDir = path.join(evalDir, "results")
-const fixture = path.join(root, "test", "fixture-repo")
 
 type Tool = "claude" | "codex" | "cursor"
 type Config = { id: string; install: string; home: Tool; writer: Tool; suffix?: string; note?: string }
 type Task = { id: string; shape: string; prompt: string }
 
-export type Result = {
+export type Result = Usage & {
   config: string
   task: string
   run: number
@@ -32,26 +28,8 @@ export type Result = {
   success: boolean
   wallSeconds: number
   agentExit: number | null
-  costUsd: number | null
-  inputTokens: number | null
-  outputTokens: number | null
   gateRecorded: boolean
   diffLines: number
-}
-
-function sh(cmd: string, args: string[], cwd: string, opts: { env?: NodeJS.ProcessEnv; timeoutMs?: number } = {}) {
-  const r = spawnSync(cmd, args, {
-    cwd,
-    encoding: "utf8",
-    env: { ...process.env, ...opts.env },
-    timeout: opts.timeoutMs,
-    maxBuffer: 256 * 1024 * 1024,
-  })
-  return { code: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "" }
-}
-
-async function copyDir(from: string, to: string) {
-  await fs.cp(from, to, { recursive: true, filter: (src) => !src.includes(`${path.sep}node_modules`) })
 }
 
 async function loadTasks(only?: string): Promise<Task[]> {
@@ -63,21 +41,8 @@ async function loadTasks(only?: string): Promise<Task[]> {
 }
 
 /** A fresh git repo: the fixture plus the task's seed files, committed on main. */
-async function workspace(task: Task): Promise<string> {
-  const ws = await fs.mkdtemp(path.join(os.tmpdir(), `solodev-eval-${task.id}-`))
-  await copyDir(fixture, ws)
-  const seed = path.join(tasksDir, task.id, "seed")
-  if (await fs.stat(seed).catch(() => undefined)) await copyDir(seed, ws)
-  for (const args of [
-    ["init", "-q", "-b", "main"],
-    ["config", "user.email", "eval@example.com"],
-    ["config", "user.name", "eval"],
-    ["add", "-A"],
-    ["commit", "-q", "-m", "chore: fixture"],
-  ]) {
-    sh("git", args, ws)
-  }
-  return ws
+function taskWorkspace(task: Task): Promise<string> {
+  return workspace(task.id, [path.join(tasksDir, task.id, "seed")])
 }
 
 /** Copies the held-out tests in last, so the agent never saw them, and runs them. */
@@ -96,7 +61,7 @@ async function score(ws: string, task: Task): Promise<{ passed: number; failed: 
 async function validate(only?: string): Promise<number> {
   let problems = 0
   for (const task of await loadTasks(only)) {
-    const ws = await workspace(task)
+    const ws = await taskWorkspace(task)
     try {
       const before = await score(ws, task)
       await copyDir(path.join(tasksDir, task.id, "reference"), ws)
@@ -128,38 +93,6 @@ function prompt(task: Task, config: Config): string {
     .trim()
 }
 
-function install(ws: string, config: Config) {
-  const env = { TARGET_DIR: ws, INSTALL_SCOPE: "project", INSTALL_TARGET: "all", CI: "1" }
-  const r =
-    config.install === "local"
-      ? sh(process.execPath, [path.join(root, "bin", "install.js"), "--yes"], ws, {
-          env: { ...env, LOCAL_SOURCE: root },
-        })
-      : sh("npx", ["-y", `github:luisintosh/solodev#${config.install.replace(/^ref:/, "")}`, "--yes"], ws, { env })
-  if (r.code !== 0) throw new Error(`install failed for ${config.id}: ${r.stderr.slice(-500)}`)
-  sh("git", ["add", "-A"], ws)
-  sh("git", ["commit", "-q", "-m", "chore: install solodev"], ws)
-}
-
-/**
- * Commands an unattended Claude Code run may use without asking: edits, plus the git, node and package-manager calls an
- * /solodev-mission run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
- */
-const CLAUDE_ALLOWED = [
-  "Read",
-  "Edit",
-  "Write",
-  "Glob",
-  "Grep",
-  "Agent",
-  "Skill",
-  "Bash(git:*)",
-  "Bash(node:*)",
-  "Bash(npm:*)",
-  "Bash(npx:*)",
-  "Bash(.agents/bin/solodev.mjs:*)",
-]
-
 /**
  * The headless command for each coding tool. These run on the host, not in a container, so each one is limited as far
  * as its CLI allows: Claude Code to an allowlist, Codex to its workspace-write sandbox. Cursor's headless mode can only
@@ -177,29 +110,6 @@ function agentCommand(home: Tool, text: string, allowUnsandboxed: boolean): [str
   }
   return ["agent", ["-p", text, "--output-format", "json", "--force"]]
 }
-
-function usage(stdout: string): Pick<Result, "costUsd" | "inputTokens" | "outputTokens"> {
-  for (const line of stdout.trim().split("\n").reverse()) {
-    try {
-      const j = JSON.parse(line) as {
-        total_cost_usd?: number
-        usage?: { input_tokens?: number; output_tokens?: number }
-      }
-      if (j.total_cost_usd !== undefined || j.usage) {
-        return {
-          costUsd: j.total_cost_usd ?? null,
-          inputTokens: j.usage?.input_tokens ?? null,
-          outputTokens: j.usage?.output_tokens ?? null,
-        }
-      }
-    } catch {
-      // not a JSON line
-    }
-  }
-  return { costUsd: null, inputTokens: null, outputTokens: null }
-}
-
-const STATE_DIR = ".solodev-state"
 
 /** An approval line in a feature's progress.md, or, for releases before v3.1, an approval commit's trailer. */
 async function gateRecorded(ws: string, state: string): Promise<boolean> {
@@ -224,13 +134,11 @@ async function runConfig(
   const out = path.join(resultsDir, `${config.id}.jsonl`)
   for (const task of await loadTasks(only)) {
     for (let i = 1; i <= repeats; i++) {
-      const ws = await workspace(task)
+      const ws = await taskWorkspace(task)
       try {
-        install(ws, config)
+        install(ws, config.install)
         const base = sh("git", ["rev-parse", "HEAD"], ws).stdout.trim()
-        // Feature folders go inside the workspace, where every tool's sandbox can write, but stay out of git.
-        const state = path.join(ws, STATE_DIR)
-        await fs.appendFile(path.join(ws, ".git", "info", "exclude"), `${STATE_DIR}/\n`)
+        const state = await stateIn(ws)
         const [cmd, args] = agentCommand(config.home, prompt(task, config), allowUnsandboxed)
         const started = Date.now()
         const agent = sh(cmd, args, ws, {
