@@ -48,13 +48,25 @@ bash test/e2e-install.sh
 
 ## Evals
 
+Three tiers, cheapest first. Run the cheapest one that covers your change:
+
+| Tier  | Command                                                | When                                     | Cost                      |
+| ----- | ------------------------------------------------------ | ---------------------------------------- | ------------------------- |
+| smoke | `pnpm run eval:smoke` (or `eval:changed`)              | after changing a prompt or a description | a few short headless runs |
+| stage | `pnpm run eval:stage`                                  | after changing the workflow              | every stage eval          |
+| full  | `pnpm run eval:full`, then `node tools/eval.ts report` | before a release                         | full runs, three per task |
+
+- `evals/stages/` holds stage evals: one step of a skill, started from a prepared repo and feature folder, capped in
+  turns and graded by scripts. `pnpm run eval:changed` runs only the stages whose prompts changed since `master`. See
+  [evals/stages/README.md](evals/stages/README.md).
 - `evals/<skill>/` holds prompt-behavior evals in the skill-creator format, run against a copy of `test/fixture-repo`:
   `evals.json` (task prompts + expectations) and `trigger-evals.json` (should/shouldn't-trigger queries for the
   description optimizer). After changing a prompt or a catalog `description`, rerun the matching set with the
   skill-creator skill.
 - `evals/outcome/` holds outcome evals: feature tasks with held-out acceptance tests, run headless per config and scored
   after the agent finishes. `pnpm run eval:validate` (also in CI) proves each task's tests fail on the fixture and pass
-  on its reference solution; `node tools/eval.ts run` and `report` need the coding tools and spend real usage. See
+  on its reference solution, and that each stage's starting point holds (it needs a prior `pnpm run build`);
+  `node tools/eval.ts run` and `report` need the coding tools and spend real usage. See
   [evals/outcome/README.md](evals/outcome/README.md).
 
 ## Tooling (TypeScript on Node)
@@ -68,6 +80,7 @@ bash test/e2e-install.sh
 | `node tools/gen-manifest.ts`  | `manifest.txt` from `dist/`                                            |
 | `node tools/check.ts`         | hygiene                                                                |
 | `node tools/eval.ts`          | outcome evals: `validate`, `run --config <id>`, `report`               |
+| `node tools/eval-stage.ts`    | stage evals: `validate`, `run [--tier smoke] [--changed] [--judge]`    |
 | `pnpm run release`            | tag HEAD, push, publish a GitHub Release                               |
 
 `pnpm run build` runs transpile + build-cli + gen-manifest + build-install.

@@ -1,0 +1,69 @@
+{
+  "tier": "smoke",
+  "skill": "solodev-mission",
+  "covers": ["solodev-mission", "solodev-review", "shadow-reviewer"],
+  "prompt": "continue the greet feature\n\nThis is an unattended eval: stop once code review has written review.md, before any fix round.",
+  "npm": true,
+  "branch": "feat/greet",
+  "slug": "greet",
+  "approve": true,
+  "start": {
+    "stage": "implement",
+    "check": "implement"
+  },
+  "maxTurns": 30,
+  "checks": [
+    {
+      "expect": "It ran `solodev status` before starting a shadow",
+      "tool": "Bash",
+      "input": "solodev(\\.mjs)? status",
+      "before": "Agent"
+    },
+    {
+      "expect": "It read progress.md before starting a shadow",
+      "tool": "Read|Bash",
+      "input": "progress\\.md",
+      "before": "Agent"
+    },
+    {
+      "expect": "Code review ran in a shadow-reviewer",
+      "tool": "Agent",
+      "input": "shadow-reviewer"
+    },
+    {
+      "expect": "No coder started",
+      "tool": "Agent",
+      "input": "shadow-coder",
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "review.md flags the missing --name default (@S3) as blocker or major",
+      "file": "{feature}/review.md",
+      "matches": "^(?=.*\\b(?:blocker|major)\\b)(?=.*(?:undefined|world|S3|--name|default)).*\\|"
+    },
+    {
+      "expect": "Spec and plan are untouched, so the approval holds",
+      "status": ["review", "pr"]
+    },
+    {
+      "expect": "Nothing was committed",
+      "git": ["log", "--oneline", "{base}..HEAD"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "No file in the repo changed",
+      "git": ["status", "--porcelain"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "A report carried the progress bar with implement done",
+      "reply": "implement\\W{0,4}✓"
+    }
+  ]
+}

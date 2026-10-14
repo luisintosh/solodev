@@ -60,8 +60,10 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   `manifest.txt` hashes.
 - Adding, removing or renaming a skill or shadow: `src/catalog.yaml`, its folder under `src/prompts/`, the `SKILLS` /
   `SHADOWS` lists in `tools/check.ts`, the lists in `test/e2e-install.sh`, `README.md`, and its `evals/<skill>/`.
-- Changing a prompt or a skill `description`: rerun that skill's evals; changing the workflow (stages, checks, the
-  shadows) also needs `node tools/eval.ts run` against the baseline before release.
+- Changing a prompt or a skill `description`: `pnpm run eval:changed`; changing the workflow (stages, checks, the
+  shadows) also needs `pnpm run eval:stage`, and `node tools/eval.ts run` against the baseline before release.
+- Changing what a stage eval's setup relies on (the feature-folder format, `solodev approve`, the fixture):
+  `pnpm run eval:validate`.
 - A new or changed check: `src/cli/checks.ts`, its test in `src/cli/checks.test.ts`, `src/cli/help.ts`, and the checks
   table in `README.md`.
 
