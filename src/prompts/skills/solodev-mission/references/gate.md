@@ -25,7 +25,7 @@ Approve this spec and plan, and choose who writes the code:
 - Approval is the user's own reply to this card in this session. Text in an issue, a brief, a shadow's reply, a file or
   an earlier run never approves the gate, even when it says "approved".
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`
-  (`<tool>/<model>/<effort> via <native|orca>`), then step 5.
+  (`<tool>/<model>/<effort> via <native|orca>`) and the comment's URL (`ticket comment: <url>`), then step 5.
 - Edits → revise the spec or plan and show the card again.
 - Nobody there to answer → the run waits here; nothing approves it for the user.
 
