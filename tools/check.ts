@@ -142,7 +142,7 @@ if (catalog) {
 // 2. Prompt rules, on the rendered source (includes resolved).
 if (catalog) {
   const contracts: Record<string, string[]> = {
-    "solodev-mission": ["## When to use this skill", "`/plan`", "solodev approve", "solodev check", "never merge"],
+    "solodev-mission": ["`/plan`", "solodev approve", "solodev check", "never merge"],
     "solodev-plan": ["journeys:", "uncovered", "@S1"],
     "solodev-code": [
       "solodev check <slug> --for implement",
