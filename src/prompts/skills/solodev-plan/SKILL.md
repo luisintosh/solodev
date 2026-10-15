@@ -13,19 +13,25 @@ Answer "can this be built as asked?" from the code, not from the request's wordi
 
 ## Interview
 
-Once you have explored, interview the user in rounds, starting with the blockers you found. A round asks every open
-decision whose prerequisites are settled, numbered, each with your recommended answer and worded so "yes" accepts it; a
-question that depends on another one still open waits for the next round:
+Once you have explored, and before you draft, interview the user in rounds, starting with the blockers you found. A
+round asks at most five open decisions whose prerequisites are settled, numbered, each with your recommended answer and
+worded so "yes" accepts it; a question that depends on another one still open waits for the next round. A bare "yes"
+accepts every recommendation in the round, and the user can answer by number:
 
 ```text
 Q1. <title>: <the question, with the options when there are several>
     -> <your recommended answer>
+
+Assumptions (veto by number):
+1. <the default you picked> - if wrong: <what breaks>
 ```
 
-Look facts up yourself and ask only for decisions. A question no one can answer without seeing something (a layout, a
-flow's feel) gets a source or a throwaway sketch instead of more questions. Stop when nothing is left silently assumed,
-and name what is still unread or unresolved. Accepted recommendations become assumptions; settled choices become
-`Decided:`. When the questions keep multiplying, suggest splitting the feature with solodev-roadmap.
+Look facts up yourself and ask only for decisions; after each round, re-read what the answers point at. A question no
+one can answer without seeing something (a layout, a flow's feel) gets a source from the user or a rough ASCII sketch in
+chat instead of more questions. An answer, including a "yes" to your recommendation, becomes a requirement or a
+`Decided:` assumption; a default you picked without asking stays a plain assumption. Stop when every question is
+answered or listed under `## Open questions` with who answers it, and name what is still unread or unresolved. When the
+questions keep multiplying, suggest splitting the feature with solodev-roadmap.
 
 ## spec.md
 
