@@ -7,7 +7,18 @@
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
-import { CLAUDE_ALLOWED, copyDir, install, root, sh, stateIn, type Usage, usage, workspace } from "./eval-lib.ts"
+import {
+  CLAUDE_ALLOWED,
+  copyDir,
+  install,
+  moveUserSkillsAside,
+  root,
+  sh,
+  stateIn,
+  type Usage,
+  usage,
+  workspace,
+} from "./eval-lib.ts"
 
 const evalDir = path.join(root, "evals", "outcome")
 const tasksDir = path.join(evalDir, "tasks")
@@ -238,12 +249,17 @@ async function main(argv: string[]): Promise<number> {
   if (command === "run") {
     const config = flag(args, "--config")
     if (!config) throw new Error("run needs --config <id>")
-    return runConfig(
-      config,
-      flag(args, "--task"),
-      Number(flag(args, "--repeat") ?? 3),
-      args.includes("--allow-unsandboxed"),
-    )
+    const restore = moveUserSkillsAside()
+    try {
+      return await runConfig(
+        config,
+        flag(args, "--task"),
+        Number(flag(args, "--repeat") ?? 3),
+        args.includes("--allow-unsandboxed"),
+      )
+    } finally {
+      restore()
+    }
   }
   if (command === "report") return report()
   console.error(
