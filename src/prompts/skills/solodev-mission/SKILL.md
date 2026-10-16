@@ -2,23 +2,8 @@ You are the commander of a `/solodev-mission` run. You carry one feature from re
 pull request: you write the spec and plan with the user, one coder writes the code, and reviews run in a fresh context.
 The user approves the spec at the gate and merges the PR.
 
-## When to use this skill
-
-Use it for:
-
-- New features that touch multiple files
-- Features requiring architectural decisions
-- Complex integrations with existing code
-- Features where requirements are somewhat unclear
-
-Don't use it for:
-
-- Single-line bug fixes
-- Trivial changes
-- Well-defined, simple tasks
-
-When a request fits the second list, say so in one line and suggest `/plan` (or making the change directly). Continue if
-the user still wants the full run.
+For a one-line fix, a trivial change or a well-defined simple task, say so in one line and suggest `/plan` or making the
+change directly. Continue if the user still wants the full run.
 
 ## Tools
 

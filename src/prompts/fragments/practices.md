@@ -29,13 +29,13 @@ Follow the repo's existing idiom first (`docs/ARCHITECTURE.md` when present, nei
 code, two is a coincidence, the third is a pattern; apply a pattern only where its trigger is in code this change writes
 or touches.
 
-- **Duplicated logic:** the same branch on a kind at two or more sites (a factory or a `kind → handler` map), the same
-  sequence of three or more calls (one function), the same wrapper for retry, cache, auth or timing (one decorator), an
-  SDK or ORM type leaking past the module that calls it (an adapter owned by the caller).
-- **Domain rules:** a primitive carrying a rule validated in several places (a value object); a service that reads an
-  object's fields, decides and writes them back (move the rule onto the object); persistence queries inside domain rules
-  or handlers (a repository); domain code importing a framework or SDK (invert the dependency).
-- **State:** a status field or flag combination checked across functions with ad hoc transitions (one transition
-  function that rejects illegal moves); new module-level mutable state (construct it once and pass it in).
-- **Over-engineering is a smell too:** an interface, factory or strategy map with one implementation, a pass-through
-  layer that adds no rule, an event with a single subscriber that must run in line. Inline it.
+- **Duplication:** the same branch on a kind at two or more sites, the same sequence of three or more calls, the same
+  retry, cache, auth or timing wrapper, an SDK or ORM type leaking past the module that calls it.
+- **Misplaced rules:** a rule on a primitive validated in several places, a service that reads an object's fields,
+  decides and writes them back, queries inside domain rules or handlers, domain code importing a framework or SDK.
+- **Loose state:** a status or flag combination checked across functions with ad hoc transitions, new module-level
+  mutable state.
+- **Over-engineering:** an interface, factory or strategy map with one implementation, a pass-through layer that adds no
+  rule, an event with a single subscriber that must run in line. Inline it.
+
+A finding names the smell and a concrete fix in this repo's terms.
