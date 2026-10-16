@@ -10,10 +10,11 @@
       "reply": "src/index\\.js"
     },
     {
-      "expect": "The first round asks at most 5 questions",
-      "reply": "\\?\\**\\s*$",
+      "expect": "The first round asks at most 5 questions, in the Q<n> format",
+      "reply": "^\\s*\\**Q\\d+\\.",
       "final": true,
       "count": {
+        "min": 1,
         "max": 5
       }
     },
