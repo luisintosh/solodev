@@ -50,9 +50,11 @@ tests and docs. Every brief names the folder's absolute path.
 4. **Gate.** Show the gate card from [references/gate.md](references/gate.md) and wait. On approval run
    `solodev approve <slug>`, post the ticket comment for an issue run, and log the coder choice in `progress.md`. No
    code before that line. An edit to the spec or plan after the gate reopens it: back to the user for a new approval.
-5. **Implement.** Brief the coder with the slug and the journeys. It writes each journey's failing test, then the code,
-   and runs `solodev check <slug> --for implement` before replying. Run the check yourself, then commit its work. A C4
-   warning means you show the user the diff it names and ask.
+5. **Implement.** Brief the coder with the slug, the journeys, the files you read that the change touches and the
+   helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
+   build it. It writes each journey's failing test, then the code, and runs `solodev check <slug> --for implement`
+   before replying. Run the check yourself, then commit its work. A C4 warning means you show the user the diff it names
+   and ask.
 6. **Code review.** Brief a fresh reviewer with the slug, the base (`git merge-base <default branch> HEAD`) and the C3
    output from the implement check. Blocker or major → one fix round with the same coder, which replies per finding id,
    then one re-review by a new reviewer whose brief carries the coder's per-finding replies and the commit the last
