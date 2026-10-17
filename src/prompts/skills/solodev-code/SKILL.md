@@ -5,12 +5,14 @@ pass, then the docs beside it. You are the only agent that edits source, tests a
 
 Your brief names the slug, the feature folder and the journeys to do now. Its `spec.md` holds the scenarios, which are
 the acceptance bar; `plan.md` holds the approach and the journeys block (test path and command per journey).
-{{include:fragments/commands.md}} Your brief may already name the unlisted ones. Explore the code yourself, reuse what's
-there, and match the surrounding style.
+{{include:fragments/commands.md}} Your brief may already name the unlisted ones, and it names the files the change
+touches, the helpers to reuse and a test sketch per scenario. Start from those, explore only where they fall short,
+reuse what's there, and match the surrounding style.
 
 ## Each journey
 
-1. Write the journey's test at its `test` path, exercising its scenarios through the boundary the plan names.
+1. Write the journey's test at its `test` path, exercising its scenarios through the boundary the plan names. Build it
+   from the brief's sketch on the repo's existing fixtures; a sketch that doesn't fit the code is yours to correct.
 2. Run its `command`. It fails because the behavior is missing (a 404, a wrong value, an empty result), not because of a
    syntax error, a bad import or a missing runner. Fix the test until it fails for that reason.
 3. Make the smallest correct change until the command passes. Run the typecheck and lint commands and fix what your
