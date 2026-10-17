@@ -9,7 +9,7 @@ export const HELP: Record<string, CommandHelp> = {
       "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models and",
       "their Orca launch fields), Orca (runtime ready, orchestration skill installed), gh, the AGENTS.md commands,",
       "`state`: this repo's folder of features (outside the repo) and whether this session can write there,",
-      "personal defaults from ~/.agents/solodev.yaml, and `writers`: the coder options for the gate card, another",
+      "personal defaults from ~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for the gate card, another",
       "tool first. Takes a few seconds.",
     ],
     example: "solodev probe",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build the portable Node ESM workflow CLI into dist/bin/solodev.mjs.
+ * Build the portable Node ESM workflow CLI into dist/bin/solodev-cli.mjs.
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
@@ -10,7 +10,7 @@ import { parse as parseYaml } from "yaml"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const outDir = path.join(root, "dist", "bin")
-const BUNDLES = [{ entry: path.join(root, "src", "cli", "main.ts"), out: path.join(outDir, "solodev.mjs") }]
+const BUNDLES = [{ entry: path.join(root, "src", "cli", "main.ts"), out: path.join(outDir, "solodev-cli.mjs") }]
 
 /** Inline `import x from "*.yaml"` as parsed JSON. */
 const yamlPlugin: Plugin = {
@@ -49,4 +49,4 @@ async function bundle(entry: string, outJs: string) {
 for (const stale of ["quest-state.mjs", "quest-state", "quest-state.js"])
   await fs.rm(path.join(outDir, stale), { force: true })
 
-console.log("build-cli: wrote portable dist/bin/solodev.mjs")
+console.log("build-cli: wrote portable dist/bin/solodev-cli.mjs")

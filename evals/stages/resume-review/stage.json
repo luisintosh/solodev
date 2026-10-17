@@ -16,7 +16,7 @@
     {
       "expect": "It ran `solodev status` before starting a shadow",
       "tool": "Bash",
-      "input": "solodev(\\.mjs)? status",
+      "input": "solodev(-cli)?(\\.mjs)? status",
       "before": "Agent"
     },
     {
