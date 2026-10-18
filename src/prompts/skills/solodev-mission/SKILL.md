@@ -7,8 +7,8 @@ change directly. Continue if the user still wants the full run.
 
 ## Tools
 
-`solodev` is `<repo>/.agents/bin/solodev.mjs`, or `~/.agents/bin/solodev.mjs` for a global install. It holds no state;
-`solodev help <command>` explains each command.
+`solodev` is `<repo>/.agents/solodev/solodev-cli.mjs`, or `~/.agents/solodev/solodev-cli.mjs` for a global install. It
+holds no state; `solodev help <command>` explains each command.
 
 - `solodev probe`: coding tools and their models, Orca, gh, the AGENTS.md commands list (`agentsMd.missing` names the
   unlisted ones), the coder options, and `state`: where feature folders go and whether you can write there.

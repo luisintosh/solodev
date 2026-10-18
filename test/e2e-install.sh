@@ -85,9 +85,9 @@ if [[ -L "${TARGET}/.claude/skills/solodev-mission/SKILL.md" ]]; then
 else
   ok "claude skills are a copy, not a symlink"
 fi
-assert_file_exists "${TARGET}/.agents/bin/solodev.mjs" "solodev CLI installed under .agents/bin"
-assert_file_absent "${TARGET}/.agents/bin/quest-state.mjs" "no v1 state CLI installed"
-assert_file_absent "${TARGET}/.agents/solodev" "no v1 checklists or references tree"
+assert_file_exists "${TARGET}/.agents/solodev/solodev-cli.mjs" "solodev CLI installed under .agents/solodev"
+assert_file_absent "${TARGET}/.agents/bin" "no .agents/bin folder installed"
+assert_file_absent "${TARGET}/.agents/solodev/checklists" "no v1 checklists or references tree"
 assert_file_absent "${TARGET}/.opencode" "no .opencode directory installed"
 for leaf in .cursor/agents .claude/agents .claude/skills .codex/agents .agents; do
   assert_file_exists "${TARGET}/${leaf}/.harness-manifest" "${leaf} harness-manifest recorded"
@@ -126,14 +126,18 @@ plant .codex/agents shadow-implementer.toml
 plant .agents skills/arise-plan/SKILL.md
 plant .agents solodev/checklists/review-contract.md
 plant .claude/skills arise-setup-docs/SKILL.md
+mkdir -p "${TARGET}/.agents/bin"
 echo "v1" >"${TARGET}/.agents/bin/quest-state.mjs"
+echo "v3" >"${TARGET}/.agents/bin/solodev.mjs"
 LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET" INSTALL_TARGET=all node "$INSTALL_JS" >/dev/null 2>&1
 assert_file_absent "${TARGET}/.claude/agents/shadow-architect.md" "v1 claude agent removed on upgrade"
 assert_file_absent "${TARGET}/.codex/agents/shadow-implementer.toml" "v1 codex agent removed on upgrade"
 assert_file_absent "${TARGET}/.agents/skills/arise-plan" "v1 arise-plan skill folder removed on upgrade"
-assert_file_absent "${TARGET}/.agents/solodev" "v1 checklists removed on upgrade"
+assert_file_absent "${TARGET}/.agents/solodev/checklists" "v1 checklists removed on upgrade"
 assert_file_absent "${TARGET}/.claude/skills/arise-setup-docs" "v1 arise-setup-docs skill removed on upgrade"
 assert_file_absent "${TARGET}/.agents/bin/quest-state.mjs" "v1 quest-state.mjs removed on upgrade"
+assert_file_absent "${TARGET}/.agents/bin" "old .agents/bin/solodev.mjs and its emptied folder removed on upgrade"
+assert_file_exists "${TARGET}/.agents/solodev/solodev-cli.mjs" "solodev CLI kept after upgrade"
 assert_file_exists "${TARGET}/.claude/agents/shadow-reviewer.md" "v2 shadow-reviewer present after upgrade"
 
 # 4b. prune a whole skill (rename) leaves no empty folder behind
@@ -182,7 +186,7 @@ LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$TARGET2" INSTALL_TARGET=cursor node "$INST
 assert_file_exists "${TARGET2}/.cursor/agents/shadow-coder.md" "cursor-only installs .cursor"
 assert_file_absent "${TARGET2}/.claude" "cursor-only skips .claude"
 assert_file_absent "${TARGET2}/.codex" "cursor-only skips .codex"
-assert_file_exists "${TARGET2}/.agents/bin/solodev.mjs" "cursor-only still installs the solodev CLI"
+assert_file_exists "${TARGET2}/.agents/solodev/solodev-cli.mjs" "cursor-only still installs the solodev CLI"
 assert_file_exists "${TARGET2}/.agents/skills/solodev-mission/SKILL.md" "cursor-only installs shared skills"
 
 # 8b. prune leftover ./bin and .cursor/skills
@@ -196,11 +200,11 @@ for f in bin/quest-state .agents/bin/quest-state .agents/bin/quest-state.js .age
   .cursor/skills/sddkit-epic/SKILL.md .cursor/skills/sddkit/SKILL.md; do
   assert_file_absent "${TARGET2}/${f}" "reinstall prunes leftover ${f}"
 done
-assert_file_exists "${TARGET2}/.agents/bin/solodev.mjs" "solodev CLI remains after leftover prune"
+assert_file_exists "${TARGET2}/.agents/solodev/solodev-cli.mjs" "solodev CLI remains after leftover prune"
 
 # 9. the installed solodev CLI runs a feature through the gate and the implement checks
 # (a CommonJS package.json nearby must not break the ESM .mjs)
-SOLODEV="${TARGET}/.agents/bin/solodev.mjs"
+SOLODEV="${TARGET}/.agents/solodev/solodev-cli.mjs"
 printf '%s\n' '{"name":"consumer","type":"commonjs"}' >"${TARGET}/package.json"
 cat >"${TARGET}/AGENTS.md" <<'EOF'
 # consumer
@@ -284,10 +288,11 @@ if [[ $empty_rc -ne 0 ]]; then ok "installer fails when LOCAL_SOURCE has no dist
 
 # 12. global install uses isolated leaves and does not clobber host config
 FAKE_HOME="${WORK}/fake-home"
-mkdir -p "${FAKE_HOME}/.cursor/agents" "${FAKE_HOME}/.claude" "${FAKE_HOME}/.codex"
+mkdir -p "${FAKE_HOME}/.cursor/agents" "${FAKE_HOME}/.claude" "${FAKE_HOME}/.codex" "${FAKE_HOME}/.agents"
 printf '%s' "user-agent" >"${FAKE_HOME}/.cursor/agents/user-agent.md"
 printf '%s' '{"keep":true}' >"${FAKE_HOME}/.claude/settings.json"
 printf '%s' "# user config" >"${FAKE_HOME}/.codex/config.toml"
+printf '%s\n' "writer: codex" >"${FAKE_HOME}/.agents/solodev.yaml"
 GLOBAL_TARGET="${WORK}/global-consumer"
 mkdir -p "$GLOBAL_TARGET"
 # CODEX_HOME may point elsewhere in the caller's shell (Orca sets it); the global codex leaf follows it.
@@ -295,7 +300,14 @@ HOME="$FAKE_HOME" CODEX_HOME="${FAKE_HOME}/.codex" INSTALL_SCOPE=global INSTALL_
   LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$GLOBAL_TARGET" node "$INSTALL_JS" >/dev/null
 
 assert_file_exists "${FAKE_HOME}/.agents/skills/solodev-mission/SKILL.md" "global skills land in ~/.agents"
-assert_file_exists "${FAKE_HOME}/.agents/bin/solodev.mjs" "global solodev CLI lands in ~/.agents/bin"
+assert_file_exists "${FAKE_HOME}/.agents/solodev/solodev-cli.mjs" "global solodev CLI lands in ~/.agents/solodev"
+assert_file_absent "${FAKE_HOME}/.agents/bin" "global install writes no ~/.agents/bin"
+assert_eq "$(cat "${FAKE_HOME}/.agents/solodev/solodev-conf.yaml")" "writer: codex" "global install moves solodev.yaml to solodev-conf.yaml"
+assert_file_absent "${FAKE_HOME}/.agents/solodev.yaml" "old solodev.yaml removed after the move"
+printf '%s\n' "writer: claude" >"${FAKE_HOME}/.agents/solodev.yaml"
+HOME="$FAKE_HOME" CODEX_HOME="${FAKE_HOME}/.codex" INSTALL_SCOPE=global INSTALL_TARGET=all \
+  LOCAL_SOURCE="$UPSTREAM" TARGET_DIR="$GLOBAL_TARGET" node "$INSTALL_JS" >/dev/null
+assert_eq "$(cat "${FAKE_HOME}/.agents/solodev/solodev-conf.yaml")" "writer: codex" "an existing solodev-conf.yaml is not overwritten"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/shadow-coder.md" "global cursor agents leaf"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/user-agent.md" "global install keeps planted cursor agent"
 assert_file_exists "${FAKE_HOME}/.claude/agents/shadow-coder.md" "global claude agents leaf"

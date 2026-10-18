@@ -152,7 +152,7 @@ export const CLAUDE_ALLOWED = [
   "Bash(node:*)",
   "Bash(npm:*)",
   "Bash(npx:*)",
-  "Bash(.agents/bin/solodev.mjs:*)",
+  "Bash(.agents/solodev/solodev-cli.mjs:*)",
 ]
 
 export type Usage = { costUsd: number | null; inputTokens: number | null; outputTokens: number | null }

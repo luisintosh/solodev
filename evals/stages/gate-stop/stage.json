@@ -6,7 +6,7 @@
   "remove": ["AGENTS.md"],
   "maxTurns": 40,
   "checks": [
-    { "expect": "It ran `solodev probe`", "tool": "Bash", "input": "solodev(\\.mjs)? probe" },
+    { "expect": "It ran `solodev probe`", "tool": "Bash", "input": "solodev(-cli)?(\\.mjs)? probe" },
     { "expect": "It cut feat/<slug>", "git": ["branch", "--show-current"], "matches": "^feat/" },
     { "expect": "One feature folder", "features": true, "count": { "min": 1, "max": 1 } },
     { "expect": "progress.md starts with the request", "file": "{feature}/progress.md", "matches": "^## Request" },

@@ -1279,7 +1279,7 @@ function parseManifest(raw) {
   }
   return map;
 }
-var WORKFLOW_BIN = "solodev.mjs";
+var WORKFLOW_BIN = "solodev-cli.mjs";
 var BINS = [WORKFLOW_BIN];
 function findPackageRoot() {
   const dir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -1372,8 +1372,8 @@ function ghStatus() {
   return r2.status === 0 ? "ok" : "logged-out";
 }
 function workflowBinInUse(targetDir, home) {
-  const project = path.join(targetDir, ".agents", "bin", WORKFLOW_BIN);
-  const global = path.join(home, ".agents", "bin", WORKFLOW_BIN);
+  const project = path.join(targetDir, ".agents", "solodev", WORKFLOW_BIN);
+  const global = path.join(home, ".agents", "solodev", WORKFLOW_BIN);
   if (fsSync.existsSync(project)) return project;
   if (fsSync.existsSync(global)) return global;
 }
@@ -1540,24 +1540,27 @@ async function planTree(opts) {
   };
 }
 async function planBin(opts) {
-  const destDir = opts.scope === "global" ? path.join(opts.home, ".agents", "bin") : path.join(opts.targetDir, ".agents", "bin");
+  const root = opts.scope === "global" ? opts.home : opts.targetDir;
+  const destDir = path.join(root, ".agents", "solodev");
+  const oldDir = path.join(root, ".agents", "bin");
   const ops = [];
   for (const bin of BINS) {
     const dest = path.join(destDir, bin);
     const src = path.join(opts.stageDir, "bin", bin);
     const wantHash = opts.newManifest.get(`bin/${bin}`);
     if (!wantHash) die(`manifest missing bin/${bin}`);
-    const label = `.agents/bin/${bin}`;
+    const label = `.agents/solodev/${bin}`;
     if (!(fsSync.existsSync(dest) && await sha256File(dest) === wantHash)) {
       const kind = fsSync.existsSync(dest) ? "update" : "create";
       ops.push({ kind, label, dest, src, chmod: 493, localEdit: false });
     }
   }
   const leftovers = [
-    path.join(destDir, "quest-state.mjs"),
-    path.join(destDir, "quest-state"),
-    path.join(destDir, "quest-state.js"),
-    path.join(destDir, "sddkit-state.mjs")
+    path.join(oldDir, "solodev.mjs"),
+    path.join(oldDir, "quest-state.mjs"),
+    path.join(oldDir, "quest-state"),
+    path.join(oldDir, "quest-state.js"),
+    path.join(oldDir, "sddkit-state.mjs")
   ];
   if (opts.scope === "project") {
     leftovers.push(path.join(opts.targetDir, "bin", "quest-state"), path.join(opts.targetDir, "bin", "sdd-state"));
@@ -1570,10 +1573,26 @@ async function planBin(opts) {
       label: rel,
       dest: leftover,
       localEdit: false,
-      extra: `(replaced by .agents/bin/${WORKFLOW_BIN})`
+      extra: `(replaced by .agents/solodev/${WORKFLOW_BIN})`
     });
   }
   return ops;
+}
+function planConfig(home) {
+  const old = path.join(home, ".agents", "solodev.yaml");
+  const dest = path.join(home, ".agents", "solodev", "solodev-conf.yaml");
+  if (!fsSync.existsSync(old) || fsSync.existsSync(dest)) return [];
+  return [
+    {
+      kind: "create",
+      label: "~/.agents/solodev/solodev-conf.yaml",
+      dest,
+      src: old,
+      localEdit: false,
+      extra: "(moved from ~/.agents/solodev.yaml)"
+    },
+    { kind: "delete", label: "~/.agents/solodev.yaml", dest: old, localEdit: false }
+  ];
 }
 function planLegacyCursorSkills(scope, targetDir, home) {
   const dest = scope === "global" ? path.join(home, ".cursor", "skills") : path.join(targetDir, ".cursor", "skills");
@@ -1624,7 +1643,7 @@ function doctor(targetDir, home) {
   else log("  [info] AGENTS.md missing \u2014 optional: /solodev-scout");
   log("  paths:");
   log(`    skills          ${targetDir}/.agents/skills/  or  ${home}/.agents/skills/`);
-  log(`    solodev CLI     ${targetDir}/.agents/bin/  or  ${home}/.agents/bin/`);
+  log(`    solodev CLI     ${targetDir}/.agents/solodev/  or  ${home}/.agents/solodev/`);
   log(`    cursor agents   ${targetDir}/.cursor/agents/  or  ${home}/.cursor/agents/`);
   log(`    claude agents   ${targetDir}/.claude/agents/  or  ${home}/.claude/agents/`);
   log(`    claude skills   ${targetDir}/.claude/skills/  or  ${home}/.claude/skills/`);
@@ -1829,6 +1848,7 @@ async function main() {
     }
     const extraOps = [
       ...await planBin({ scope, targetDir, home, stageDir, newManifest: manifest }),
+      ...planConfig(home),
       ...planLegacyCursorSkills(scope, targetDir, home),
       ...await planLegacyOpencode(
         dests.legacyOpencode,
@@ -1847,9 +1867,12 @@ async function main() {
       await confirmApply(allFileOps);
     }
     for (const tree of trees) await applyTree(tree);
-    for (const op of extraOps) await applyOp(op);
+    for (const op of extraOps) {
+      await applyOp(op);
+      if (op.kind === "delete") await pruneEmptyDirs(path.dirname(op.dest), dests.agentsRoot);
+    }
     log("");
-    log("Done. .agents/bin/solodev.mjs runs the workflow checks; `solodev.mjs help` lists its commands.");
+    log("Done. .agents/solodev/solodev-cli.mjs runs the workflow checks; `solodev-cli.mjs help` lists its commands.");
     log("");
     suggestNextSteps();
     doctor(targetDir, home);

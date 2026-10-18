@@ -7,8 +7,8 @@ file. Keep it under about 100 lines: link CONTRIBUTING.md or the README instead 
 
 solodev ships no runtime app. It ships role skills, two shadow agents and a small workflow CLI that
 `npx`/`bunx github:luisintosh/solodev` installs into a _consuming_ repo or `$HOME` (`.agents/skills/`,
-`.claude/skills/`, `.claude/agents/`, `.cursor/agents/`, `.codex/agents/`, `.agents/bin/solodev.mjs`). Nothing here runs
-against this repo's own code.
+`.claude/skills/`, `.claude/agents/`, `.cursor/agents/`, `.codex/agents/`, `.agents/solodev/solodev-cli.mjs`). Nothing
+here runs against this repo's own code.
 
 ## Commands
 
