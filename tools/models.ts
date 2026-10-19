@@ -39,6 +39,6 @@ export const DISPLAY: Record<Host, (ref: ModelRef) => string> = {
 /** The pinned models, restated so a catalog edit has to be deliberate. */
 export const GOLDEN_MODELS: Record<Host, Record<ProfileName, string>> = {
   claude: { think: "claude-opus-5-5[effort=medium]", implement: "claude-sonnet-5-5[effort=high]" },
-  codex: { think: "gpt-6.1-sol[max]", implement: "gpt-6.1-sol[medium]" },
-  cursor: { think: "grok-4.7[effort=xhigh]", implement: "grok-4.7[effort=medium]" },
+  codex: { think: "gpt-6-astra[max]", implement: "gpt-6.1-sol[max]" },
+  cursor: { think: "gemini-4-argon[effort=high]", implement: "grok-4.7[effort=high]" },
 }

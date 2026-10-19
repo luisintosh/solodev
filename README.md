@@ -223,10 +223,10 @@ solodev help [<command>]               what each command does
 
 `src/catalog.yaml` pins one model per profile and host. `think` plans and reviews; `implement` writes code and docs.
 
-| profile     | Claude Code                      | Codex                 | Cursor                    |
-| ----------- | -------------------------------- | --------------------- | ------------------------- |
-| `think`     | `claude-opus-5-5[effort=medium]` | `gpt-6.1-sol[max]`    | `grok-4.7[effort=xhigh]`  |
-| `implement` | `claude-sonnet-5-5[effort=high]` | `gpt-6.1-sol[medium]` | `grok-4.7[effort=medium]` |
+| profile     | Claude Code                      | Codex              | Cursor                        |
+| ----------- | -------------------------------- | ------------------ | ----------------------------- |
+| `think`     | `claude-opus-5-5[effort=medium]` | `gpt-6-astra[max]` | `gemini-4-argon[effort=high]` |
+| `implement` | `claude-sonnet-5-5[effort=high]` | `gpt-6.1-sol[max]` | `grok-4.7[effort=high]`       |
 
 | shadow            | profile     |
 | ----------------- | ----------- |

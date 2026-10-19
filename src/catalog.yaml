@@ -14,12 +14,12 @@ hosts:
       implement: { id: claude-sonnet-5-5, effort: high }
   codex:
     profiles:
-      think: { id: gpt-6.1-sol, effort: max }
-      implement: { id: gpt-6.1-sol, effort: medium }
+      think: { id: gpt-6-astra, effort: max }
+      implement: { id: gpt-6.1-sol, effort: max }
   cursor:
     profiles:
-      think: { id: grok-4.7, effort: xhigh }
-      implement: { id: grok-4.7, effort: medium }
+      think: { id: gemini-4-argon, effort: high }
+      implement: { id: grok-4.7, effort: high }
 
 shadows:
   shadow-coder:
