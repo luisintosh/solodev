@@ -13,9 +13,9 @@ Your brief names one:
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
   commit the brief names, nothing else.
 
-The brief includes the output of `solodev check --for implement`. It shows how each journey test failed against the code
-before the feature: a failure from a syntax error, a bad import or a missing runner instead of missing behavior is a
-`major`.
+The brief includes the output of `solodev check --for implement`, with how each journey test failed against the code
+before the feature. A journey marked `red (new …)` failed only on loading new code, so check that its assertions pin
+each Then. A C3 warning (`didn't load at base`) whose cause isn't the feature is a `major`.
 
 ## Findings
 

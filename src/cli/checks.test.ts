@@ -4,7 +4,7 @@ import * as os from "node:os"
 import * as path from "node:path"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import { approve } from "./approve.ts"
-import { type CheckId, type CheckSet, runCheck, runChecks } from "./checks.ts"
+import { baseFailure, type CheckId, type CheckSet, runCheck, runChecks } from "./checks.ts"
 import { parseApprovals } from "./feature.ts"
 import { featureStatus, type PrInfo } from "./status.ts"
 
@@ -201,8 +201,78 @@ describe("checks", () => {
     implement()
     const r = await check("C3")
     expect(r.status).toBe("pass")
+    expect(r.summary).toBe("J1 red (new src/hello.js)→green")
+    expect(r.evidence?.join("\n")).toMatch(/loading new code[\s\S]*(Cannot find module|ERR_MODULE_NOT_FOUND)/)
+  })
+
+  test("C3 reports a failed assertion before the feature as plain red then green", async () => {
+    write("src/hello.js", `export const hello = () => "hi"\n`)
+    commit("feat: hi", "src")
+    sh("branch", "-f", "main", "HEAD")
+    await gate()
+    implement()
+    const r = await check("C3")
+    expect(r.status).toBe("pass")
     expect(r.summary).toBe("J1 red→green")
-    expect(r.evidence?.join("\n")).toMatch(/Cannot find module|ERR_MODULE_NOT_FOUND/)
+    expect(r.evidence?.join("\n")).toMatch(/expected: 'hello'/)
+  })
+
+  test("C3 warns when the test failed to load on a file the feature doesn't touch", async () => {
+    write(".gitignore", "src/gen.js\n")
+    commit("chore: ignore generated code", ".gitignore")
+    sh("branch", "-f", "main", "HEAD")
+    await gate()
+    write("src/gen.js", `export const greeting = "hello"\n`)
+    write("test/hello.test.js", `import { greeting } from "../src/gen.js"\n${TEST}`)
+    write("src/hello.js", IMPL)
+    commit("feat: add hello", "test", "src/hello.js")
+    const r = await check("C3")
+    expect(r.status).toBe("warn")
+    expect(r.summary).toBe("J1 didn't load at base")
+    expect(r.details.join("\n")).toMatch(/src\/gen\.js.*names nothing the feature adds/)
+  })
+
+  test("C3 fails a journey whose command can't run before the feature", async () => {
+    await gate(plan().replace("command: node test/hello.test.js", "command: sh scripts/t.sh"))
+    write("scripts/t.sh", "node test/hello.test.js\n")
+    implement()
+    commit("test: runner", "scripts")
+    const r = await check("C3")
+    expect(r.status).toBe("fail")
+    expect(r.summary).toBe("J1 never ran at base")
+  })
+
+  test("C3 skips the base run for a journey that fails now", async () => {
+    await gate()
+    write("test/hello.test.js", TEST)
+    write("src/hello.js", `export const hello = () => "hi"\n`)
+    commit("feat: wip", "test", "src")
+    const r = await check("C3")
+    expect(r.status).toBe("fail")
+    expect(r.summary).toBe("J1 FAILS now")
+    expect(r.evidence).toEqual([])
+  })
+
+  test.each([
+    ["vitest", 'Error: Failed to resolve import "../src/export" from "test/export.test.ts"', ["src/export.ts"], "new"],
+    ["pytest", "E   ModuleNotFoundError: No module named 'app.export'", ["app/export.py"], "new"],
+    ["pytest package", "E   ModuleNotFoundError: No module named 'app'", ["app/__init__.py"], "new"],
+    [
+      "node",
+      "SyntaxError: The requested module '../src/util.js' does not provide an export named 'greet'",
+      ["src/util.js"],
+      "new",
+    ],
+    ["jest", "SyntaxError: Unexpected token ')' in test/hello.test.js", ["src/hello.js"], "load"],
+    ["a prefix only", "Error: Cannot find module '../src/hello-world'", ["src/hello.js"], "load"],
+    ["an assertion", "AssertionError: expected 'hi' to equal 'hello'", ["src/hello.js"], "behavior"],
+  ])("baseFailure reads %s output", (_, line, changed, kind) => {
+    expect(baseFailure({ code: 1, stdout: `${line}\n`, stderr: "" }, changed).kind).toBe(kind)
+  })
+
+  test("baseFailure treats a missing runner or a timeout as never run", () => {
+    expect(baseFailure({ code: 127, stdout: "", stderr: "sh: vitest: command not found\n" }, []).kind).toBe("broken")
+    expect(baseFailure({ code: null, stdout: "", stderr: "solodev: timed out after 10ms" }, []).kind).toBe("broken")
   })
 
   test("C4 warns when an assertion goes away and fails when the test is deleted", async () => {
