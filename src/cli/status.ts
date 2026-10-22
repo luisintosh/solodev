@@ -38,8 +38,7 @@ export async function ghPr(root: string): Promise<PrInfo | null | undefined> {
 const NEXT: Record<Stage, (slug: string) => string> = {
   spec: () => "write spec.md and plan.md (solodev-plan), asking the user what the code can't answer",
   gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
-  implement: (s) =>
-    `solodev-code writes each journey's test, then the code; then \`solodev check ${s} --for implement\``,
+  implement: (s) => `solodev-code writes the journey tests and the code; then \`solodev check ${s} --for implement\``,
   review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
   pr: (s) => `\`solodev check ${s} --for pr\`, then push and open the draft PR`,
   qa: (s) =>

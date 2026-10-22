@@ -78,8 +78,8 @@ skills:
   solodev-code:
     budget: 80
     description: >-
-      Implements an approved plan: for each journey, the failing test first, then the smallest change that passes it.
-      Loaded by shadow-coder for a /solodev-mission run.
+      Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing
+      after it. Loaded by shadow-coder for a /solodev-mission run.
   solodev-review:
     budget: 90
     description: >-
