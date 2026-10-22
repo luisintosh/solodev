@@ -17,7 +17,8 @@ done when:
 
 - its `command` passes now and, on the code before the feature, fails because the behavior is missing (`solodev check`
   runs both);
-- each scenario's Given/When/Then holds, not only the test being green.
+- each scenario's Given/When/Then holds, not only the test being green, and the test or assertion that proves it carries
+  its `@S<n>` tag in its name or a comment beside it.
 
 Order the work as you judge best. While you work, run the journey commands; typecheck and lint run once, in the check
 before you reply. Write to the lists in [references/practices.md](references/practices.md) as you go; the reviewer

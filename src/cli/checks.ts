@@ -116,7 +116,10 @@ async function c1(ctx: CheckContext): Promise<CheckResult> {
   return result("C1", failed ? "fail" : "pass", parts.join(" · "), details)
 }
 
-/** C2. At the gate the journey tests don't exist yet, so `requireTests` is off there. */
+/**
+ * C2. At the gate the journey tests don't exist yet, so `requireTests` is off there. Past it, each scenario a journey
+ * claims carries its `@S<n>` tag in that journey's test file, in a test name or a comment beside its assertion.
+ */
 export async function coverage(root: string, dir: string, requireTests: boolean): Promise<CheckResult> {
   const spec = await readIfExists(path.join(dir, "spec.md"))
   if (spec === undefined) return result("C2", "fail", `spec.md not found in ${dir}`)
@@ -135,8 +138,17 @@ export async function coverage(root: string, dir: string, requireTests: boolean)
   const unknown = [...claimed].filter((s) => !scenarios.includes(s))
   if (unknown.length) details.push(`plan.md names ${unknown.join(", ")}, which spec.md doesn't define`)
   for (const j of plan.journeys) {
-    if (requireTests && !(await exists(path.join(root, j.test)))) {
+    if (!requireTests) continue
+    const test = await readIfExists(path.join(root, j.test))
+    if (test === undefined) {
       details.push(`${j.id}: test file ${j.test} does not exist`)
+      continue
+    }
+    const untagged = j.scenarios.filter((s) => !new RegExp(`@${s}(?!\\d)`).test(test))
+    if (untagged.length) {
+      details.push(
+        `${j.id}: ${j.test} has no ${untagged.map((s) => `@${s}`).join(", ")}; tag the test or assertion that proves each`,
+      )
     }
   }
   if (details.length) return result("C2", "fail", details[0]!, details.slice(1))

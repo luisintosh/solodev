@@ -247,7 +247,7 @@ assert_grep '^- approved .* · spec [0-9a-f]* · at [0-9a-f]*$' "$(cat "${FEATUR
 assert_eq "$(cd "$TARGET" && git rev-parse HEAD)" "$head_before" "solodev approve commits nothing to the repo"
 assert_eq "$(cd "$TARGET" && git status --porcelain)" "" "solodev approve leaves the repo clean"
 mkdir -p "${TARGET}/test" "${TARGET}/src"
-printf 'import assert from "node:assert"\nimport { hello } from "../src/hello.mjs"\nassert.strictEqual(hello(), "hello")\n' \
+printf 'import assert from "node:assert"\nimport { hello } from "../src/hello.mjs"\nassert.strictEqual(hello(), "hello") // @S1\n' \
   >"${TARGET}/test/hello.test.mjs"
 printf 'export const hello = () => "hello"\n' >"${TARGET}/src/hello.mjs"
 (cd "$TARGET" && git add test src && git commit -q -m "feat: add hello")
