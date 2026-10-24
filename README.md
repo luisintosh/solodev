@@ -117,8 +117,8 @@ flowchart LR
   catalog.
 - **Rules that code can check are code.** "No code before approval" or "every scenario is claimed by a test" are CLI
   checks over git, with unit tests; prompts keep only what needs judgment.
-- **Prompts are tested like software.** A quiz of 60 decision scenarios and 40 routing queries runs on every prompt
-  change (latest run: 60/60 scenarios, 37/38 routing); it caught, for example, that tools load subagents only at
+- **Prompts are tested like software.** A quiz of 76 decision scenarios and 40 routing queries runs on every prompt
+  change (latest run: 76/76 scenarios, 40/40 routing); it caught, for example, that tools load subagents only at
   startup, so a run that installs them mid-session now stops for a restart. Stage evals run the real workflow headless,
   with real subagents, graded by scripts on what reached git.
 - **Lean.** Each skill has a line budget enforced in CI, detail loads only when a step needs it, and a feature's stage
@@ -153,9 +153,10 @@ Add `-g` to both if you installed globally. Feature folders stay where they are.
 **Coming from the old installer (v5 and earlier)?** Install as above and let `/mission init` use `--force` once per
 tool. Feature folders stay where they are.
 
-**Requirements:** Node.js 20+, Git, and one coding tool you're logged in to. Optional:
-[agent-browser](https://github.com/vercel-labs/agent-browser) for UI checks, [rtk](https://github.com/rtk-ai/rtk) for
-quieter command output.
+**Requirements:** Node.js 20+, Git, and one coding tool you're logged in to. Optional: a browser tool for UI checks,
+such as your coding tool's built-in browser, Chrome DevTools MCP or
+[agent-browser](https://github.com/vercel-labs/agent-browser); [rtk](https://github.com/rtk-ai/rtk) for quieter command
+output.
 
 ---
 

@@ -159,7 +159,7 @@
     {
       "id": "review-merge-duplicate",
       "situation": "Merging lens replies. Contract found a minor at src/users.js:14, correctness a major at src/users.js:14, both about the same missing await.",
-      "ask": "What goes in review.md?",
+      "ask": "What row goes in review.md, with its severity, lens cell and status?",
       "expect": "One row, not two: severity major, lens cell `contract, correctness`, status open."
     },
     {
@@ -225,7 +225,7 @@
     {
       "id": "reviewer-single-clean",
       "situation": "You are shadow-reviewer with `lens: single`. You found nothing.",
-      "ask": "What do you write?",
+      "ask": "What do you write in review.md, and what do you reply?",
       "expect": "review.md with the header row alone (the lens column present), recording a clean review, plus the reply with zero counts. The repo stays as it found it."
     },
     {
@@ -260,9 +260,105 @@
     },
     {
       "id": "verifier-no-browser",
-      "situation": "You are shadow-reviewer playing solodev-verify. S5 is a UI scenario and agent-browser is not on PATH.",
+      "situation": "You are shadow-reviewer playing solodev-verify. S5 is a UI scenario and your brief says `browser none`.",
       "ask": "What do you do?",
-      "expect": "Doesn't install it; gives the commander agent-browser's install line (and doesn't fake a verdict)."
+      "expect": "Installs nothing and marks S5 `manual`, with a person's steps as evidence and the lack of a browser in its headline; it doesn't fake a verdict."
+    },
+    {
+      "id": "verifier-browser-unreachable",
+      "situation": "You are shadow-reviewer playing solodev-verify. S5 is a UI scenario, your brief says `browser Chrome DevTools MCP`, and that tool isn't in your session.",
+      "ask": "What do you do?",
+      "expect": "Marks S5 `manual` with a person's steps as evidence and says in its headline that it couldn't reach the tool; it installs nothing."
+    },
+    {
+      "id": "browser-built-in-and-agent-browser",
+      "situation": "Building the gate card. S5 is an uncovered UI scenario. Your session has the desktop app's built-in browser, and the agent-browser skill is installed.",
+      "ask": "What does the card do about the browser?",
+      "expect": "Adds a question asking which of the two to use; neither takes priority."
+    },
+    {
+      "id": "browser-several",
+      "situation": "Building the gate card. S5 is an uncovered UI scenario. Your session has Cursor's built-in browser and Chrome DevTools MCP.",
+      "ask": "What does the card do about the browser?",
+      "expect": "Adds a question asking which of the two to use."
+    },
+    {
+      "id": "browser-only-one",
+      "situation": "Building the gate card. S5 is an uncovered UI scenario. The agent-browser skill is the only browser tool this session has.",
+      "ask": "What does the card do about the browser?",
+      "expect": "Names agent-browser on the card, with no question about it."
+    },
+    {
+      "id": "browser-none",
+      "situation": "Building the gate card. S5 is an uncovered UI scenario, and this session has no browser tool at all.",
+      "ask": "What does the card do about the browser?",
+      "expect": "Adds a question: install agent-browser and its skill, with the commands, or use steps for a manual test."
+    },
+    {
+      "id": "browser-none-manual",
+      "situation": "Step 8. S5 is an uncovered UI scenario, and `progress.md` has `- browser none` because the user chose a manual test at the gate.",
+      "ask": "What does the verifier's brief say about the browser, and do you ask the user anything first?",
+      "expect": "`browser none`, with no new question; the verifier writes a person's steps for S5 as a `manual` verdict."
+    },
+    {
+      "id": "browser-no-ui",
+      "situation": "Building the gate card. The only uncovered scenario is an API call. This session has two browser tools.",
+      "ask": "Does the card ask about a browser?",
+      "expect": "No, no scenario needs one."
+    },
+    {
+      "id": "browser-reuse",
+      "situation": "Step 8. `progress.md` has `- browser Chrome DevTools MCP`, S5 is an uncovered UI scenario, and the session also has the agent-browser skill.",
+      "ask": "Do you ask the user about the browser?",
+      "expect": "No, the brief says `browser Chrome DevTools MCP`."
+    },
+    {
+      "id": "browser-unreachable-recheck",
+      "situation": "The verifier marked S5 `manual` because it couldn't reach the tool logged as `- browser Cursor's browser`.",
+      "ask": "What do you do?",
+      "expect": "Asks the user to pick another tool or go manual, logs the answer, rather than sending the same tool again."
+    },
+    {
+      "id": "browser-install-global",
+      "situation": "On Codex, at the gate, the user chose to install agent-browser and its skill, and asks you to run the commands.",
+      "ask": "What command installs the skill?",
+      "expect": "`npx skills add vercel-labs/agent-browser -g -y -a codex`: global so the repo stays clean, and for this tool only."
+    },
+    {
+      "id": "browser-unsettled-approval",
+      "situation": "The gate card asked which of two browser tools to use and who writes the code. The user replied `1`, choosing the coder and approving, without naming a browser.",
+      "ask": "What do you log about the browser?",
+      "expect": "No `- browser` line: it approves and goes on without picking a tool, and step 8 asks."
+    },
+    {
+      "id": "browser-not-needed-log",
+      "situation": "The user approved the gate. The only uncovered scenario is an API call.",
+      "ask": "Do you log a `- browser` line?",
+      "expect": "No, none was settled."
+    },
+    {
+      "id": "browser-last-line",
+      "situation": "Step 8. `progress.md` has `- browser Cursor's browser` and, later, `- browser agent-browser`.",
+      "ask": "Which browser does the brief carry?",
+      "expect": "`browser agent-browser`, from the last line."
+    },
+    {
+      "id": "qa-install-rerun",
+      "situation": "The verifier marked S5 `manual` after `browser none`, and you showed the user its steps. The user now installs agent-browser and asks you to run it.",
+      "ask": "What do you do next?",
+      "expect": "Logs agent-browser and reruns those rows, rather than recording a verdict from the user's words."
+    },
+    {
+      "id": "home-null",
+      "situation": "`solodev probe` returns `home: null`, and you are Codex.",
+      "ask": "What do you do?",
+      "expect": "Reruns it as `SOLODEV_HOME=codex`."
+    },
+    {
+      "id": "resume-coder-gone",
+      "situation": "\"Continue\" in a new session, with a fix round still to send. The coder ran in the earlier session.",
+      "ask": "Who gets the fix round?",
+      "expect": "A new coder, whose brief is rebuilt from `spec.md` and `progress.md` plus what's left, since the earlier one is gone."
     },
     {
       "id": "verifier-writes-qa",

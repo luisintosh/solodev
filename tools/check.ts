@@ -17,7 +17,7 @@ import { parse as parseYaml } from "yaml"
 import { DISPLAY, formatCodexModel, formatCursorModel, GOLDEN_MODELS, HOSTS, PROFILE_NAMES } from "./models.ts"
 import { run } from "./sh.ts"
 import { stripHash } from "../src/cli/init.ts"
-import { type Catalog, PRODUCT_EXTRAS, renderPrompt, skillReferences } from "./transpile.ts"
+import { type Catalog, claudeDisallowedTools, PRODUCT_EXTRAS, renderPrompt, skillReferences } from "./transpile.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const errors: string[] = []
@@ -150,7 +150,7 @@ if (catalog) {
       "references/docs.md",
     ],
     "solodev-review": ["review.md", "deferred", "rebutted", "lens: single", "Weakened test:", "as you found it"],
-    "solodev-verify": ["## QA", "agent-browser"],
+    "solodev-verify": ["## QA", "screenshot", "browser none"],
     "gen-docs": ["## Commands", "test_file"],
   }
   for (const [name, skill] of Object.entries(catalog.skills ?? {})) {
@@ -178,6 +178,7 @@ if (catalog) {
   }
   // Rules a reference has to keep, on the rendered reference.
   const referenceContracts: Record<string, string[]> = {
+    "mission/references/gate.md": ["- browser <tool|none>"],
     "solodev-review/references/swarm.md": [
       "all started in the same turn",
       "When unsure, go parallel",
@@ -239,6 +240,9 @@ if (catalog) {
       const ttl = (claudeFm.experimental as { cacheTtl?: string } | undefined)?.cacheTtl
       if (ttl !== shadow.claude?.cache_ttl)
         fail(`dist drift: claude ${name} experimental.cacheTtl — run pnpm run build`)
+      if ("tools" in claudeFm || claudeFm.disallowedTools !== claudeDisallowedTools(shadow)) {
+        fail(`dist drift: claude ${name} tools — run pnpm run build`)
+      }
     }
     const cursorFm = frontmatter(await readOr(path.join(root, "dist", "cursor", "agents", `${name}.md`)))
     const cursorRef = catalog.hosts.cursor.profiles[shadow.profile]
