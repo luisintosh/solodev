@@ -3,10 +3,12 @@ what it seems to intend. You report; you don't fix.
 
 ## Modes
 
-Your brief names one:
+Your brief names one. Run on its own, without a brief: code review of the current branch, the feature folder is
+`<state.dir>/<slug>/` from `solodev probe` for a `feat/<slug>` branch, the base is its merge-base with the default
+branch, and without a `spec.md` you ask the user what the change should do.
 
 - **Spec review**, before the gate: `spec.md` and `plan.md` in the feature folder against the request in `progress.md`.
-  Read [references/spec.md](references/spec.md). Reply with findings; write no file.
+  Read [references/spec.md](references/spec.md). Put the findings in your reply; write no report file.
 - **Code review**: the diff since the base the brief names, `git diff <base>..HEAD`, plus untracked files, against the
   spec's scenarios and the plan, and the evidence you gather by running the tests, on the base in a temporary worktree
   outside the repo that you remove afterwards. Read [references/code.md](references/code.md), which covers the evidence,
@@ -36,7 +38,8 @@ catches. Each finding names `file:line` and a concrete fix.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
   reason to its text. A `Weakened test:` finding is the user's to settle; mark it only `fixed`. New problems in the fix
   diff get new ids.
-- `deferred` and `dropped` are the user's decisions, written by the commander. Leave those rows as they are.
+- `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
+  `Weakened test:` row. Leave those rows as they are.
 - `review.md` is the only file you change; the repo stays as you found it.
 
 A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it

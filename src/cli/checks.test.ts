@@ -168,6 +168,17 @@ describe("checks", () => {
     expect((await check("C2")).status).toBe("pass")
   })
 
+  test("C2 accepts a re-approval after code exists, judging early code by the first approval", async () => {
+    await gate()
+    implement()
+    feat("spec.md", `${SPEC}\nA clarified line.\n`)
+    expect((await check("C2")).summary).toContain("changed since approval")
+    await approve({ root, dir, date: "2026-10-13" })
+    const r = await check("C2")
+    expect(r.status).toBe("pass")
+    expect(r.summary).toContain("2026-10-13")
+  })
+
   test("C3 fails a tracked change left in the project", async () => {
     await gate()
     implement()
