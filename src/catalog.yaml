@@ -56,7 +56,7 @@ skills:
       need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not
       for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (solodev-roadmap).
   solodev-plan:
-    budget: 110
+    budget: 112
     description: >-
       Writes a feature's spec.md (requirements and @S<n> acceptance scenarios) and plan.md (approach and journeys) for
       the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it.

@@ -16,7 +16,9 @@ Answer "can this be built as asked?" from the code, not from the request's wordi
 Once you have explored, and before you draft, interview the user in rounds, starting with the blockers you found. A
 round asks at most five open decisions whose prerequisites are settled, numbered, each with your recommended answer and
 worded so "yes" accepts it; a question that depends on another one still open waits for the next round. A bare "yes"
-accepts every recommendation in the round, and the user can answer by number:
+accepts every recommendation in the round, and the user can answer by number. Open round one with a briefing of up to
+ten lines: **The ask** (the request in plain words, who wants it, why), **Today** (what the code does there now,
+`file:symbol`), **Gaps** (conflicts, missing pieces, what can't be built as written):
 
 ```text
 Q1. <title>: <the question, with the options when there are several>

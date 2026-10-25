@@ -6,8 +6,7 @@ the docs beside the change up to date.
 Your brief names the slug, the feature folder and the journeys. Its `spec.md` holds the scenarios, which are the
 acceptance bar; `plan.md` holds the approach and the journeys block (test path and command per journey).
 {{include:fragments/commands.md}} Your brief also names the files the change touches, the helpers to reuse and a test
-sketch per scenario. Start from those, explore only where they fall short, reuse what's there, and match the surrounding
-style.
+sketch per scenario. Start from those, explore only where they fall short, reuse what's there and match its style.
 
 ## The bar
 
@@ -59,6 +58,7 @@ Write it where the brief says:
 status: done | question | blocked
 journeys: [J1, J2] # passing now
 files_changed: [...]
+decisions: [] # one line per choice the spec and plan left open that no scenario observes; observable → question
 findings: # fix rounds only
   - id: R1
     result: fixed | rebutted
