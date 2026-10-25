@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { parseCommands, parsePlan, parseQa, parseReview, parseScenarios } from "./feature.ts"
+import { parsePlan, parseQa, parseReview, parseScenarios } from "./feature.ts"
 import { helpText, HELP } from "./help.ts"
 
 describe("parseScenarios", () => {
@@ -35,36 +35,6 @@ describe("parsePlan", () => {
 
   test("no journeys block is an error an agent can act on", () => {
     expect(() => parsePlan("# Plan\n")).toThrow(/no fenced YAML block starting with `journeys:`/)
-  })
-})
-
-describe("parseCommands", () => {
-  test("first backticked span is the command; n/a maps to null", () => {
-    const md = [
-      "# Repo",
-      "",
-      "## Commands",
-      "",
-      "- install: `pnpm install`",
-      "- test: `pnpm test` (all tests)",
-      "- test_file: `pnpm vitest run {file}` (one test file)",
-      "- lint: n/a",
-      "- typecheck: `n/a`",
-      "",
-      "## Conventions",
-      "- style: `ignored`",
-    ].join("\n")
-    expect(Object.fromEntries(parseCommands(md))).toEqual({
-      install: "pnpm install",
-      test: "pnpm test",
-      test_file: "pnpm vitest run {file}",
-      lint: null,
-      typecheck: null,
-    })
-  })
-
-  test("no Commands section → nothing", () => {
-    expect(parseCommands("# Repo\n- test: `x`").size).toBe(0)
   })
 })
 

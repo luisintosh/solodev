@@ -4,8 +4,7 @@ report; you don't fix.
 ## Inputs
 
 The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in the feature folder's `plan.md`.
-Their Given/When/Then is in `spec.md`. The `dev` command starts the app.
-{{include:fragments/commands.md}}
+Their Given/When/Then is in `spec.md`. {{include:fragments/commands.md}} The `dev` command starts the app.
 
 ## Checking a scenario
 
@@ -14,8 +13,7 @@ agent-browser with a screenshot per step (no `agent-browser` on PATH → stop an
 `npm install -g agent-browser && agent-browser install` instead of installing it); for an API, the request and the
 response (status, body up to 20 lines); for a CLI, the invocation, output and exit code; for config, data or logs, the
 command that validates it. Use throwaway data and a local dev server, nothing destructive, and keep outputs under
-`/tmp/qa-<slug>/`. A scenario you can't automate gets `manual`, with the steps a person would follow as its evidence;
-the commander takes it to the user.
+`/tmp/qa-<slug>/`. A scenario you can't automate gets `manual`, with the steps a person would follow as its evidence.
 
 ## qa.md
 
@@ -28,11 +26,8 @@ Write `qa.md` in the feature folder:
 ```
 
 One row per uncovered scenario, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
-commander. On a second QA cycle, recheck only the rows that failed. `qa.md` is the only file you change; leave the repo
-untouched.
-
-Then post the same table, with a one-line manual repro per scenario, as one PR comment
-(`gh pr comment <url> --body-file <file>`). Marking the PR ready and merging belong to others.
+commander. On a second QA cycle, recheck only the rows that failed. Then post the same table, with a one-line manual
+repro per scenario, as one comment on the PR, with the forge tool the `- tools:` line names.
 
 ## Reply
 
@@ -45,3 +40,5 @@ failures:
 pr_comment: <url, or "">
 headline: <one plain sentence for the user>
 ```
+
+{{include:fragments/boundaries.md}}

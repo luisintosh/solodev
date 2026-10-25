@@ -24,12 +24,6 @@ export async function resolveBase(root: string, env = process.env): Promise<stri
   return undefined
 }
 
-/** The commit that first added `file`, or undefined when it was never committed. */
-export async function firstAdded(root: string, file: string): Promise<string | undefined> {
-  const r = await run("git", ["log", "--reverse", "--diff-filter=A", "--format=%H", "--", file], { cwd: root })
-  return r.code === 0 ? r.stdout.split("\n").find(Boolean) : undefined
-}
-
 export async function currentBranch(root: string): Promise<string> {
   const r = await run("git", ["branch", "--show-current"], { cwd: root })
   return r.code === 0 ? r.stdout.trim() : ""

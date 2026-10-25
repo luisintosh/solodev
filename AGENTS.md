@@ -36,8 +36,9 @@ the **only** sources of truth. `tools/transpile.ts` emits the skills for each ho
 
 solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that way:
 
-- **Check before instruction.** A rule verifiable from git, files or an exit code goes in `src/cli/checks.ts` with a
-  test, not in a prompt.
+- **Check before instruction.** A rule verifiable from git or solodev's own files without knowing the project's language
+  or tools goes in `src/cli/checks.ts` with a test. Anything that has to run or recognize the user's stack (their
+  commands, test runners, forge, tracker) goes in a prompt; the reviewer judges it from the output.
 - **Load on demand.** A skill body holds the goal, the steps and the done-when; detail a step needs only sometimes goes
   in its `references/`. Raise a skill's `budget` only with a reason in the commit message.
 - **Plain prompts.** "Do X when Y", no capitalized MUST/NEVER/CRITICAL/ALWAYS, no step-by-step for what a top model

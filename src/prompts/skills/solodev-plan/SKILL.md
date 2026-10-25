@@ -6,8 +6,8 @@ Answer "can this be built as asked?" from the code, not from the request's wordi
 
 - What exists today: the models, tables, clients and rules the feature touches, including ones that make a requirement
   impossible as written.
-- Adjacent work: an issue's parent, siblings and links, plus open PRs and unmerged branches (`gh pr list`). Note who
-  owns adjacent behavior and which way each dependency runs.
+- Adjacent work: an issue's parent, siblings and links, plus open PRs and unmerged branches. Note who owns adjacent
+  behavior and which way each dependency runs.
 - Sources the user names, such as a prototype, a design board or a doc. Read
   [references/sources.md](references/sources.md) when there is one.
 
@@ -98,4 +98,6 @@ are the bar.
 - A spec review's findings: apply the ones you agree with and bring the rest to the gate.
 - Both documents describe the current state. No history ("updated per review") in them.
 
-You edit only the feature folder, which lives outside the repo, and you don't commit; the commander records the gate.
+You edit only the feature folder, which lives outside the repo; the commander records the gate.
+
+{{include:fragments/boundaries.md}}

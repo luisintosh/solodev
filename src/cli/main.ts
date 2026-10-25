@@ -11,7 +11,7 @@ import { HELP, helpText } from "./help.ts"
 import { modelsFromCatalog } from "./models.ts"
 import { probe } from "./probe.ts"
 import { stateDir } from "./state.ts"
-import { branchFeature, featureStatus, formatStatus, ghPr, listFeatures, type Stage } from "./status.ts"
+import { branchFeature, featureStatus, formatStatus, listFeatures, type Stage } from "./status.ts"
 
 class UsageError extends Error {}
 
@@ -109,7 +109,7 @@ async function main(argv: string[]): Promise<number> {
     case "status": {
       const slug = positional(args)[0] ?? (await branchFeature(root, state))
       if (slug) {
-        const status = await featureStatus(root, state, await requireFeature(root, state, slug), { pr: ghPr })
+        const status = await featureStatus(state, await requireFeature(root, state, slug))
         console.log(json ? JSON.stringify(status, null, 2) : formatStatus(status))
         return 0
       }
@@ -119,10 +119,9 @@ async function main(argv: string[]): Promise<number> {
         if (await exists(path.join(root, "docs", "feats"))) console.log(`note: ${LEGACY}`)
         return 0
       }
-      // The PR belongs to the current branch, so the list leaves it out; name a slug for the full status.
-      const all = await Promise.all(slugs.map((s) => featureStatus(root, state, s, { pr: async () => null })))
+      const all = await Promise.all(slugs.map((s) => featureStatus(state, s)))
       if (json) console.log(JSON.stringify(all, null, 2))
-      else for (const s of all) console.log(`${s.slug}: ${s.stage === "pr" ? "pr or later" : s.stage}`)
+      else for (const s of all) console.log(`${s.slug}: ${s.stage}`)
       return 0
     }
     case "approve": {
@@ -137,11 +136,10 @@ async function main(argv: string[]): Promise<number> {
       if (forFlag && !(forFlag in CHECK_SETS)) throw new UsageError("--for must be implement, pr or done")
       let set = forFlag as CheckSet | undefined
       if (!set) {
-        const stage = (await featureStatus(root, state, slug, { pr: ghPr })).stage
+        const stage = (await featureStatus(state, slug)).stage
         set = SET_FOR_STAGE[stage] ?? "implement"
       }
-      const timeoutMs = Number(process.env.SOLODEV_TIMEOUT_MS) || 10 * 60_000
-      const results = await runChecks({ root, dir: featureDir(state, slug), set, timeoutMs })
+      const results = await runChecks({ root, dir: featureDir(state, slug), set })
       if (json) console.log(JSON.stringify({ slug, set, results }, null, 2))
       else console.log(`solodev check ${slug} --for ${set}\n${formatResults(results)}`)
       return results.some((r) => r.status === "fail") ? 1 : 0

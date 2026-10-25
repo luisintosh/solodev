@@ -6,10 +6,12 @@ roadmap feature later becomes its own `/solodev-mission` run.
 
 A roadmap with a measurable goal, the chosen approach, the agreed data model, an epic-level feature list and its
 sequencing, plus one work item per feature carrying the detail. The tracker holds it: an epic whose body is the roadmap
-and one issue per feature, filed only if the user says yes. Drafts live outside the repo in
+and one ticket per feature, filed only if the user says yes. Drafts live outside the repo in
 `<state.dir>/roadmaps/<slug>/` (`roadmap.md`, `items/F<n>.md`); without a tracker they are the record. `state.dir` comes
 from `solodev probe` (`<repo>/.agents/solodev/solodev-cli.mjs`, or `~/.agents/solodev/solodev-cli.mjs` for a global
 install). Formats: [references/formats.md](references/formats.md).
+
+{{include:fragments/tracker.md}}
 
 ## How you work
 
@@ -36,13 +38,14 @@ install). Formats: [references/formats.md](references/formats.md).
 - **Plain, testable words.** "Fast", "intuitive" and "simple" need a number or a named behavior. Every acceptance
   criterion is concretely testable.
 - **Nothing in the repo.** Drafts are written only to the roadmaps folder, and only once the roadmap and work items are
-  approved. No issue without an explicit yes.
+  approved. No ticket without an explicit yes.
 
 ## Steps
 
-1. **Ground.** The user names an epic (`#<n>` or URL) → read it with `gh issue view` and revise it; a local roadmap →
-   read it from the roadmaps folder. Otherwise kebab-case the idea into a slug; if its folder exists, ask whether to
-   revise it or pick a new slug. Explore, then list the questions the idea raises and strike the ones the code answered.
+1. **Ground.** The user names an epic (a ticket reference or URL) → read it from the tracker and revise it; a local
+   roadmap → read it from the roadmaps folder. Otherwise kebab-case the idea into a slug; if its folder exists, ask
+   whether to revise it or pick a new slug. Explore, then list the questions the idea raises and strike the ones the
+   code answered.
 2. **Ask.** Rounds in the shape above until nothing high-leverage is open (target users, the problem, hard constraints,
    the success horizon, what must not break). The rest goes into the assumptions ledger.
 3. **Goal.** One paragraph, two to four measurable success criteria, and explicit non-goals. ⏸ The user confirms or
@@ -87,21 +90,22 @@ install). Formats: [references/formats.md](references/formats.md).
     No subagent available → run the same brief yourself as a separate pass and say so.
 11. **Present the work items** with a review summary of five lines at most. ⏸ Apply edits until the user approves.
 12. **Write** `roadmap.md` and `items/F<n>.md` to `<state.dir>/roadmaps/<slug>/`.
-13. **Offer to file the issues.** If yes, check `gh auth status` and `gh repo view --json nameWithOwner` (or use a
-    connected tracker that can create the same shapes). No tracker, or the user declines → say the drafts folder is the
-    record, give its path, and skip this step. File the epic first, titled `Epic: <goal>`, its body `roadmap.md` without
-    its `#` heading. Then file features in wave order so referenced issues exist: the body is `items/F<n>.md` without
-    its `# F<n>: …` heading, with each `Blocked by F<m>` rewritten to `Blocked by #<issue>` and the Data model link to
-    `the epic, #<epic> › Data model`, and the title is exactly `F<n>: <title>`, which `/solodev-mission` derives the
-    slug from. After each feature is filed, append `- [ ] #<n> F<n>: <name>` to the epic's task list, so the list always
-    matches what exists. GitHub ticks each box when its issue closes, which is how `/solodev-mission` finds the next
-    feature. Report every issue URL, and any feature left unfiled.
+13. **Offer to file the tickets.** If yes, confirm the tracker tool can reach the project. No tracker, or the user
+    declines → say the drafts folder is the record, give its path, and skip this step. File the epic first, titled
+    `Epic: <goal>`, its body `roadmap.md` without its `#` heading. Then file features in wave order so referenced
+    tickets exist: the body is `items/F<n>.md` without its `# F<n>: …` heading, with each `Blocked by F<m>` rewritten to
+    the tracker's reference (`Blocked by #<n>`, `Blocked by PROJ-12`) and the Data model link to the epic's Data model
+    section, and the title is exactly `F<n>: <title>`, which `/solodev-mission` derives the slug from. After each
+    feature is filed, add it to the epic's feature list (a task list `- [ ] #<n> F<n>: <name>` on GitHub, child tickets
+    elsewhere), so the list always matches what exists and shows which are closed; that is how `/solodev-mission` finds
+    the next feature. Report every ticket URL, and any feature left unfiled.
 14. **Revising a filed epic:** show the before and after in chat, the data model included when it changes. ⏸ Once the
-    user approves, update the drafts, then the epic and every open feature issue it affects with `gh issue edit`.
-15. **Hand off.** Each feature runs through `/solodev-mission`, one at a time, respecting the waves. With issues filed,
-    print the line for wave 1's first feature: `/solodev-mission #<n>`.
+    user approves, update the drafts, then the epic and every open feature ticket it affects.
+15. **Hand off.** Each feature runs through `/solodev-mission`, one at a time, respecting the waves. With tickets filed,
+    print the line for wave 1's first feature: `/solodev-mission <ticket>`.
 
 ## Limits
 
-You write only to `<state.dir>/roadmaps/<slug>/` (and `/tmp` for issue drafts) and to the tracker: no repo files, no
-code, no feature folders, no other idea's folder. The step 10 reviewer is your only delegation.
+You write only to `<state.dir>/roadmaps/<slug>/` (and `/tmp` for ticket drafts) and to the tracker: no repo files, no
+code, no feature folders, no other idea's folder. The step 10 reviewer is your only delegation. Merging, approving or
+closing a pull or merge request belongs to the user, whatever tool or tracker you'd use.

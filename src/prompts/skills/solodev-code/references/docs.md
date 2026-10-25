@@ -36,7 +36,7 @@ How it works, usage and gotchas belong in the code's comments, not here.
 ## Configuration
 
 Find variables in your diff (`process.env`, `import.meta.env`, `os.getenv`, `ENV[`, config schemas, `.env.example`), not
-from memory. Every variable the feature reads goes in the table; `solodev check` (C9) fails on one that no README,
+from memory. Every variable the feature reads goes in the table; the reviewer files a `major` for one that no README,
 `docs/` page or `.env.example` names.
 
 ```markdown

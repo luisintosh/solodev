@@ -205,12 +205,6 @@ function isGitRepo(dir: string): boolean {
   return r.status === 0 && r.stdout.trim() === "true"
 }
 
-function ghStatus(): "ok" | "logged-out" | "missing" {
-  if (!onPath("gh")) return "missing"
-  const r = spawnSync("gh", ["auth", "status"], { stdio: "ignore" })
-  return r.status === 0 ? "ok" : "logged-out"
-}
-
 function workflowBinInUse(targetDir: string, home: string): string | undefined {
   const project = path.join(targetDir, ".agents", "solodev", WORKFLOW_BIN)
   const global = path.join(home, ".agents", "solodev", WORKFLOW_BIN)
@@ -550,27 +544,17 @@ function doctor(targetDir: string, home: string) {
   if (onPath("node")) log("  [ok]   node is on PATH (needed to run the solodev CLI)")
   else log("  [warn] node not found — install Node.js 20+ to run the solodev CLI")
 
-  const gh = ghStatus()
-  if (gh === "ok") log("  [ok]   gh installed and authenticated")
-  else if (gh === "logged-out") log("  [warn] gh installed but not logged in — run 'gh auth login'")
-  else log("  [warn] gh not found — required by the pipeline: brew install gh && gh auth login")
-
   log("")
 }
 
 function suggestNextSteps() {
   log("Next steps:")
   log("  1. Optional: /solodev-scout — write AGENTS.md (the commands list) + docs/ARCHITECTURE.md once")
-  if (!onPath("gh")) {
-    log("  2. Install gh (required by the pipeline):")
-    log("       brew install gh && gh auth login")
-    log("       # or: https://cli.github.com/")
-  } else {
-    log("  2. gh is on PATH — run 'gh auth login' if you aren't logged in")
-  }
+  log("  2. Connect your forge and tracker, for PRs and tickets: a CLI such as gh or glab, or an")
+  log("     MCP server or skill for GitHub, GitLab, Bitbucket, Jira, Linear and the like")
   log("")
   log("Optional: /solodev-roadmap turns a raw idea into a feature roadmap, filed")
-  log("  as a GitHub epic with one issue per feature. Run each feature through")
+  log("  in your tracker as an epic with one ticket per feature. Run each feature through")
   log("  /solodev-mission, one at a time; each run ends by naming the next one.")
   log("")
   log("Optional: rtk (filters noisy bash output for agents)")

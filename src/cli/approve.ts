@@ -8,7 +8,7 @@ export type ApproveOptions = { root: string; dir: string; date?: string }
 
 /**
  * Records the spec gate: appends an approval line to the feature's progress.md with a hash of spec.md + plan.md and
- * the project's HEAD. Refuses when the plan doesn't cover the spec (C2) or when code is staged, since nothing may be
+ * the project's HEAD. Refuses when the plan doesn't cover the spec (C1) or when code is staged, since nothing may be
  * committed to the project before the gate. Commits nothing.
  */
 export async function approve(opts: ApproveOptions): Promise<Approval> {

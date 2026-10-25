@@ -4,8 +4,9 @@
 # Role skills (`skills:`) carry the instructions; shadows (`shadows:`) are the two agents that play them, each a thin
 # shell with a model and hard denies. `budget` caps a skill body's lines (tools/check.ts enforces it).
 #
-# `permission` holds hard denies only. Hosts have no shared permission config, so transpile renders them: Cursor gets
-# them as prose restrictions, Claude Code drops Edit/Write or Bash from `tools` when a whole tool is denied.
+# `permission` holds hard edit denies only, by path; what a shadow may run is a prompt rule (fragments/boundaries.md).
+# Hosts have no shared permission config, so transpile renders them: Cursor gets them as prose restrictions, Claude
+# Code drops Edit/Write from `tools` when editing is denied outright, Codex runs read-only then.
 
 hosts:
   claude:
@@ -30,13 +31,8 @@ shadows:
       commander; the only agent that edits source.
     permission:
       edit:
-        # The feature folder (spec, plan, reports) belongs to the commander and the reviewers.
+        # The feature folder (spec, plan, reports) belongs to the commander and the reviewers; C2 and C4 trust it.
         "~/.agents/solodev/**": deny
-      bash:
-        "git commit*": deny
-        "git push*": deny
-        "git reset*": deny
-        "gh pr merge*": deny
     # The commander continues the coder for later journeys and fix rounds; those waits outlast Claude Code's 5m
     # subagent cache. 1h writes cost 2x, so only the continued shadow sets it.
     claude:
@@ -48,17 +44,6 @@ shadows:
     description: >-
       Fresh-context reviewer: reviews a spec or a diff (solodev-review) or checks scenarios no test covers
       (solodev-verify), following the role skill its brief names. Report-only; writes only review.md or qa.md.
-    permission:
-      bash:
-        "git add*": deny
-        "git commit*": deny
-        "git push*": deny
-        "git reset*": deny
-        "git checkout*": deny
-        "git restore*": deny
-        "git stash*": deny
-        "gh pr merge*": deny
-        "gh pr ready*": deny
 
 skills:
   solodev-mission:
@@ -93,14 +78,14 @@ skills:
   solodev-roadmap:
     budget: 150
     description: >-
-      Product strategist: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed as a GitHub
-      epic with one issue per feature (or kept as drafts outside the repo without a tracker). Use to plan a product,
-      write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through
-      /solodev-mission.
+      Product strategist: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your
+      tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan
+      a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs
+      through /solodev-mission.
   solodev-scout:
     budget: 50
     user_only: true
     description: >-
-      Optional: maps the repo once so /solodev-mission runs don't rediscover it: writes a minimal AGENTS.md (the
-      commands list solodev reads, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as
+      Optional: maps the repo once so agents and /solodev-mission runs don't rediscover it: writes a minimal AGENTS.md
+      (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as
       /solodev-scout.

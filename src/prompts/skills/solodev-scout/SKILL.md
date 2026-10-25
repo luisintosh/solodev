@@ -1,4 +1,4 @@
-Map this repository once, before the first `/solodev-mission` run, so agents start from facts instead of guesses.
+Map this repository once, so any agent, a `/solodev-mission` run included, starts from facts instead of guesses.
 
 Create what's missing; refresh an existing file only when the user asks. Confirm every command against the project's
 manifests and scripts before writing it.
@@ -8,7 +8,7 @@ manifests and scripts before writing it.
 Keep it short: agents follow everything in it, so each extra line costs every run. It holds:
 
 - One line on what the project is.
-- `## Commands`, a plain list in exactly this shape (solodev's CLI reads it):
+- `## Commands`, a plain list in this shape, so agents find each command at a glance:
 
   ```markdown
   ## Commands
@@ -26,7 +26,7 @@ Keep it short: agents follow everything in it, so each extra line costs every ru
   no such command. `dev` is how to start the app locally; the verifier depends on it.
 
 - Constraints a reader couldn't discover from the code (a service that must run, a generated file never edited by hand),
-  and a link to `docs/ARCHITECTURE.md`. Stay well under 100 lines; `solodev probe` warns past that.
+  and a link to `docs/ARCHITECTURE.md`. Stay well under 100 lines.
 
 ## docs/ARCHITECTURE.md
 
@@ -36,4 +36,5 @@ detail in doc comments. Don't write them now; the coder does when a feature touc
 
 {{include:fragments/doc-style.md}}
 
-Finish with a short summary: files created or skipped, the commands you confirmed, and anything you couldn't determine.
+You write only `AGENTS.md` and `docs/ARCHITECTURE.md`, and commit nothing. Finish with a short summary: files created or
+skipped, the commands you confirmed, and anything you couldn't determine.
