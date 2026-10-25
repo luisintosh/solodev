@@ -1,4 +1,4 @@
-![Solodev](assets/header.jpeg)
+![Solodev](assets/header.jpg)
 
 # Solodev
 
