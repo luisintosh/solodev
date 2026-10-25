@@ -19,12 +19,12 @@
         "Each items/F<n>.md has User story, Context, Proposed solution, Acceptance criteria, Out of scope, and Dependencies, risks and open questions sections",
         "Each work item that touches data has a Data model section naming its entities and fields and linking the roadmap's Data model; items that touch no data have none",
         "With no tracker available, the strategist said the drafts folder is the record and gave its path",
-        "When issues were filed, the epic was filed first with the roadmap as its body, and each feature's Data model section links it as #<epic>",
+        "When issues were filed, the epic was filed first with the roadmap as its body, and each feature's Data model section links the epic's Data model section",
         "Acceptance criteria are testable and use Given/When/Then where they describe behavior",
         "Work item titles have the shape F<n>: <outcome-oriented title>",
         "A fresh-context adversarial product-owner review of the drafted work items ran before the user was shown them",
         "The work items shown to the user came with a review summary of findings applied and rejected",
-        "The handoff points each feature at /solodev-mission, one at a time, and prints `/solodev-mission #<n>` for wave 1's first feature when issues were filed"
+        "The handoff points each feature at /solodev-mission, one at a time, and prints `/solodev-mission <ticket>` for wave 1's first feature when tickets were filed"
       ]
     }
   ]

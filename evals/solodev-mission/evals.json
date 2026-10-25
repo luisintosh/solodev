@@ -22,12 +22,11 @@
     {
       "id": 2,
       "prompt": "Add a --version flag to the CLI that prints the package.json version.",
-      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander mentions /solodev-scout as optional, finds the commands from package.json and continues to the spec.",
+      "expected_output": "Run in a copy of test/fixture-repo with AGENTS.md deleted. The commander finds the commands from package.json, logs them in one `- tools:` line in progress.md and continues to the spec.",
       "files": ["test/fixture-repo"],
       "expectations": [
-        "The commander ran `solodev probe` and noticed AGENTS.md was missing",
-        "The reply mentions /solodev-scout as optional and does not wait for it",
-        "The commander found the test commands from package.json (npm test, vitest) and went on to cut feat/<slug> and write the spec",
+        "The commander ran `solodev probe` before cutting the branch",
+        "The commander found the test commands from package.json (npm test, vitest), logged them in a `- tools:` line in progress.md, and went on to cut feat/<slug> and write the spec",
         "No AGENTS.md was written"
       ]
     },

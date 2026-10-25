@@ -25,7 +25,7 @@ built-ins such as Codex's `/review` or Cursor's `code-reviewer`.
 Requires a prior `pnpm run build`. Validates:
 
 - `src/catalog.yaml` shape: the three hosts × `think`/`implement` with the pinned models in `tools/models.ts`, the two
-  shadows, the seven skills, and a prompt file for each
+  shadows, the seven skills, and a prompt file for each; a shadow's `permission` holds only `edit` path denies
 - Prompt rules: each skill within its line budget, no capitalized MUST/NEVER/CRITICAL/ALWAYS, required phrases, every
   `references/` link resolves and every reference is linked
 - Emitted skill and shadow frontmatter (and Codex TOML) match the catalog
