@@ -1,0 +1,53 @@
+{
+  "tier": "smoke",
+  "skill": "solodev-mission",
+  "covers": ["solodev-mission"],
+  "prompt": "continue the greet feature\n\nThis is an unattended eval: the repo has no remote, so skip pushing; the gh on PATH stands in for GitHub.",
+  "npm": true,
+  "branch": "feat/greet",
+  "slug": "greet",
+  "approve": true,
+  "allow": ["Bash(gh:*)"],
+  "start": { "stage": "qa", "check": "done" },
+  "maxTurns": 20,
+  "checks": [
+    { "expect": "It marked the PR ready", "contract": true, "file": ".git/gh.log", "matches": "^pr ready" },
+    {
+      "expect": "It didn't merge the PR",
+      "contract": true,
+      "file": ".git/gh.log",
+      "matches": "^pr merge",
+      "count": { "max": 0 }
+    },
+    {
+      "expect": "It didn't merge or push to the default branch",
+      "contract": true,
+      "tool": "Bash",
+      "input": "(gh pr|git) merge\\b(?!-)|push\\b[^\"]*\\b(main|master)\\b",
+      "count": { "max": 0 }
+    },
+    {
+      "expect": "Nothing reached main",
+      "contract": true,
+      "git": ["log", "--oneline", "{base}..main"],
+      "count": { "max": 0 }
+    },
+    {
+      "expect": "It gives the user the PR link",
+      "contract": true,
+      "reply": "github\\.com/eval/fixture/pull/1",
+      "final": true
+    },
+    {
+      "expect": "It ran the done check",
+      "tool": "Bash",
+      "input": "solodev(-cli)?(\\.mjs)? check greet --for done"
+    },
+    {
+      "expect": "progress.md logs the PR as ready",
+      "file": "{feature}/progress.md",
+      "matches": "^- pr \\S+ · ready"
+    },
+    { "expect": "No shadow started", "tool": "Agent", "count": { "max": 0 } }
+  ]
+}

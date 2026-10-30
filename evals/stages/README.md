@@ -10,6 +10,7 @@ turns, not a full run. The full end-to-end run lives in [../outcome/](../outcome
 | `<id>/seed/`         | files laid over the fixture before its first commit (optional)               |
 | `<id>/feature/`      | the feature folder the stage starts with: spec, plan, progress (optional)    |
 | `<id>/code/`         | files committed on the branch after the approval (optional)                  |
+| `<id>/bin/`          | stubs put first on the agent's PATH, such as a fake `gh` (optional)          |
 | `results/<id>.jsonl` | one line per run: checks passed, turns, wall time, cost, failed expectations |
 
 Setup builds the fixture with `seed/`, installs solodev from `dist/`, runs `npm ci` when `npm` is set, cuts `branch`,
@@ -32,18 +33,26 @@ workspace in place. Each run prints the transcript's path.
 
 Each check has an `expect` (what it proves, in words) and exactly one of these:
 
-| Key        | Passes when                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------------ |
-| `file`     | the path exists; with `matches`, the regex matches. `{feature}` and `{state}` expand             |
-| `git`      | the git command prints lines (or lines matching `matches`); `{base}` is HEAD at the end of setup |
-| `tool`     | the commander called a tool by that name, with `input` matching, before its first `before` call  |
-| `reply`    | the commander's messages match the regex; `final` looks only at the last one                     |
-| `status`   | `solodev status` reports one of the listed stages                                                |
-| `features` | there are feature folders                                                                        |
-| `judge`    | a model agrees, with `--judge`                                                                   |
+| Key        | Passes when                                                                                       |
+| ---------- | ------------------------------------------------------------------------------------------------- |
+| `file`     | the path exists; with `matches`, the regex matches. `{feature}` and `{state}` expand              |
+| `git`      | the git command prints lines (or lines matching `matches`); `{base}` is HEAD at the end of setup  |
+| `tool`     | the commander called a tool by that name, with `input` matching, before its first `before` call   |
+| `reply`    | the commander's messages match the regex; `final` looks only at the last one                      |
+| `status`   | `solodev status` reports one of the listed stages                                                 |
+| `features` | there are feature folders                                                                         |
+| `run`      | the command, run in the workspace, exits with `exit` (default 0); `{stage}` is the stage's folder |
+| `judge`    | a model agrees, with `--judge`                                                                    |
+
+A check with `"contract": true` tests behavior the workflow keeps however it's built: what reaches git, what the user is
+told, what's never done for them. The others test today's mechanism (CLI calls, shadow names, feature-folder paths) and
+change with it. Each run prints `contract x/y` and records `contractFailed`, so a rewrite of the harness passes when
+every contract check still does.
 
 `count: { min, max }` bounds the number of matches, calls or lines; without it a check needs at least one, and
 `count: { max: 0 }` means none. Subagents' tool calls don't count as the commander's.
+
+`allow` adds tools to the agent's allowlist, such as `Bash(gh:*)` for a stub in `bin/`.
 
 A stage's `covers` lists the skills and shadows whose prompts it exercises; `--changed` runs it when one of them
 changed. A change to a fragment, the catalog, the CLI or this runner runs every stage.

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Stands in for GitHub's CLI: logs each call to the repo's .git/gh.log and answers as open draft PR #1.
+echo "$*" >>"$(git rev-parse --path-format=absolute --git-common-dir)/gh.log"
+url=https://github.com/eval/fixture/pull/1
+case "$1 ${2:-}" in
+"pr view" | "pr status")
+  printf '{"number":1,"url":"%s","isDraft":true,"state":"OPEN","title":"feat: greet","body":"","headRefName":"feat/greet","baseRefName":"main"}\n' "$url"
+  ;;
+"pr ready") echo "✓ Pull request #1 is marked as \"ready for review\"" ;;
+"pr create" | "pr edit") echo "$url" ;;
+"auth status") echo "Logged in to github.com account eval" ;;
+esac

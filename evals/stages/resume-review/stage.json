@@ -40,6 +40,7 @@
     },
     {
       "expect": "review.md flags the missing --name default (@S3) as blocker or major",
+      "contract": true,
       "file": "{feature}/review.md",
       "matches": "^(?=.*\\b(?:blocker|major)\\b)(?=.*(?:undefined|world|S3|--name|default)).*\\|"
     },
@@ -49,6 +50,7 @@
     },
     {
       "expect": "Nothing was committed",
+      "contract": true,
       "git": ["log", "--oneline", "{base}..HEAD"],
       "count": {
         "max": 0
@@ -56,6 +58,7 @@
     },
     {
       "expect": "No file in the repo changed",
+      "contract": true,
       "git": ["status", "--porcelain"],
       "count": {
         "max": 0

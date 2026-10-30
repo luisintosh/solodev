@@ -53,7 +53,7 @@ describe("grade", () => {
   })
   afterEach(() => fs.rm(ws, { recursive: true, force: true }))
 
-  it("grades files, git, tools, replies and counts", async () => {
+  it("grades files, git, tools, replies, commands and counts", async () => {
     const base = sh("git", ["rev-parse", "HEAD"], ws).stdout.trim()
     const graded = await grade(
       [
@@ -66,11 +66,15 @@ describe("grade", () => {
         { expect: "no commits", git: ["log", "--oneline", "{base}..HEAD"], count: { max: 0 } },
         { expect: "bar", reply: "implement\\W{0,4}✓" },
         { expect: "≤1 question", reply: "\\?\\s*$", final: true, count: { max: 1 } },
+        { expect: "base expands", contract: true, run: ["git", "cat-file", "-e", "{base}"] },
+        { expect: "review is there", run: ["test", "-f", "{feature}/review.md"] },
+        { expect: "exit code", run: ["git", "cat-file", "-e", "nope"], exit: 128 },
         { expect: "judged", judge: true },
       ],
       parseTranscript(stream),
       { ws, state, base },
     )
+    expect(graded.filter((g) => g.contract).map((g) => g.expect)).toEqual(["base expands"])
     expect(graded.map((g) => [g.expect, g.pass])).toEqual([
       ["status before Agent", true],
       // The Edit came from a subagent, so the commander made none.
@@ -83,6 +87,9 @@ describe("grade", () => {
       ["bar", true],
       // Three lines end in "?": over the cap.
       ["≤1 question", false],
+      ["base expands", true],
+      ["review is there", true],
+      ["exit code", true],
       ["judged", null],
     ])
   })
