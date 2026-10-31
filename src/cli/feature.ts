@@ -152,7 +152,7 @@ function tableRows(md: string, required: string[]): Record<string, string>[] {
   return rows
 }
 
-/** review.md: a table `| id | severity | location | status | finding |`. */
+/** review.md: a table `| id | severity | lens | location | status | finding |` (columns matched by name). */
 export function parseReview(md: string): Finding[] {
   return tableRows(md, ["id", "severity", "status"]).map((r) => ({
     id: r.id ?? "",

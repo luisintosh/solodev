@@ -139,7 +139,7 @@ flowchart TD
   gate{{"⏸ spec gate<br/>approve + pick the coder"}}:::human
   impl["implement · solodev-code<br/>journey tests + code, in the order it picks<br/>then docs beside the code"]:::writer
   stuck{{"stuck after 2 attempts<br/>retry · second opinion · take over"}}:::human
-  review["code review · solodev-review<br/>fresh shadow-reviewer"]:::review
+  review["code review · solodev-review<br/>one reviewer, or one per lens in parallel"]:::review
   fix["fix round · same coder"]:::writer
   dispute{{"left after re-review<br/>fix · defer · drop"}}:::human
   pr["solodev check → draft PR"]:::think
@@ -178,7 +178,7 @@ run only when they add something.
 | 3 spec review | `solodev-review`, only when needed   | the commander applied the findings it agrees with        |
 | 4 ⏸ gate      | you                                  | `solodev approve` recorded                               |
 | 5 implement   | `solodev-code`, the one writer       | `solodev check --for implement` passes                   |
-| 6 code review | `solodev-review`, fresh              | `review.md` has no open blocker or major                 |
+| 6 code review | `solodev-review`, fresh, by lens     | `review.md` has no open blocker or major                 |
 | 7 PR          | the commander                        | `solodev check --for pr` passes, draft PR open           |
 | 8 QA          | `solodev-verify`, if needed          | uncovered scenarios have verdicts                        |
 | 9 finish      | the commander                        | `solodev check --for done` passes, PR marked ready       |
@@ -186,15 +186,20 @@ run only when they add something.
 Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
 security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
 [agent-browser](https://github.com/vercel-labs/agent-browser); one it can't automate comes to you to check or waive.
-Budgets: two attempts to get the implement check passing, one review fix round and one re-review, two QA cycles; a spent
-budget asks you instead of thrashing.
+Code review reads the diff through six lenses: evidence (runs the journey tests on the base and the branch, and the
+project's checks), contract, correctness, security, design and UI. A small change gets one reviewer that reads every
+lens that applies; a large or sensitive one (auth, payments, secrets, migrations, a public API) gets one fresh reviewer
+per lens in parallel, and the commander merges their findings into `review.md`. The re-review is sized the same way on
+the fix diff. Budgets: two attempts to get the implement check passing, one review fix round and one re-review, two QA
+cycles; a spent budget asks you instead of thrashing.
 
 You're asked only at: a slug that already has a feature folder, conflicting tools or commands at the start, no tool for
 the forge or tracker, the spec questions, the gate, findings left after the re-review, a weakened test, a spec gap from
-review or QA, a shadow's question or blocker, a QA scenario that needs a person, a spent budget, a failed Orca worker,
-and the ready PR. The draft PR carries what a reviewer needs from the spec and plan, and its footer links the decisions
-agreed on the ticket. At the finish its `## Follow-ups` section lists what was left open: deferred findings, open minors
-and waived scenarios, each with why. The finish card repeats them as tickets ready to paste.
+review or QA, a shadow's question or blocker, a QA scenario that needs a person, a spent budget, a failed Orca worker, a
+review lens that can't be skipped (evidence, or security on a sensitive change) failing twice, and the ready PR. The
+draft PR carries what a reviewer needs from the spec and plan, and its footer links the decisions agreed on the ticket.
+At the finish its `## Follow-ups` section lists what was left open: deferred findings, open minors and waived scenarios,
+each with why. The finish card repeats them as tickets ready to paste.
 
 ### The `solodev` CLI
 
