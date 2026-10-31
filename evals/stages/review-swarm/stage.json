@@ -25,7 +25,15 @@
     {
       "expect": "A security lens was briefed",
       "tool": "Agent",
-      "input": "security"
+      "input": "reviewer-security|lens:\\s*security"
+    },
+    {
+      "expect": "No finding came from a single reviewer",
+      "file": "{feature}/review.md",
+      "matches": "^\\|\\s*R\\d+\\s*\\|[^|]*\\|\\s*single\\s*\\|",
+      "count": {
+        "max": 0
+      }
     },
     {
       "expect": "No coder started",
@@ -42,9 +50,9 @@
       "matches": "^(?=.*\\b(?:blocker|major)\\b)(?=.*(?:before|unset|undefined|bypass|S2|S3|delet)).*\\|"
     },
     {
-      "expect": "review.md names the lens of each finding, security among them",
+      "expect": "review.md's lens column credits security on a finding",
       "file": "{feature}/review.md",
-      "matches": "\\|\\s*[^|]*security[^|]*\\|"
+      "matches": "^\\|\\s*R\\d+\\s*\\|[^|]*\\|[^|]*\\bsecurity\\b[^|]*\\|"
     },
     {
       "expect": "Spec and plan are untouched, so the approval holds",

@@ -23,26 +23,33 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
   module, an edit that cuts across layers) or a sensitive one, whatever its size. When unsure, go parallel: a lens that
   finds nothing costs less than a missed blocker.
 
-Claude Code, Codex, Cursor and Orca start lens reviewers in parallel; on any other coding tool use one reviewer. Each
-reviewer gets its own fresh agent, brief and reply file: the slug, the base, the coder's `decisions:`, the `- tools:`
-line, the `solodev` path and `lens: <name>`. Tell the user the choice in one line:
+Each reviewer gets a fresh agent and its own brief, `briefs/reviewer-<lens>-<round>.md` in the feature folder, with the
+reply beside it: solodev-review's absolute `SKILL.md` path, the slug, the base, the coder's `decisions:`, the `- tools:`
+line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with Claude
+Code's Agent tool (`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn, or
+as one Orca worker each (solodev-mission's `references/orca.md`); on any other coding tool use one reviewer. Tell the
+user the choice in one line:
 `→ review: 4 lenses in parallel (evidence, contract, correctness, design): 14 files, 3 journeys`.
 
 ## Merge the lenses
 
 - A lens that stops or writes no reply starts once more, fresh. If it fails again, merge without it, name it in your
-  notes and tell the user.
+  notes and tell the user; evidence, and security on a sensitive change, you can't do without: ask the user whether to
+  retry, review that lens yourself, or go on without it.
 - Two findings at the same location with the same cause are one row: the higher severity, both lenses in its `lens` cell
-  (`contract, correctness`).
+  (`contract, correctness`), and its text starts `Weakened test:` when any of them did.
 - Rows take the next free ids after any already in `review.md`, status `open`, in the format SKILL.md gives. No findings
   from any lens: the header row alone.
 - Sum the counts and join the notes; a spec or plan gap among them goes to the user.
 
 ## Re-review
 
-Choose the same way on the fix diff since the commit the last review saw; an open security row makes it sensitive.
+Pick the lenses and choose one reviewer or several the same way, on the fix diff since the commit the last review saw;
+an open security row makes it sensitive. Evidence runs every time: the journeys and the project checks again at HEAD.
 
-- **One reviewer**, `lens: single`, rechecks every open row and the fix diff.
-- **Several:** each lens that owns an open row, plus evidence, which runs the tests and checks again. Each returns a
-  result per row it owns and new findings in the fix diff. A row owned by two lenses is `fixed` only when both say so.
-  Write the statuses and reasons into `review.md`, and new findings under the next free ids.
+- **One reviewer**, `lens: single`, rechecks every open row and reads the fix diff through every lens picked for it.
+- **Several:** the lenses picked for the fix diff, plus each lens named in an open row's `lens` cell. Give each lens the
+  rows its cell names; a row whose cell names no lens (`single`, or a `review.md` from before the column) goes to the
+  lens that fits it best. Each lens returns a result per row it was given and new findings in the fix diff. A row given
+  to two lenses is `fixed` only when both say so. Write the statuses and reasons into `review.md`, and new findings
+  under the next free ids.
