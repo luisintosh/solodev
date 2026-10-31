@@ -103,7 +103,7 @@ describe("changedPrompts", () => {
     expect([...changedPrompts(["src/prompts/agents/shadow-reviewer.md", "evals/stages/gate-stop/stage.json"])]).toEqual(
       ["shadow-reviewer", "stage:gate-stop"],
     )
-    expect(changedPrompts(["src/prompts/fragments/practices.md"]).has("*")).toBe(true)
+    expect(changedPrompts(["src/prompts/fragments/practices-design.md"]).has("*")).toBe(true)
     expect(changedPrompts(["src/cli/status.ts"]).has("*")).toBe(true)
     expect(changedPrompts(["src/cli/status.test.ts"]).size).toBe(0)
   })

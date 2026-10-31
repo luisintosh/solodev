@@ -1,0 +1,70 @@
+{
+  "tier": "stage",
+  "skill": "solodev-mission",
+  "covers": ["solodev-mission", "solodev-review", "shadow-reviewer"],
+  "prompt": "continue the remove-user feature\n\nThis is an unattended eval: stop once code review has written review.md, before any fix round.",
+  "npm": true,
+  "branch": "feat/remove-user",
+  "slug": "remove-user",
+  "approve": true,
+  "start": {
+    "stage": "implement",
+    "check": "implement"
+  },
+  "maxTurns": 40,
+  "checks": [
+    {
+      "expect": "A sensitive change (auth, data deletion) got parallel lens reviewers",
+      "tool": "Agent",
+      "input": "shadow-reviewer",
+      "count": {
+        "min": 3,
+        "max": 6
+      }
+    },
+    {
+      "expect": "A security lens was briefed",
+      "tool": "Agent",
+      "input": "security"
+    },
+    {
+      "expect": "No coder started",
+      "tool": "Agent",
+      "input": "shadow-coder",
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "review.md flags the delete that runs before the token check, or the bypass with ADMIN_TOKEN unset, as blocker or major",
+      "contract": true,
+      "file": "{feature}/review.md",
+      "matches": "^(?=.*\\b(?:blocker|major)\\b)(?=.*(?:before|unset|undefined|bypass|S2|S3|delet)).*\\|"
+    },
+    {
+      "expect": "review.md names the lens of each finding, security among them",
+      "file": "{feature}/review.md",
+      "matches": "\\|\\s*[^|]*security[^|]*\\|"
+    },
+    {
+      "expect": "Spec and plan are untouched, so the approval holds",
+      "status": ["review", "pr"]
+    },
+    {
+      "expect": "Nothing was committed",
+      "contract": true,
+      "git": ["log", "--oneline", "{base}..HEAD"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "No file in the repo changed",
+      "contract": true,
+      "git": ["status", "--porcelain"],
+      "count": {
+        "max": 0
+      }
+    }
+  ]
+}

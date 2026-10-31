@@ -79,7 +79,7 @@ done
 for ref in gate orca pr; do
   assert_file_exists "${TARGET}/.agents/skills/solodev-mission/references/${ref}.md" "solodev-mission ${ref} reference installed"
 done
-assert_file_exists "${TARGET}/.claude/skills/solodev-review/references/code.md" "reviewer checklist installed for claude"
+assert_file_exists "${TARGET}/.claude/skills/solodev-review/references/swarm.md" "review orchestration installed for claude"
 if [[ -L "${TARGET}/.claude/skills/solodev-mission/SKILL.md" ]]; then
   bad "claude skills must be a copy, not a symlink"
 else

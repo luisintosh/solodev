@@ -26,9 +26,13 @@
       "before": "Agent"
     },
     {
-      "expect": "Code review ran in a shadow-reviewer",
+      "expect": "A small change got one reviewer",
       "tool": "Agent",
-      "input": "shadow-reviewer"
+      "input": "shadow-reviewer",
+      "count": {
+        "min": 1,
+        "max": 1
+      }
     },
     {
       "expect": "No coder started",
@@ -37,6 +41,11 @@
       "count": {
         "max": 0
       }
+    },
+    {
+      "expect": "review.md records the single-reviewer path in its lens column",
+      "file": "{feature}/review.md",
+      "matches": "\\|\\s*single\\s*\\|"
     },
     {
       "expect": "review.md flags the missing --name default (@S3) as blocker or major",
