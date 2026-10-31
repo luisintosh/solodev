@@ -1,0 +1,77 @@
+{
+  "tier": "stage",
+  "skill": "solodev-mission",
+  "covers": ["solodev-mission", "solodev-review", "shadow-reviewer"],
+  "prompt": "continue the remove-user feature\n\nThis is an unattended eval: stop once the re-review has updated review.md, before the PR.",
+  "npm": true,
+  "branch": "feat/remove-user",
+  "slug": "remove-user",
+  "approve": true,
+  "start": {
+    "stage": "review",
+    "check": "implement"
+  },
+  "maxTurns": 40,
+  "checks": [
+    {
+      "expect": "A sensitive fix diff got parallel lens reviewers",
+      "tool": "Agent",
+      "input": "shadow-reviewer",
+      "count": {
+        "min": 2,
+        "max": 6
+      }
+    },
+    {
+      "expect": "Evidence reran on the re-review",
+      "tool": "Agent",
+      "input": "reviewer-evidence|lens:\\s*evidence"
+    },
+    {
+      "expect": "A security lens read the fix diff",
+      "tool": "Agent",
+      "input": "reviewer-security|lens:\\s*security"
+    },
+    {
+      "expect": "No coder started",
+      "tool": "Agent",
+      "input": "shadow-coder",
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "R1, raised by a single reviewer, was rechecked and marked fixed",
+      "contract": true,
+      "file": "{feature}/review.md",
+      "matches": "^\\|\\s*R1\\s*\\|.*\\|\\s*fixed\\s*\\|"
+    },
+    {
+      "expect": "The token logged on a denied removal is a new finding",
+      "contract": true,
+      "file": "{feature}/review.md",
+      "matches": "^\\|\\s*R[2-9]\\s*\\|(?=.*(?:log|warn|token|secret)).*\\|"
+    },
+    {
+      "expect": "The new finding credits the security lens",
+      "file": "{feature}/review.md",
+      "matches": "^\\|\\s*R[2-9]\\s*\\|[^|]*\\|[^|]*\\bsecurity\\b[^|]*\\|"
+    },
+    {
+      "expect": "Nothing was committed",
+      "contract": true,
+      "git": ["log", "--oneline", "{base}..HEAD"],
+      "count": {
+        "max": 0
+      }
+    },
+    {
+      "expect": "No file in the repo changed",
+      "contract": true,
+      "git": ["status", "--porcelain"],
+      "count": {
+        "max": 0
+      }
+    }
+  ]
+}

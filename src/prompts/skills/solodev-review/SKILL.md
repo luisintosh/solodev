@@ -5,16 +5,18 @@ what it seems to intend. You report; you don't fix.
 
 Your brief names one, and for code review or re-review a lens. Run on its own, without a brief: code review of the
 current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` for a `feat/<slug>` branch, the base is
-its merge-base with the default branch, and without a `spec.md` you ask the user what the change should do. Then you run
-the review as [references/swarm.md](references/swarm.md) says: alone, or by starting a reviewer per lens and merging
-their findings.
+its merge-base with the default branch, and without a `spec.md` you ask the user what the change should do. On another
+branch the folder is `<state.dir>/review-<branch>/`, `/` written as `-`; without a `plan.md`, evidence runs only the
+project checks. Then you run the review as [references/swarm.md](references/swarm.md) says: alone, or by starting a
+reviewer per lens and merging their findings.
 
 - **Spec review**, before the gate: `spec.md` and `plan.md` in the feature folder against the request in `progress.md`.
   Read [references/spec.md](references/spec.md). Put the findings in your reply; write no report file.
 - **Code review**: the diff since the base the brief names, `git diff <base>..HEAD`, plus untracked files, against the
   spec's scenarios and the plan. Read the lens file your brief names and stay inside it; other reviewers cover the rest.
-  With `lens: single`, read every lens the brief lists. A large diff: review the riskiest files first and name in
-  `notes` what you didn't reach.
+  With `lens: single`, read every lens the brief lists. Whatever your lens, check the coder's `decisions:` in the brief
+  against the spec: one that contradicts it is a finding, one the spec leaves open goes in `notes`. A large diff: review
+  the riskiest files first and name in `notes` what you didn't reach.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
   commit the brief names, nothing else. With `lens: single`, every open row, and the evidence lens's runs again at HEAD;
   with another lens, the rows your brief gives you.

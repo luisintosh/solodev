@@ -25,17 +25,17 @@ tests and docs. Every brief names the folder's absolute path.
 
 ## Steps
 
-| Step          | Who                                                      | Leaves when                                                    |
-| ------------- | -------------------------------------------------------- | -------------------------------------------------------------- |
-| 1 start       | you                                                      | probe done, branch cut, `progress.md` with its `- tools:` line |
-| 2 spec        | you, with solodev-plan                                   | spec and plan written, open questions answered                 |
-| 3 spec review | a fresh shadow-reviewer with solodev-review, when needed | you applied the findings you agree with                        |
-| 4 gate        | the user                                                 | `solodev approve` recorded                                     |
-| 5 implement   | the coder, with solodev-code                             | `solodev check <slug> --for implement` passes                  |
-| 6 code review | fresh shadow-reviewers with solodev-review, one per lens | `review.md` has no open blocker or major                       |
-| 7 PR          | you                                                      | `solodev check <slug> --for pr` passes, draft PR open          |
-| 8 QA          | solodev-verify, if needed                                | uncovered scenarios have verdicts                              |
-| 9 finish      | you                                                      | `solodev check <slug> --for done` passes, PR ready, card shown |
+| Step          | Who                                                       | Leaves when                                                    |
+| ------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| 1 start       | you                                                       | probe done, branch cut, `progress.md` with its `- tools:` line |
+| 2 spec        | you, with solodev-plan                                    | spec and plan written, open questions answered                 |
+| 3 spec review | a fresh shadow-reviewer with solodev-review, when needed  | you applied the findings you agree with                        |
+| 4 gate        | the user                                                  | `solodev approve` recorded                                     |
+| 5 implement   | the coder, with solodev-code                              | `solodev check <slug> --for implement` passes                  |
+| 6 code review | shadow-reviewers with solodev-review, one or one per lens | `review.md` has no open blocker or major                       |
+| 7 PR          | you                                                       | `solodev check <slug> --for pr` passes, draft PR open          |
+| 8 QA          | solodev-verify, if needed                                 | uncovered scenarios have verdicts                              |
+| 9 finish      | you                                                       | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** On "continue": check out the feature's branch, run `solodev status`, read `progress.md` (reuse its
    `- tools:` line), and continue at the step it names; at `implement` with an implement check logged as passed, go to
