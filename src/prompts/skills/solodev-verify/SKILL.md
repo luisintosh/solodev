@@ -8,11 +8,11 @@ Their Given/When/Then is in `spec.md`. {{include:fragments/commands.md}} The `de
 ## Checking a scenario
 
 Exercise the real path and capture, at each step, evidence that its Then holds, enough for a reader to replay: for UI,
-agent-browser with a screenshot per step (not on PATH → give the commander its install line instead of installing it);
-for an API, the request and the response (status, body up to 20 lines); for a CLI, the invocation, output and exit code;
-for config, data or logs, the command that validates it. Use throwaway data and a local dev server, nothing destructive,
-and keep outputs in a scratch folder outside the repo. A scenario you can't automate gets `manual`, with the steps a
-person would follow as its evidence.
+agent-browser with a screenshot per step (not on PATH → give the commander its install line, don't install it, and mark
+those scenarios `manual`); for an API, the request and the response (status, body up to 20 lines); for a CLI, the
+invocation, output and exit code; for config, data or logs, the command that validates it. Use throwaway data and a
+local dev server, nothing destructive, and keep outputs in a scratch folder outside the repo. A scenario you can't
+automate gets `manual`, with the steps a person would follow as its evidence.
 
 ## qa.md
 

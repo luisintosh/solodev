@@ -144,6 +144,8 @@ if (catalog) {
 }
 
 // 2. Prompt rules, on the rendered source (includes resolved).
+/** A prompt with its line wrapping undone, so a required phrase may span lines. */
+const flat = (text: string) => text.replace(/\s+/g, " ")
 if (catalog) {
   const contracts: Record<string, string[]> = {
     "solodev-mission": [
@@ -181,7 +183,7 @@ if (catalog) {
       fail(`catalog: skills.${name}.profile must be ${PROFILE_NAMES.join(" or ")}`)
     }
     for (const phrase of contracts[name] ?? []) {
-      if (!body.includes(phrase)) fail(`skills/${name}/SKILL.md: required phrase missing: "${phrase}"`)
+      if (!flat(body).includes(phrase)) fail(`skills/${name}/SKILL.md: required phrase missing: "${phrase}"`)
     }
     const refs = await skillReferences(name)
     for (const m of body.matchAll(/\]\(references\/([\w.-]+)\)/g)) {
@@ -206,7 +208,7 @@ if (catalog) {
     const body = await renderPrompt(`skills/${ref}`).catch(() => "")
     if (!body) fail(`skills/${ref} is missing`)
     for (const phrase of phrases) {
-      if (body && !body.includes(phrase)) fail(`skills/${ref}: required phrase missing: "${phrase}"`)
+      if (body && !flat(body).includes(phrase)) fail(`skills/${ref}: required phrase missing: "${phrase}"`)
     }
   }
   for (const file of await walkFiles(path.join(root, "src", "prompts"))) {

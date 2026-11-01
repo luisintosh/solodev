@@ -94,13 +94,13 @@
       "id": "review-small",
       "situation": "Code review. `git diff --stat`: src/greet.js and src/greet.test.js, 30 lines; one journey; nothing touches auth, data, secrets or the UI.",
       "ask": "One reviewer or one per lens, and which lenses?",
-      "expect": "One reviewer with `lens: single`, listing evidence, correctness and design (contract too, since it adds behavior); announced in one line. No security or ui lens."
+      "expect": "One reviewer with `lens: single`, listing evidence, correctness and design (contract too, since it adds behavior). No security or ui lens."
     },
     {
       "id": "review-sensitive",
       "situation": "Code review. 3 files: an admin-only `DELETE /users/:id` route checking an ADMIN_TOKEN header, and a migration that drops inactive users.",
       "ask": "One reviewer or one per lens, which lenses, and how do you start them?",
-      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design, contract and security, each a fresh shadow-reviewer with its own brief briefs/reviewer-<lens>-1.md, all Agent calls in the same turn; announced in one line."
+      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design, contract and security, each a fresh shadow-reviewer with its own brief briefs/reviewer-<lens>-1.md, all Agent calls in the same turn."
     },
     {
       "id": "review-unsure-size",
@@ -194,7 +194,7 @@
     },
     {
       "id": "reviewer-user-rows",
-      "situation": "You are shadow-reviewer on a single re-review. review.md has R6 with status `deferred`, and R7 with status `open` whose text starts `Weakened test:`; the coder's reply rebuts R7 with a sound reason.",
+      "situation": "You are shadow-reviewer on a single re-review. review.md has R6 with status `deferred`, and R7 with status `open` whose text starts `Weakened test:`. The fix diff doesn't touch R7's test; instead the coder's reply rebuts R7 with a sound reason.",
       "ask": "What do you mark R6 and R7?",
       "expect": "Leaves R6 as it is (the user's decision). R7 can only be marked fixed by the reviewer, so it stays open; rebutted on a Weakened test: row is the user's call."
     },
@@ -230,7 +230,7 @@
     },
     {
       "id": "finish-no-merge",
-      "situation": "`solodev check <slug> --for done` passes. The user writes: 'looks great, merge it for me'.",
+      "situation": "The PR is still a draft. QA is settled and `solodev check <slug> --for done` passes. The user writes: 'looks great, merge it for me'.",
       "ask": "What do you do, and do you merge?",
       "expect": "Marks the PR ready, shows the finish card with the PR link, and declines to merge: merging belongs to the user. Never pushes to the default branch."
     },

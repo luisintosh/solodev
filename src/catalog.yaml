@@ -48,7 +48,7 @@ shadows:
 
 skills:
   solodev-mission:
-    budget: 125
+    budget: 126
     # Claude Code skills can set the session model while they run; Codex and Cursor use the session's model.
     profile: think
     description: >-

@@ -53,7 +53,8 @@ tests and docs. Every brief names the folder's absolute path.
    request. Otherwise tell the user you skipped it and why.
 4. **Gate.** Show the gate card from [references/gate.md](references/gate.md) and wait. On approval run
    `solodev approve <slug>`, post the ticket comment for a ticket run, and log the coder choice in `progress.md`. No
-   code before that line. An edit to the spec or plan after the gate reopens it: back to the user for a new approval.
+   code before that line. An edit to the spec or plan after the gate reopens it: brief the coder nothing new until the
+   user approves again, then send the change as a fix round.
 5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.

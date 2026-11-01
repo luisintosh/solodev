@@ -44,8 +44,9 @@ user the choice in one line:
 
 ## Re-review
 
-Pick the lenses and choose one reviewer or several the same way, on the fix diff since the commit the last review saw;
-an open security row makes it sensitive. Evidence runs every time: the journeys and the project checks again at HEAD.
+Pick the lenses and choose one reviewer or several the same way, on the fix diff since the commit the last review saw
+(so evidence, correctness and design run on every re-review, a test-only fix diff included); an open security row makes
+it sensitive. Evidence runs every time: the journeys and the project checks again at HEAD.
 
 - **One reviewer**, `lens: single`, rechecks every open row and reads the fix diff through every lens picked for it.
 - **Several:** the lenses picked for the fix diff, plus each lens named in an open row's `lens` cell. Give each lens the
