@@ -76,7 +76,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
-      - name: Held-out tests fail on the fixture and pass on each reference; stage starting points hold
+      - name: Stage starting points hold
         run: pnpm run eval:validate
 
   e2e-install:

@@ -1,4 +1,4 @@
-/** Shared by the outcome evals (eval.ts) and the stage evals (eval-stage.ts): throwaway repos, install, headless runs. */
+/** Shared by the stage evals (eval-stage.ts) and the quiz (quiz.ts): throwaway repos, install, headless runs. */
 import { spawnSync } from "node:child_process"
 import * as fsSync from "node:fs"
 import * as fs from "node:fs/promises"

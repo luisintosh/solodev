@@ -292,7 +292,7 @@ src/
   prompts/fragments/    shared includes
   cli/                  the solodev CLI
 tools/                  transpile, build, install, hygiene check
-evals/                  trigger, stage and outcome evals
+evals/                  prompt quiz, stage evals
 test/                   e2e install script, fixture repo
 bin/install.js          generated installer that npx/bunx run (tracked, never hand-edited)
 dist/                   generated install payload (untracked; shipped in each GitHub Release)

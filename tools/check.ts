@@ -146,14 +146,22 @@ if (catalog) {
 // 2. Prompt rules, on the rendered source (includes resolved).
 if (catalog) {
   const contracts: Record<string, string[]> = {
-    "solodev-mission": ["`/plan`", "solodev approve", "solodev check", "never merge"],
+    "solodev-mission": [
+      "`/plan`",
+      "solodev approve",
+      "solodev check",
+      "never merge",
+      "code before that line",
+      "never push to the default branch",
+      "start lens reviewers together",
+    ],
     "solodev-plan": ["journeys:", "uncovered", "@S1"],
     "solodev-code": [
       "solodev check <slug> --for implement",
       "fails because the behavior is missing",
       "references/docs.md",
     ],
-    "solodev-review": ["review.md", "deferred", "rebutted"],
+    "solodev-review": ["review.md", "deferred", "rebutted", "lens: single", "Weakened test:", "as you found it"],
     "solodev-verify": ["qa.md", "agent-browser"],
     "solodev-scout": ["## Commands", "test_file"],
   }
@@ -181,6 +189,24 @@ if (catalog) {
     }
     for (const ref of refs) {
       if (!body.includes(`references/${ref}`)) fail(`skills/${name}/references/${ref} is never linked from SKILL.md`)
+    }
+  }
+  // Rules a reference has to keep, on the rendered reference.
+  const referenceContracts: Record<string, string[]> = {
+    "solodev-review/references/swarm.md": [
+      "all started in the same turn",
+      "When unsure, go parallel",
+      "merge without it",
+      "an open security row makes it sensitive",
+      "Evidence runs every time",
+      "stays `open` if either says so",
+    ],
+  }
+  for (const [ref, phrases] of Object.entries(referenceContracts)) {
+    const body = await renderPrompt(`skills/${ref}`).catch(() => "")
+    if (!body) fail(`skills/${ref} is missing`)
+    for (const phrase of phrases) {
+      if (body && !body.includes(phrase)) fail(`skills/${ref}: required phrase missing: "${phrase}"`)
     }
   }
   for (const file of await walkFiles(path.join(root, "src", "prompts"))) {
