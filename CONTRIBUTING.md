@@ -46,8 +46,8 @@ Requires a prior `pnpm run build`. Validates:
   `references/` link resolves and every reference is linked
 - Emitted skill and shadow frontmatter (and Codex TOML) match the catalog; skills carry no model
 - README profile × host matrix and shadow → profile table match the catalog
-- `dist/product` holds only `skills/`, `README.md` and `assets/`, and its CLI's `init --dry-run` writes exactly the
-  built shadows for each host
+- `dist/product` holds only `skills/`, `README.md`, `LICENSE` and `assets/`, and its CLI's `init --dry-run` writes
+  exactly the built shadows for each host
 
 ## Before committing
 

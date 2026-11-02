@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Emit the product (dist/product: the role skills every host installs with `npx skills add`, plus README.md and assets/)
+ * Emit the product (dist/product: the role skills every host installs with `npx skills add`, plus README.md, LICENSE and assets/)
  * and the two shadow agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents), which build-cli bundles
  * into the CLI for `solodev init`.
  */
@@ -16,7 +16,7 @@ const promptsDir = path.join(srcDir, "prompts")
 const distDir = path.join(root, "dist")
 export const productDir = path.join(distDir, "product")
 /** What dist/product holds besides skills/: the files master ships next to them. */
-export const PRODUCT_EXTRAS = ["README.md", "assets"]
+export const PRODUCT_EXTRAS = ["README.md", "LICENSE", "assets"]
 
 /** Hard edit denies only: a map of path pattern → "deny", or a bare "deny" for no edits at all. */
 type Permission = { edit?: unknown }
@@ -182,7 +182,7 @@ async function main() {
   await rmrf(distDir)
   await emitSkills(catalog)
   await emitShadows(catalog)
-  console.log("transpile: wrote dist/product (skills, README.md, assets), dist/{claude,cursor,codex}/agents")
+  console.log("transpile: wrote dist/product (skills, README.md, LICENSE, assets), dist/{claude,cursor,codex}/agents")
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) await main()

@@ -35,9 +35,9 @@ SKILLS=(solodev-mission solodev-plan solodev-code solodev-review solodev-verify 
 SHADOWS=(shadow-coder shadow-reviewer)
 CLI_REL="skills/solodev-mission/scripts/solodev-cli.mjs"
 
-# 0. build output: the product holds the skills, the CLI inside solodev-mission, README.md and assets/
+# 0. build output: the product holds the skills, the CLI inside solodev-mission, README.md, LICENSE and assets/
 (cd "$REPO_ROOT" && pnpm run build >/dev/null)
-assert_eq "$(find "$PRODUCT" -mindepth 1 -maxdepth 1 -exec basename {} \; | LC_ALL=C sort | tr '\n' ' ')" "README.md assets skills " "dist/product holds only what master ships"
+assert_eq "$(find "$PRODUCT" -mindepth 1 -maxdepth 1 -exec basename {} \; | LC_ALL=C sort | tr '\n' ' ')" "LICENSE README.md assets skills " "dist/product holds only what master ships"
 for skill in "${SKILLS[@]}"; do
   assert_file_exists "${PRODUCT}/skills/${skill}/SKILL.md" "${skill} skill built"
 done

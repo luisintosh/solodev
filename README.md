@@ -2,248 +2,69 @@
 
 # Solodev
 
-**Spec-driven development for top coding agents.** Describe a feature, approve one spec, and get back a reviewed,
-tested, documented pull request, on [Claude Code](https://code.claude.com),
-[Codex](https://developers.openai.com/codex), or [Cursor](https://cursor.com).
+**Ship features with an AI team, not a single agent.** Describe a feature, approve one spec, and get back a reviewed,
+tested, documented pull request, on [Claude Code](https://code.claude.com), [Codex](https://developers.openai.com/codex)
+or [Cursor](https://cursor.com).
 
-solodev installs a set of short role skills, two agents that play them (the shadows), and a small `solodev` CLI that
-checks the work. Your main session writes the spec and plan with you; one coder writes the code and tests proven to fail
-first; a reviewer with a fresh context checks it. You approve the spec at the gate and merge the PR.
+[![Claude Code](https://img.shields.io/badge/Claude_Code-supported-d97757)](https://code.claude.com)
+[![Codex](https://img.shields.io/badge/Codex-supported-10a37f)](https://developers.openai.com/codex)
+[![Cursor](https://img.shields.io/badge/Cursor-supported-111111)](https://cursor.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+```bash
+npx skills add luisintosh/solodev          # -g for every repo
+```
+
+Then, once in each coding tool: `/solodev-mission init`, start a new session, and:
 
 ```text
 /solodev-mission Add CSV export to the accounts page
 ```
 
-## The name
-
-solodev takes its name from the anime _Solo Leveling_, where one hunter commands an army of shadows. You are the solo
-dev, and your army is a group of shadows: the strategist, the architect, the coder, the reviewer and QA.
-`/solodev-mission` sends them commands (`solodev-plan`, `solodev-code`, `solodev-review`, `solodev-verify`), and they
-bring back a reviewed, tested pull request. The strategist answers to `/solodev-roadmap`.
+> I built solodev for my own work; it's the workflow I use every day to ship features with AI agents. —
+> [Luis Mendieta](https://github.com/luisintosh)
 
 ## Why
 
-A single agent asked to "build feature X" guesses at scope, writes tests that pass by construction, reviews its own
-work, and loses track when the context runs out. Top models don't need a heavy harness to avoid that; they need a few
-things they can't give themselves:
+Ask one agent to "build feature X" and it guesses at the scope, writes tests that pass by construction, reviews its own
+work, and loses the thread when its context fills up. solodev gives top models what they can't give themselves:
 
-- **One approved spec.** Requirements and `@S<n>` acceptance scenarios, plus a plan of at most three journeys (one test
-  file each), approved by you before any code.
-- **Journey tests proven to fail first.** The fresh-context reviewer runs each journey test against the code before the
-  feature (it must fail for the missing behavior) and against the branch (it must pass), and flags a test that was
-  skipped, deleted or loosened. It reads the output, so it works with any language, test runner or build tool.
-- **Independent eyes.** The agent that wrote the code never signs off on it. Pick a coder on another tool and every PR
-  also gets a review from a different model family.
-- **Nothing extra in your repo.** A feature's spec, plan, reports and approval live in one folder outside it,
-  `~/.agents/solodev/<owner>/<repo>/<slug>/`. Your branch holds only code, tests and docs, and any session can resume
-  with `solodev status`.
-- **Short instructions, loaded when needed.** Each role is a skill of a few dozen lines; detail sits in references read
-  only when a step needs it.
-- **You stay in charge.** solodev opens the PR and marks it ready. It never merges.
-
-## When to use `/solodev-mission`
-
-Use it for:
-
-- New features that touch multiple files
-- Features requiring architectural decisions
-- Complex integrations with existing code
-- Features where requirements are somewhat unclear
-
-Don't use it for:
-
-- Single-line bug fixes
-- Trivial changes
-- Well-defined, simple tasks
-
-For those, use your tool's plan mode (`/plan`), or just ask for the change. `/solodev-mission` says so when a request
-looks like one of them, and continues if you still want the full run.
-
-## Quick start
-
-### 1. Install
-
-From the root of the repository you want to work on (add `-g` to install for every repository under `$HOME`):
-
-```bash
-npx skills add luisintosh/solodev
-```
-
-[`skills`](https://github.com/vercel-labs/skills) asks which coding tools to install for and copies or links the seven
-skills into each one's skills folder. `npx skills update` updates them later. To pin a release:
-`npx skills add https://github.com/luisintosh/solodev/tree/vX.Y.Z`.
-
-Then, in each coding tool you use, run once:
-
-```text
-/solodev-mission init
-```
-
-It writes that tool's two subagents, `shadow-coder` and `shadow-reviewer`, next to where the skills went: the repo's
-`.claude/agents/`, `.codex/agents/` or `.cursor/agents/`, or the same folders under `$HOME` for a global install. Run it
-again in Codex, then in Cursor, and so on. A subagent you edited is kept: init shows the diff and replaces it only if
-you say so. Then start a new session: coding tools load agents at startup.
-
-**Coming from the old installer** (`npx github:luisintosh/solodev`, v5 and earlier): install as above, then run
-`solodev init --force` once per tool, since init treats subagents it didn't write as yours. The old files under
-`.agents/solodev/` (the CLI) and the installer's `.harness-manifest` files can be deleted; your feature folders stay
-where they are.
-
-**Requirements**, with the macOS install command (most use [Homebrew](https://brew.sh)):
-
-- [Node.js](https://nodejs.org) 20+, for `npx skills` and the `solodev` CLI: `brew install node`
-- [Git](https://git-scm.com): `xcode-select --install`
-- A way to reach your forge and tracker, to open the PR and comment on the ticket: a CLI such as `gh` or `glab`, or an
-  MCP server or skill for GitHub, GitLab, Bitbucket, Jira, Linear and the like
-- At least one coding tool, logged in:
-  - [Claude Code](https://code.claude.com): `curl -fsSL https://claude.ai/install.sh | bash`
-  - [Codex](https://developers.openai.com/codex): `curl -fsSL https://chatgpt.com/codex/install.sh | sh`
-  - [Cursor CLI](https://cursor.com/cli): `curl https://cursor.com/install -fsS | bash`
-
-Optional:
-
-- [Orca](https://www.onorca.dev), for a coder on another tool:
-  `brew install --cask stablyai/orca/orca && orca skills install --skill orchestration`
-- [agent-browser](https://github.com/vercel-labs/agent-browser), for checking UI scenarios no test covers:
-  `npm install -g agent-browser && agent-browser install`
-- [rtk](https://github.com/rtk-ai/rtk), to trim noisy command output for agents: `brew install rtk`
-
-### 2. Map the repo (optional, once)
-
-```text
-/solodev-scout
-```
-
-This writes a short `AGENTS.md` and `docs/ARCHITECTURE.md` if they are missing. `AGENTS.md` holds a `## Commands` list
-(install, dev, build, test, test_file, lint, typecheck; `n/a` when the repo has none), plus only the constraints the
-code doesn't show. Without it, each `/solodev-mission` run finds the commands itself and records them, with the forge
-and tracker it will use, in one `- tools:` line in the feature's `progress.md`.
-
-### 3. Plan a whole product (optional)
-
-Run `/solodev-roadmap` and describe the idea. It explores the codebase, turns the idea into a measurable goal, agrees a
-data model with you, and drafts a roadmap with dependency-ordered waves and one work item per feature, each reviewed by
-an adversarial subagent. It files the roadmap in your tracker as an epic with one ticket per feature, wired with
-`Blocked by` links; the tracker is the source of truth. Without one, the drafts in
-`~/.agents/solodev/<owner>/<repo>/roadmaps/<slug>/` are the record. Nothing is written to your repo.
-
-### 4. Build a feature with `/solodev-mission`
-
-```text
-/solodev-mission Add CSV export to the accounts page
-/solodev-mission #42
-```
-
-Run it on your most capable session model. `/solodev-mission` creates `feat/<slug>`, writes the spec and plan with you,
-stops at the gate, and finishes with a ready PR. At the gate you also pick who writes the code: the tool you're in, or
-another one through Orca, which saves your usage on this one. To resume an interrupted run, ask it to continue.
-
-The roles also work on their own: `/solodev-review` reviews any branch, and `/solodev-plan` writes a spec without
-running the feature.
+|                                               | One agent | Plan mode (`/plan`) | solodev                                       |
+| --------------------------------------------- | --------- | ------------------- | --------------------------------------------- |
+| Spec you approve before code                  | no        | a plan              | requirements + acceptance scenarios + plan    |
+| Tests checked to fail first                   | no        | no                  | yes, by the reviewer, on the old and new code |
+| Review by an agent that didn't write the code | no        | no                  | yes, fresh context, by lens                   |
+| Machine-checked gates                         | no        | no                  | yes, the `solodev` CLI reads git              |
+| Ends in                                       | a diff    | a diff              | a ready PR you merge                          |
 
 ## How it works
 
-```mermaid
-flowchart TD
-  req(["/solodev-mission request or #issue"]):::human
-  spec["spec · solodev-plan<br/>spec · scenarios · plan"]:::think
-  ask{{"questions the code<br/>can't answer"}}:::human
-  sreview["spec review · solodev-review<br/>only for multi-journey or risky plans"]:::review
-  gate{{"⏸ spec gate<br/>approve + pick the coder"}}:::human
-  impl["implement · solodev-code<br/>journey tests + code, in the order it picks<br/>then docs beside the code"]:::writer
-  stuck{{"stuck after 2 attempts<br/>retry · second opinion · take over"}}:::human
-  review["code review · solodev-review<br/>one reviewer, or one per lens in parallel"]:::review
-  fix["fix round · same coder"]:::writer
-  dispute{{"left after re-review<br/>fix · defer · drop"}}:::human
-  pr["solodev check → draft PR"]:::think
-  qa["QA · solodev-verify<br/>only for scenarios no test covers"]:::review
-  done(["solodev check --for done → PR ready<br/>you merge"]):::human
+`/solodev-mission` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with
+their own models and fresh context: one coder and one reviewer.
 
-  req --> spec
-  spec <--> ask
-  spec -.-> sreview -.-> gate
-  spec --> gate
-  gate -->|edits| spec
-  gate -->|approved| impl
-  impl -.-> stuck -.-> impl
-  impl --> review
-  review -->|blocker / major| fix --> review
-  review -->|survives re-review| dispute --> pr
-  review -->|clean| pr
-  pr -.-> qa
-  pr --> done
-  qa -->|finding| fix
-  qa --> done
+1. **Spec.** Requirements, acceptance scenarios tagged `@S1`, `@S2`…, and a plan of at most three **journeys**: one test
+   file each, proving a group of scenarios.
+2. **Gate.** You approve the spec. No code exists before that, and `solodev check` fails a branch that has some.
+3. **Implement.** The coder writes the journey tests, then the code and the docs beside it.
+4. **Review.** A reviewer runs each journey test on the old code (it must fail) and the new (it must pass), and reads
+   the diff through **lenses**: evidence, contract, correctness, security, design, UI. A sensitive change (auth,
+   payments, migrations, a public API) gets one reviewer per lens, in parallel. Blockers go back to the coder once.
+5. **PR.** A draft PR, QA for any scenario no test covers, then the PR is marked ready. You merge.
 
-  classDef human fill:#fde68a,stroke:#b45309,color:#1f2937
-  classDef think fill:#e0e7ff,stroke:#4338ca,color:#1e1b4b
-  classDef writer fill:#d1fae5,stroke:#047857,color:#064e3b
-  classDef review fill:#fce7f3,stroke:#be185d,color:#500724
-```
+Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget comes to you instead of
+looping. With [Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed
+by a different model family.
 
-Blue runs in your main session, green is the one coder, pink is a fresh-context reviewer, yellow is you. Dotted steps
-run only when they add something.
-
-| Step          | Who                                  | Leaves when                                             |
-| ------------- | ------------------------------------ | ------------------------------------------------------- |
-| 1 start       | the commander (`/solodev-mission`)   | `solodev probe` done, branch `feat/<slug>` cut          |
-| 2 spec        | `solodev-plan`, in your main session | `spec.md` and its plan written, your questions answered |
-| 3 spec review | `solodev-review`, only when needed   | the commander applied the findings it agrees with       |
-| 4 ⏸ gate      | you                                  | `solodev approve` recorded                              |
-| 5 implement   | `solodev-code`, the one writer       | `solodev check --for implement` passes                  |
-| 6 code review | `solodev-review`, fresh, by lens     | `review.md` has no open blocker or major                |
-| 7 PR          | the commander                        | `solodev check --for pr` passes, draft PR open          |
-| 8 QA          | `solodev-verify`, if needed          | uncovered scenarios have verdicts                       |
-| 9 finish      | the commander                        | `solodev check --for done` passes, PR marked ready      |
-
-Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
-security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
-[agent-browser](https://github.com/vercel-labs/agent-browser); one it can't automate comes to you to check or waive.
-Code review reads the diff through six lenses: evidence (runs the journey tests on the base and the branch, and the
-project's checks), contract, correctness, security, design and UI. A small change gets one reviewer that reads every
-lens that applies; a large or sensitive one (auth, payments, secrets, migrations, a public API) gets one fresh reviewer
-per lens in parallel, and the commander merges their findings into `review.md`. The re-review is sized the same way on
-the fix diff. Budgets: two attempts to get the implement check passing, one review fix round and one re-review, two QA
-cycles; a spent budget asks you instead of thrashing.
-
-You're asked only at: a slug that already has a feature folder, conflicting tools or commands at the start, no tool for
-the forge or tracker, the spec questions, the gate, findings left after the re-review, a weakened test, a spec gap from
-review or QA, a shadow's question or blocker, a QA scenario that needs a person, a spent budget, a failed Orca worker, a
-review lens that can't be skipped (evidence, or security on a sensitive change) failing twice, and the ready PR. The
-draft PR carries what a reviewer needs from the spec and plan, and its footer links the decisions agreed on the ticket.
-At the finish its `## Follow-ups` section lists what was left open: deferred findings, open minors and waived scenarios,
-each with why. The finish card repeats them as tickets ready to paste.
-
-### The `solodev` CLI
-
-Ships inside the solodev-mission skill, at `<skills folder>/solodev-mission/scripts/solodev-cli.mjs`. It holds no state,
-commits nothing and never runs your project's tools: everything is worked out from git and the feature folder, so it
-works the same for any language, forge or tracker.
-
-```text
-solodev probe                          coding tools, models, Orca, the state folder (JSON)
-solodev status [<slug>]                where a feature stands and what comes next
-solodev approve <slug>                 record the gate: a line in progress.md with the spec's hash
-solodev check <slug> [--for implement|pr|done]   the checks that gate the next step
-solodev init [claude|codex|cursor]     write a coding tool's two subagents (what /solodev-mission init runs)
-solodev help [<command>]               what each command does
-```
-
-| Check | Proves                                                                                                                                                   |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists and tags every scenario it claims with `@S<n>` |
-| C2    | the spec and its plan are approved as they stand, and no code was committed before the approval                                                          |
-| C3    | no uncommitted change to tracked files (a reviewer or verifier touches only its report)                                                                  |
-| C4    | `review.md` has no open blocker or major                                                                                                                 |
-| C5    | every uncovered scenario has a `pass` verdict in `review.md`'s QA, or one you `waived`                                                                   |
-
-What needs your stack is judged by the fresh-context reviewer and lands in `review.md`, where C4 gates it: each journey
-test fails on the code before the feature for the missing behavior and passes now, the project's typecheck, lint, test
-and build pass, no test was weakened, and every new env var is documented.
+| Skill                            | Role                                                                        |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| `/solodev-mission`               | carries one feature from request to a ready PR                              |
+| `/solodev-plan`                  | writes a spec on its own                                                    |
+| `/solodev-review`                | reviews a spec or any branch                                                |
+| `/solodev-roadmap`               | turns an idea into a goal, a data model and a roadmap filed in your tracker |
+| `/solodev-scout`                 | maps a repo once into `AGENTS.md` and `docs/ARCHITECTURE.md`                |
+| `solodev-code`, `solodev-verify` | the coder's and QA's roles, started by the commander                        |
 
 ## Models
-
-`src/catalog.yaml` pins one model per profile and host. `think` plans and reviews; `implement` writes code and docs.
 
 | profile     | Claude Code                      | Codex              | Cursor                        |
 | ----------- | -------------------------------- | ------------------ | ----------------------------- |
@@ -255,55 +76,55 @@ and build pass, no test was weakened, and every new env var is documented.
 | `shadow-coder`    | `implement` |
 | `shadow-reviewer` | `think`     |
 
-The commander is your session: start it on the `think` model. The shadows run on the models in their row. CI checks both
-tables against the catalog.
+Start your session on the `think` model; it plans and reviews, and the cheaper `implement` model writes the code.
 
-### A coder on another tool (Orca)
+## How it's built
 
-With [Orca](https://github.com/stablyai/orca) running and its `orchestration` skill installed, the gate offers a coder
-on another tool you're logged in to, for example Codex coding while Claude Code commands. Orca starts it as a supervised
-worker in its own terminal, so you can watch it. Set personal defaults in `~/.agents/solodev/solodev-conf.yaml`:
-
-```yaml
-writer: ask # or claude | codex | cursor
-dispatch: auto # orca: run every shadow as an Orca worker, even on the home tool
+```mermaid
+flowchart LR
+  src["catalog.yaml + prompts<br/>one source"] --> build["build"]
+  build --> skills["7 skills<br/>npx skills add"]
+  build --> cli["solodev CLI<br/>gates from git · init"]
+  cli --> claude[".claude/agents"]
+  cli --> codex[".codex/agents (TOML)"]
+  cli --> cursor[".cursor/agents"]
+  evals["prompt quiz + stage evals"] -.->|every prompt change| src
 ```
 
-## Directory overview
+- **One source, three tools.** Roles are written once and compiled to each tool's native format, models pinned in one
+  catalog.
+- **Rules that code can check are code.** "No code before approval" or "every scenario is claimed by a test" are CLI
+  checks over git, with unit tests; prompts keep only what needs judgment.
+- **Prompts are tested like software.** A quiz of 60 decision scenarios and 38 routing queries runs on every prompt
+  change (latest run: 60/60 scenarios, 37/38 routing). Stage evals run the real workflow headless, with real subagents,
+  graded by scripts on what reached git. They caught, for example, that a tool loads subagents only at startup, so a run
+  that installs them mid-session now stops for a restart.
+- **Lean.** Each skill has a line budget enforced in CI, detail loads only when a step needs it, and a feature's stage
+  is derived from git and its folder, with no state machine.
 
-### Where feature state lives
+Source, evals and build: the [`develop`](https://github.com/luisintosh/solodev/tree/develop) branch.
 
-Outside every repo, whatever the install scope (`SOLODEV_STATE` overrides the root):
+## FAQ
 
-```text
-~/.agents/solodev/<owner>/<repo>/   origin's path, or the checkout's folder name without an origin
-  <feature>/
-    spec.md                     what and why, with @S<n> acceptance scenarios, then the plan: approach and journeys
-    progress.md                 the request verbatim, decisions, attempts, and the approval line
-    review.md                   review findings and their status (written even when clean), then QA verdicts for
-                                scenarios no test covers (pass, fail, manual, waived)
-```
+**What lands in my repo?** Only the feature's code, tests and docs, plus the installed skills and subagents for a
+project install. The spec and reports live in `~/.agents/solodev/<owner>/<repo>/<feature>/`; the PR carries the
+scenarios.
 
-The PR body carries the scenarios and journeys, since the spec isn't on the branch.
+**Do I need GitHub?** No. Any forge or tracker your tool can reach works (`gh`, `glab`, or an MCP server for GitLab,
+Jira, Linear…); without one, it asks you.
 
-### What solodev adds to your repo
+**How do I resume?** Ask `/solodev-mission` to continue. Any session can, since state lives in git and the feature
+folder.
 
-Only the feature's code, tests and the docs beside them, plus what you ask for:
+**Can it merge or push to main?** No. It opens the PR and marks it ready; use branch protection as the backstop.
 
-```text
-AGENTS.md  docs/ARCHITECTURE.md   optional, from /solodev-scout
-.agents/  .claude/  .cursor/  .codex/   a project-scope install only; a global install puts these under $HOME
-skills-lock.json                        written by `npx skills add` for a project install
-```
+**Coming from the old installer (v5 and earlier)?** Install as above and let `/solodev-mission init` use `--force` once
+per tool. Feature folders stay where they are.
 
-### This repository
+**Requirements:** Node.js 20+, Git, and one coding tool you're logged in to. Optional:
+[agent-browser](https://github.com/vercel-labs/agent-browser) for UI checks, [rtk](https://github.com/rtk-ai/rtk) for
+quieter command output.
 
-This branch, `master`, holds only the released skills. The source, the build and contributions live on
-[`develop`](https://github.com/luisintosh/solodev/tree/develop); see its CONTRIBUTING.md.
+---
 
-## Safety notes
-
-- solodev never merges its own PR. That rule lives in the prompts, phrased as who owns what rather than a list of
-  commands, so it holds for any forge; use branch protection as your hard backstop.
-- `solodev approve` refuses to record the gate while anything is staged, and `solodev check` fails a branch that
-  committed code before the approval or whose spec changed since.
+The name comes from _Solo Leveling_, where one hunter commands an army of shadows. MIT licensed.

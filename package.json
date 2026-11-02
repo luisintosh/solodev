@@ -1,6 +1,7 @@
 {
   "name": "solodev",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Spec-driven development harness for Claude Code, Codex, and Cursor — role skills, transpile, solodev CLI.",
   "engines": {
