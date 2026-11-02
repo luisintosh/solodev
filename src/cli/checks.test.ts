@@ -16,7 +16,7 @@ const SPEC = `# Hello
 - @S2 Given a name, when I call hello with it, then it greets that name.
 `
 
-const plan = (uncovered = "") => `# Plan
+const plan = (uncovered = "") => `## Plan
 
 Add \`src/hello.js\`.
 
@@ -65,8 +65,7 @@ function commit(message: string, ...paths: string[]) {
 const check = (id: CheckId, set: CheckSet = "done") => runCheck(id, { root, dir, set })
 
 async function gate(planText = plan()) {
-  feat("spec.md", SPEC)
-  feat("plan.md", planText)
+  feat("spec.md", `${SPEC}\n${planText}`)
   return approve({ root, dir, date: "2026-10-12" })
 }
 
@@ -108,16 +107,14 @@ describe("approve", () => {
   })
 
   test("refuses a plan that leaves a scenario unclaimed", async () => {
-    feat("spec.md", `${SPEC}- @S3 a third one\n`)
-    feat("plan.md", plan())
+    feat("spec.md", `${SPEC}- @S3 a third one\n\n${plan()}`)
     await expect(approve({ root, dir })).rejects.toThrow(/no journey or uncovered entry claims S3/)
   })
 
   test("refuses while code is staged", async () => {
     write("src/early.js", "export {}\n")
     sh("add", "src/early.js")
-    feat("spec.md", SPEC)
-    feat("plan.md", plan())
+    feat("spec.md", `${SPEC}\n${plan()}`)
     await expect(approve({ root, dir })).rejects.toThrow(/staged files: src\/early.js/)
   })
 })
@@ -158,10 +155,10 @@ describe("checks", () => {
     expect(r.details.join("\n")).toContain("feat: jumped the gate")
   })
 
-  test("C2 reopens the gate when the spec or plan changes after approval", async () => {
+  test("C2 reopens the gate when the spec or its plan changes after approval", async () => {
     await gate()
     expect((await check("C2")).status).toBe("pass")
-    feat("plan.md", `${plan()}\nOne more line.\n`)
+    feat("spec.md", `${SPEC}\n${plan()}\nOne more line.\n`)
     expect((await check("C2")).summary).toContain("changed since approval")
     expect((await featureStatus(state, "hello")).stage).toBe("gate")
     await approve({ root, dir })
@@ -171,7 +168,7 @@ describe("checks", () => {
   test("C2 accepts a re-approval after code exists, judging early code by the first approval", async () => {
     await gate()
     implement()
-    feat("spec.md", `${SPEC}\nA clarified line.\n`)
+    feat("spec.md", `${SPEC}\nA clarified line.\n\n${plan()}`)
     expect((await check("C2")).summary).toContain("changed since approval")
     await approve({ root, dir, date: "2026-10-13" })
     const r = await check("C2")
@@ -200,17 +197,22 @@ describe("checks", () => {
     expect((await check("C4")).summary).toContain("unknown severity or status")
   })
 
-  test("C5 requires a passing verdict for each uncovered scenario", async () => {
+  test("C5 requires a passing verdict in review.md's QA for each uncovered scenario", async () => {
     await gate(plan("S2"))
-    expect((await check("C5")).summary).toContain("no qa.md for S2")
-    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | fail | greets wrong |\n")
+    const findings = "## Findings\n\n| id | severity | location | status | finding |\n|---|---|---|---|---|\n"
+    feat("review.md", findings)
+    expect((await check("C5")).summary).toContain("no QA verdicts in review.md for S2")
+    const qa = (row: string) =>
+      feat("review.md", `${findings}\n## QA\n\n| scenario | verdict | evidence |\n|---|---|---|\n| ${row} |\n`)
+    qa("S2 | fail | greets wrong")
     expect((await check("C5")).status).toBe("fail")
-    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | manual | needs a real inbox |\n")
+    qa("S2 | manual | needs a real inbox")
     expect((await check("C5")).summary).toContain("S2 needs a person")
-    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | waived | user: covered by staging |\n")
+    qa("S2 | waived | user: covered by staging")
     expect((await check("C5")).status).toBe("pass")
-    feat("qa.md", "| scenario | verdict | evidence |\n|---|---|---|\n| S2 | pass | ran it |\n")
+    qa("S2 | pass | ran it")
     expect((await check("C5")).status).toBe("pass")
+    expect((await check("C4")).status).toBe("pass")
   })
 })
 
@@ -221,7 +223,8 @@ describe("status", () => {
   test("walks the stages from the feature folder alone", async () => {
     expect(await stage()).toBe("spec")
     feat("spec.md", SPEC)
-    feat("plan.md", plan())
+    expect(await stage()).toBe("spec")
+    feat("spec.md", `${SPEC}\n${plan()}`)
     expect(await stage()).toBe("gate")
     await approve({ root, dir, date: "2026-10-12" })
     log("- tools: forge gitlab (glab) · tracker linear (mcp) · test `node test/hello.test.js`")

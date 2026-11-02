@@ -42,16 +42,10 @@ async function repoRoot(): Promise<string> {
   return process.cwd()
 }
 
-const LEGACY =
-  "a run from solodev v3.0 or earlier keeps its files in docs/feats/; finish it with npx -y github:luisintosh/solodev#v3.0.0"
-
-async function requireFeature(root: string, state: string, slug: string | undefined): Promise<string> {
+async function requireFeature(state: string, slug: string | undefined): Promise<string> {
   if (!slug) throw new UsageError("missing <slug>")
   if (!SLUG.test(slug)) throw new UsageError(`"${slug}" is not a feature slug (lowercase letters, digits, dashes)`)
-  if (!(await exists(featureDir(state, slug)))) {
-    if (await exists(path.join(root, "docs", "feats", slug))) throw new UsageError(`${slug}: ${LEGACY}`)
-    throw new UsageError(`${featureDir(state, slug)} does not exist`)
-  }
+  if (!(await exists(featureDir(state, slug)))) throw new UsageError(`${featureDir(state, slug)} does not exist`)
   return slug
 }
 
@@ -109,14 +103,13 @@ async function main(argv: string[]): Promise<number> {
     case "status": {
       const slug = positional(args)[0] ?? (await branchFeature(root, state))
       if (slug) {
-        const status = await featureStatus(state, await requireFeature(root, state, slug))
+        const status = await featureStatus(state, await requireFeature(state, slug))
         console.log(json ? JSON.stringify(status, null, 2) : formatStatus(status))
         return 0
       }
       const slugs = await listFeatures(state)
       if (!slugs.length) {
         console.log(`no features in ${state} — start one with /solodev-mission`)
-        if (await exists(path.join(root, "docs", "feats"))) console.log(`note: ${LEGACY}`)
         return 0
       }
       const all = await Promise.all(slugs.map((s) => featureStatus(state, s)))
@@ -125,13 +118,13 @@ async function main(argv: string[]): Promise<number> {
       return 0
     }
     case "approve": {
-      const slug = await requireFeature(root, state, positional(args)[0])
+      const slug = await requireFeature(state, positional(args)[0])
       const approval = await approve({ root, dir: featureDir(state, slug) })
       console.log(`approved ${slug}: spec ${approval.spec} at ${approval.at}`)
       return 0
     }
     case "check": {
-      const slug = await requireFeature(root, state, positional(args)[0])
+      const slug = await requireFeature(state, positional(args)[0])
       const forFlag = flag(args, "--for")
       if (forFlag && !(forFlag in CHECK_SETS)) throw new UsageError("--for must be implement, pr or done")
       let set = forFlag as CheckSet | undefined

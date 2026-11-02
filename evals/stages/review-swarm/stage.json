@@ -25,7 +25,7 @@
     {
       "expect": "A security lens was briefed",
       "tool": "Agent",
-      "input": "reviewer-security|lens:\\s*security"
+      "input": "lens:\\s*security"
     },
     {
       "expect": "No finding came from a single reviewer",

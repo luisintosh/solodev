@@ -1,7 +1,7 @@
 # Evidence lens
 
 You run things; the other lenses only read. Judge each command by its output, not only its exit code. The commands are
-the brief's `- tools:` line and each journey's `command` in `plan.md`. Test files in the diff are under review too, not
+the brief's `- tools:` line and each journey's `command` in the plan. Test files in the diff are under review too, not
 evidence.
 
 - **Fail, then pass.** Run each journey's command, with the journey tests copied in, on the base (a temporary worktree

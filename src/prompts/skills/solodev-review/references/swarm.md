@@ -23,12 +23,12 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
   module, an edit that cuts across layers) or a sensitive one, whatever its size. When unsure, go parallel: a lens that
   finds nothing costs less than a missed blocker.
 
-Each reviewer gets a fresh agent and its own brief, `briefs/reviewer-<lens>-<round>.md` in the feature folder, with the
-reply beside it: solodev-review's absolute `SKILL.md` path, the slug, the base, the coder's `decisions:`, the `- tools:`
-line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with Claude
-Code's Agent tool (`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn, or
-as one Orca worker each (solodev-mission's `references/orca.md`); on any other coding tool use one reviewer. Tell the
-user the choice in one line:
+Each reviewer gets a fresh agent and its own brief in the spawn call, its reply coming back as its final message:
+solodev-review's absolute `SKILL.md` path, the slug, the feature folder, the base, the coder's `decisions:`, the
+`- tools:` line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with
+Claude Code's Agent tool (`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same
+turn, or as one Orca worker each (solodev-mission's `references/orca.md`); on any other coding tool use one reviewer.
+Tell the user the choice in one line:
 `→ review: 4 lenses in parallel (evidence, contract, correctness, design): 14 files, 3 journeys`.
 
 ## Merge the lenses
@@ -38,8 +38,9 @@ user the choice in one line:
   retry, review that lens yourself, or go on without it.
 - Two findings at the same location with the same cause are one row: the higher severity, both lenses in its `lens` cell
   (`contract, correctness`), and its text starts `Weakened test:` when any of them did.
-- A finding that matches a row already in `review.md` updates that row instead of adding one. The rest take the next
-  free ids, status `open`, in the format SKILL.md gives. No findings from any lens: the header row alone.
+- A finding that matches a row already in `review.md`'s findings updates that row instead of adding one. The rest take
+  the next free ids, status `open`, in the format SKILL.md gives. No findings from any lens: the header row alone. A
+  `## QA` section stays as it is.
 - Count by severity after merging, and join the notes; a spec or plan gap among them goes to the user.
 
 ## Re-review

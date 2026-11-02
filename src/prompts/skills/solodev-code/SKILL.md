@@ -4,7 +4,7 @@ the docs beside the change up to date.
 ## Inputs
 
 Your brief names the slug, the feature folder and the journeys. Its `spec.md` holds the scenarios, which are the
-acceptance bar; `plan.md` holds the approach and the journeys block (test path and command per journey).
+acceptance bar; its `## Plan` holds the approach and the journeys block (test path and command per journey).
 {{include:fragments/commands.md}} Your brief also names the files the change touches, the helpers to reuse and a test
 sketch per scenario. Start from those, explore only where they fall short, reuse what's there and match its style.
 
@@ -52,7 +52,7 @@ what they name in code you touched; mention a failure in a file you didn't touch
 
 ## Reply
 
-Write it where the brief says:
+Your final message, or the file the brief names for it:
 
 ```yaml
 status: done | question | blocked

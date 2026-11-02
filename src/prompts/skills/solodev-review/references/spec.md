@@ -23,4 +23,4 @@ Check the spec against the request, then the plan against the spec.
 - More than one journey has a one-line reason; more than three is a finding. A new test dependency is named.
 - The approach reuses what already exists instead of building a parallel module, and the rejected alternatives are real,
   not strawmen.
-- A finding names `spec.md:<line>` or `plan.md:<line>` and a concrete fix.
+- A finding names `spec.md:<line>` and a concrete fix.

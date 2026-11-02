@@ -31,7 +31,7 @@ export type FeatureStatus = {
 }
 
 const NEXT: Record<Stage, (slug: string) => string> = {
-  spec: () => "write spec.md and plan.md (solodev-plan), asking the user what the code can't answer",
+  spec: () => "write spec.md with its plan (solodev-plan), asking the user what the code can't answer",
   gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
   implement: (s) =>
     `solodev-code writes the journey tests and the code; then \`solodev check ${s} --for implement\`; once progress.md logs it passed, code review`,
@@ -58,12 +58,12 @@ export async function featureStatus(state: string, slug: string): Promise<Featur
     ...extra,
   })
 
-  const plan = await readIfExists(path.join(dir, "plan.md"))
-  if (plan === undefined || !(await exists(path.join(dir, "spec.md")))) return done("spec")
+  const spec = await readIfExists(path.join(dir, "spec.md"))
+  if (spec === undefined || !/^journeys:/m.test(spec)) return done("spec")
   const { approval, matches } = await currentApproval(dir)
   if (!approval) return done("gate")
   if (!matches) {
-    notes.push("spec.md or plan.md changed since approval")
+    notes.push("spec.md changed since approval")
     return done("gate")
   }
 
@@ -83,9 +83,9 @@ export async function featureStatus(state: string, slug: string): Promise<Featur
   if (pr.state === "ready") return done("done", { approved, pr })
 
   try {
-    const uncovered = parsePlan(plan).uncovered
+    const uncovered = parsePlan(spec).uncovered
     if (uncovered.length) {
-      const verdicts = parseQa((await readIfExists(path.join(dir, "qa.md"))) ?? "")
+      const verdicts = parseQa(review)
       const missing = uncovered.filter((s) => !verdicts.has(s))
       if (missing.length) notes.push(`no QA verdict yet: ${missing.join(", ")}`)
     }

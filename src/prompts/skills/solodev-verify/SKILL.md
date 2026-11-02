@@ -2,7 +2,7 @@ Check the acceptance scenarios that no journey test covers, from outside the sys
 
 ## Inputs
 
-The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in the feature folder's `plan.md`.
+The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in the feature folder's `spec.md`.
 Their Given/When/Then is in `spec.md`. {{include:fragments/commands.md}} The `dev` command starts the app.
 
 ## Checking a scenario
@@ -14,9 +14,9 @@ invocation, output and exit code; for config, data or logs, the command that val
 local dev server, nothing destructive, and keep outputs in a scratch folder outside the repo. A scenario you can't
 automate gets `manual`, with the steps a person would follow as its evidence.
 
-## qa.md
+## QA verdicts
 
-Write `qa.md` in the feature folder:
+Write or update the `## QA` section at the end of `review.md` in the feature folder, leaving its findings as they are:
 
 ```markdown
 | scenario | verdict | evidence                                                          |
@@ -25,8 +25,8 @@ Write `qa.md` in the feature folder:
 ```
 
 One row per uncovered scenario, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
-commander. On a second QA cycle, recheck only the rows that failed. Then post the same table, with a one-line manual
-repro per scenario, as one comment on the PR, with the forge tool the `- tools:` line names.
+commander. On a second QA cycle, recheck only the rows that failed and update them in place. Then post the same table,
+with a one-line manual repro per scenario, as one comment on the PR, with the forge tool the `- tools:` line names.
 
 ## Reply
 

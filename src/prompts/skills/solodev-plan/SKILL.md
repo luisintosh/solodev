@@ -1,4 +1,4 @@
-Write a feature's spec and plan: the two documents the user approves at the gate. You write documents, not code.
+Write a feature's `spec.md`, the spec and its plan, which the user approves at the gate. You write documents, not code.
 
 ## Before you write
 
@@ -37,7 +37,7 @@ questions keep multiplying, suggest splitting the feature with solodev-roadmap.
 
 ## spec.md
 
-`spec.md`, in the feature folder your brief names, says what and why, with no implementation choices:
+`spec.md`, in the feature folder your brief names, says what and why first, with no implementation choices:
 
 - The problem and who has it, in a few lines.
 - Requirements, each testable as written. A number, a threshold or a named behavior instead of "fast" or "robust".
@@ -57,16 +57,16 @@ Give each happy path its counterparts where they apply: empty or missing input, 
 concurrent action, an upstream failure, a limit reached. Write scenarios that are observable from outside the system,
 through an API, a CLI or the UI, so a test or the verifier can check them.
 
-## plan.md
+## The plan
 
-`plan.md`, beside it, holds the approach and the journeys, nothing more:
+`## Plan`, the last section of `spec.md`, holds the approach and the journeys, nothing more:
 
 - The approach in a short paragraph, and the alternatives you rejected, one line each with why. Only one viable approach
   → say so in a line.
 - Data or API changes, risks, and anything the user has to decide.
 - Dependencies: what this feature waits on, such as an unmerged branch, a sibling issue or an infrastructure change, and
   who owns each.
-- `## Setup`: what a human does outside the repo (an API key, a webhook endpoint, a scope, a migration on a hosted
+- `### Setup`: what a human does outside the repo (an API key, a webhook endpoint, a scope, a migration on a hosted
   database), each naming the exact place to do it. `None.` when there is nothing.
 - A fenced YAML block whose first key is `journeys:`:
 
@@ -97,7 +97,7 @@ are the bar.
 - Claims about how the system behaves today come from reading the code.
 - The journeys block parses and covers every scenario: `solodev approve` refuses otherwise.
 - A spec review's findings: apply the ones you agree with and bring the rest to the gate.
-- Both documents describe the current state. No history ("updated per review") in them.
+- `spec.md` describes the current state. No history ("updated per review") in it.
 
 You edit only the feature folder, which lives outside the repo; the commander records the gate. Run on its own, the
 folder is `<state.dir>/<slug>/` from `solodev probe`, and you find the test command the way the repo defines it.

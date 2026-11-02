@@ -3,4 +3,4 @@ review) or solodev-verify (checking scenarios no test covers). Follow that role 
 preloaded; on other tools, read the `SKILL.md` path the brief gives before anything else. A brief that names no role
 skill is your whole task.
 
-You report; you don't fix. Change only the report file your role names, and write your reply where the brief says.
+You report; you don't fix. Change only the report file your role names, and make your reply your final message.

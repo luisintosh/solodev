@@ -1,9 +1,9 @@
 # PR and finish
 
 **Draft PR (step 7).** A draft pull or merge request against the default branch, with the forge tool the `- tools:` line
-names. The spec and plan stay outside the repo, so the body carries what a reviewer, human or agent, needs from them,
-and nothing the diff, the ticket or the QA comment already holds. Use these sections in this order and drop an empty
-one, except `## Follow-ups`:
+names. The spec stays outside the repo, so the body carries what a reviewer, human or agent, needs from them, and
+nothing the diff, the ticket or the QA comment already holds. Use these sections in this order and drop an empty one,
+except `## Follow-ups`:
 
 ```markdown
 Closes #2510. Lets staff record payments that don't match a customer yet.
@@ -54,7 +54,7 @@ Spec approved 2026-10-14 · [agreed decisions](https://github.com/acme/app/issue
 
 **Finish (step 9).**
 
-1. Read `plan.md`'s `## Setup` and the `## Configuration` section of each README the diff touched. Anything beyond
+1. Read the plan's `### Setup` and the `## Configuration` section of each README the diff touched. Anything beyond
    `None.` goes under `## Setup required`, placed just before `## Follow-ups`, naming where it came from. Nothing → no
    section.
 2. Replace `Filled at finish.` under `## Follow-ups` with each `deferred` finding and open `minor` (including
@@ -65,9 +65,9 @@ Spec approved 2026-10-14 · [agreed decisions](https://github.com/acme/app/issue
 4. The finish card, for the user to understand what was built before merging:
    - **What it does now**: the behavior each scenario added, in plain words, one line each.
    - **Try it**: the `dev` command from the `- tools:` line and the steps that walk each scenario's When, reusing the
-     verifier's steps from `qa.md` when QA ran.
+     verifier's steps from `review.md`'s `## QA` when QA ran.
    - **Code tour**: three to five `file:symbol` entries in the order a request flows through them, each with its part.
-   - **Deviations**: every `decisions:` entry from the coder's replies in `briefs/`, or `None.`
+   - **Deviations**: every `- decision` line in `progress.md`, or `None.`
    - The PR link, the QA comment link if any, scenarios passing, review rounds and attempts used, the setup lines, and
      the follow-ups again, each as a ticket title and body ready to paste. You don't file them.
 5. Handoff, for a ticket that belongs to a roadmap epic: take the first feature in the epic's list that is still open

@@ -171,17 +171,17 @@ flowchart TD
 Blue runs in your main session, green is the one coder, pink is a fresh-context reviewer, yellow is you. Dotted steps
 run only when they add something.
 
-| Step          | Who                                  | Leaves when                                              |
-| ------------- | ------------------------------------ | -------------------------------------------------------- |
-| 1 start       | the commander (`/solodev-mission`)   | `solodev probe` done, branch `feat/<slug>` cut           |
-| 2 spec        | `solodev-plan`, in your main session | `spec.md` and `plan.md` written, your questions answered |
-| 3 spec review | `solodev-review`, only when needed   | the commander applied the findings it agrees with        |
-| 4 ⏸ gate      | you                                  | `solodev approve` recorded                               |
-| 5 implement   | `solodev-code`, the one writer       | `solodev check --for implement` passes                   |
-| 6 code review | `solodev-review`, fresh, by lens     | `review.md` has no open blocker or major                 |
-| 7 PR          | the commander                        | `solodev check --for pr` passes, draft PR open           |
-| 8 QA          | `solodev-verify`, if needed          | uncovered scenarios have verdicts                        |
-| 9 finish      | the commander                        | `solodev check --for done` passes, PR marked ready       |
+| Step          | Who                                  | Leaves when                                             |
+| ------------- | ------------------------------------ | ------------------------------------------------------- |
+| 1 start       | the commander (`/solodev-mission`)   | `solodev probe` done, branch `feat/<slug>` cut          |
+| 2 spec        | `solodev-plan`, in your main session | `spec.md` and its plan written, your questions answered |
+| 3 spec review | `solodev-review`, only when needed   | the commander applied the findings it agrees with       |
+| 4 ⏸ gate      | you                                  | `solodev approve` recorded                              |
+| 5 implement   | `solodev-code`, the one writer       | `solodev check --for implement` passes                  |
+| 6 code review | `solodev-review`, fresh, by lens     | `review.md` has no open blocker or major                |
+| 7 PR          | the commander                        | `solodev check --for pr` passes, draft PR open          |
+| 8 QA          | `solodev-verify`, if needed          | uncovered scenarios have verdicts                       |
+| 9 finish      | the commander                        | `solodev check --for done` passes, PR marked ready      |
 
 Spec review runs when the plan has more than one journey or touches a dependency, a public API, a schema, auth or
 security. The verifier runs only for scenarios no journey test covers, such as a UI path it checks with
@@ -217,10 +217,10 @@ solodev help [<command>]               what each command does
 | Check | Proves                                                                                                                                                   |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | C1    | every `@S<n>` in the spec is claimed by a journey or listed as uncovered; each journey's test file exists and tags every scenario it claims with `@S<n>` |
-| C2    | the spec and plan are approved as they stand, and no code was committed before the approval                                                              |
+| C2    | the spec and its plan are approved as they stand, and no code was committed before the approval                                                          |
 | C3    | no uncommitted change to tracked files (a reviewer or verifier touches only its report)                                                                  |
 | C4    | `review.md` has no open blocker or major                                                                                                                 |
-| C5    | every uncovered scenario has a `pass` verdict in `qa.md`, or one you `waived`                                                                            |
+| C5    | every uncovered scenario has a `pass` verdict in `review.md`'s QA, or one you `waived`                                                                   |
 
 What needs your stack is judged by the fresh-context reviewer and lands in `review.md`, where C4 gates it: each journey
 test fails on the code before the feature for the missing behavior and passes now, the project's typecheck, lint, test
@@ -263,12 +263,10 @@ Outside every repo, whatever the install scope (`SOLODEV_STATE` overrides the ro
 ```text
 ~/.agents/solodev/<owner>/<repo>/   origin's path, or the checkout's folder name without an origin
   <feature>/
-    spec.md                     what and why, with @S<n> acceptance scenarios
-    plan.md                     approach and journeys (one test file each)
+    spec.md                     what and why, with @S<n> acceptance scenarios, then the plan: approach and journeys
     progress.md                 the request verbatim, decisions, attempts, and the approval line
-    review.md                   review findings and their status (written even when clean)
-    qa.md                       verdicts for scenarios no test covers (pass, fail, manual, waived)
-    briefs/                     briefs and replies for the shadows
+    review.md                   review findings and their status (written even when clean), then QA verdicts for
+                                scenarios no test covers (pass, fail, manual, waived)
 ```
 
 The PR body carries the scenarios and journeys, since the spec isn't on the branch.

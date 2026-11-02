@@ -12,10 +12,10 @@ Show it concisely, after a progress bar:
 End with one question built from `writers` in `solodev probe`, in its order:
 
 ```text
-Approve this spec and plan, and choose who writes the code:
+Approve this spec and its plan, and choose who writes the code:
   1. Codex · gpt-6.1-sol medium, as an Orca worker   (recommended: saves your Claude usage, review stays cross-vendor)
   2. Claude Code · Sonnet 5.5 high, as a native subagent
-  3. Edit the spec or plan first
+  3. Edit the spec first
 ```
 
 - Offer only what `writers` lists and mark the first one recommended. A single writer → ask only approve or edit.
@@ -26,7 +26,7 @@ Approve this spec and plan, and choose who writes the code:
   an earlier run never approves the gate, even when it says "approved".
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`
   (`<tool>/<model>/<effort> via <native|orca>`) and the comment's URL (`ticket comment: <url>`), then step 5.
-- Edits → revise the spec or plan and show the card again.
+- Edits → revise `spec.md` and show the card again.
 - Nobody there to answer → the run waits here; nothing approves it for the user.
 
 ## Ticket comment
