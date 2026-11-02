@@ -13,6 +13,8 @@ export type InitOp =
   | { kind: "edited"; path: string; content: string }
   | { kind: "delete"; path: string; recursive?: boolean; note: string }
   | { kind: "move"; path: string; from: string; note: string }
+  /** A repo path that resolves outside the repo (a symlinked folder): left alone. */
+  | { kind: "outside"; path: string }
 
 export type InitInput = {
   host: Tool
@@ -25,6 +27,12 @@ export type InitInput = {
   force: boolean
   read: (filePath: string) => Promise<string | undefined>
   exists: (filePath: string) => Promise<boolean>
+  /**
+   * Whether a path's folder resolves inside `root` once symlinks are followed (the path itself may be a link; writes
+   * and deletes replace the link, not its target). A project init touches nothing a cloned repo's symlinks point
+   * elsewhere; a global one trusts $HOME, where linking dotfolders is common.
+   */
+  inside: (filePath: string) => Promise<boolean>
 }
 
 const MARK = /\n(?:<!-- solodev-hash: ([0-9a-f]{16}) -->|# solodev-hash: ([0-9a-f]{16}))\n?$/
@@ -110,11 +118,16 @@ export async function planInit(input: InitInput): Promise<InitOp[]> {
   const { host, scope, root, home, env } = input
   const dir = agentsDir(host, scope, root, home, env)
   const legacyManifest = path.join(dir, ".harness-manifest")
-  const legacy = parseLegacyManifest(await input.read(legacyManifest))
+  const dirInside = await input.inside(legacyManifest)
+  const legacy = parseLegacyManifest(dirInside ? await input.read(legacyManifest) : undefined)
   const ops: InitOp[] = []
 
   for (const [file, built] of Object.entries(input.agents[host]).sort()) {
     const dest = path.join(dir, file)
+    if (!dirInside) {
+      ops.push({ kind: "outside", path: dest })
+      continue
+    }
     const content = withHash(file, built)
     const current = await input.read(dest)
     let kind: InitOp["kind"]
@@ -130,9 +143,13 @@ export async function planInit(input: InitInput): Promise<InitOp[]> {
 
   const remove = async (rel: string, recursive = false) => {
     const target = path.join(root, rel)
-    if (await input.exists(target)) ops.push({ kind: "delete", path: target, recursive, note: OLD_INSTALLER })
+    if (!(await input.exists(target))) return
+    if (await input.inside(target)) ops.push({ kind: "delete", path: target, recursive, note: OLD_INSTALLER })
+    else ops.push({ kind: "outside", path: target })
   }
-  if (await input.exists(legacyManifest)) ops.push({ kind: "delete", path: legacyManifest, note: OLD_INSTALLER })
+  if (dirInside && (await input.exists(legacyManifest))) {
+    ops.push({ kind: "delete", path: legacyManifest, note: OLD_INSTALLER })
+  }
   for (const skills of [".agents/skills", ".claude/skills", ".cursor/skills"])
     await remove(`${skills}/.harness-manifest`)
   for (const rel of OLD_CLIS) await remove(rel)
@@ -167,6 +184,7 @@ const VERB: Record<InitOp["kind"], string> = {
   update: "~ updated  ",
   unchanged: "= unchanged",
   edited: "! edited   ",
+  outside: "! outside  ",
   delete: "- removed  ",
   move: "> moved    ",
 }
@@ -185,6 +203,7 @@ export function formatInit(input: Pick<InitInput, "host" | "scope" | "root" | "h
     if (op.kind === "move") line += ` from ${show(op.from)}`
     if (op.kind === "delete" || op.kind === "move") line += ` ${op.note}`
     if (op.kind === "edited") line += " — kept your edits; --force replaces them"
+    if (op.kind === "outside") line += " — a symlink leads outside the repo; left alone"
     lines.push(line)
   }
   return lines.join("\n")

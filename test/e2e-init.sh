@@ -107,6 +107,23 @@ nohost_rc=$?
 set -e
 assert_eq "$nohost_rc" "2" "init without a detectable tool is a usage error"
 
+# 3b. a cloned repo's symlinks can't steer init outside it: nothing written or deleted there
+EVIL="${WORK}/evil-repo"
+OUTSIDE="${WORK}/outside"
+mkdir -p "${EVIL}/.claude" "${OUTSIDE}/skills/sddkit"
+echo "precious" >"${OUTSIDE}/skills/sddkit/keep.txt"
+(cd "$EVIL" && git init -q)
+cp -R "${PRODUCT}/skills" "${EVIL}/.claude/skills"
+ln -s "$OUTSIDE" "${EVIL}/.cursor"
+set +e
+evil_out="$(cd "$EVIL" && "${EVIL}/.claude/${CLI_REL}" init cursor 2>&1)"
+evil_rc=$?
+set -e
+assert_eq "$evil_rc" "1" "init exits 1 when a symlink leads outside the repo"
+assert_grep 'outside' "$evil_out" "init reports what it left alone"
+assert_file_exists "${OUTSIDE}/skills/sddkit/keep.txt" "init deletes nothing outside the repo"
+assert_file_absent "${OUTSIDE}/agents" "init writes nothing outside the repo"
+
 # 4. the installed solodev CLI runs a feature through the gate and the implement checks
 # (a CommonJS package.json nearby must not break the ESM .mjs)
 printf '%s\n' '{"name":"consumer","type":"commonjs"}' >"${TARGET}/package.json"

@@ -19,6 +19,7 @@ function input(files: Record<string, string>, over: Partial<InitInput> = {}): In
     force: false,
     read: async (p) => files[p],
     exists: async (p) => p in files || Object.keys(files).some((f) => f.startsWith(`${p}/`)),
+    inside: async () => true,
     ...over,
   }
 }
@@ -126,5 +127,17 @@ describe("planInit", () => {
     const kept = { ...files, "/home/u/.agents/solodev/solodev-conf.yaml": "writer: claude\n" }
     const again = await planInit(input(kept, { scope: "global", root: "/home/u", host: "codex" }))
     expect(again.some((op) => op.kind === "move")).toBe(false)
+  })
+
+  test("a project init leaves alone what a symlinked folder leads outside the repo", async () => {
+    const files = { "/repo/.cursor/skills/sddkit/SKILL.md": "", "/repo/.agents/solodev/solodev-cli.mjs": "" }
+    const inside = async (p: string) => !p.startsWith("/repo/.cursor/")
+    const ops = await kinds(input(files, { host: "cursor", inside }))
+    expect(ops).toEqual([
+      "outside /repo/.cursor/agents/shadow-coder.md",
+      "outside /repo/.cursor/agents/shadow-reviewer.md",
+      "delete /repo/.agents/solodev/solodev-cli.mjs",
+      "outside /repo/.cursor/skills/sddkit",
+    ])
   })
 })
