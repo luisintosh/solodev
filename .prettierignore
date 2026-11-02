@@ -1,5 +1,4 @@
 dist/
 node_modules/
-manifest.txt
 test/fixture-repo/node_modules/
 pnpm-lock.yaml

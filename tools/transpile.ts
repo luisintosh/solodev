@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Emit the product (dist/product: the role skills every host installs with `npx skills add`, plus README.md, LICENSE and assets/)
- * and the two shadow agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents), which build-cli bundles
- * into the CLI for `solodev init`.
+ * and the two shadow agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents), which build-cli copies
+ * beside the CLI for `solodev init`.
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"

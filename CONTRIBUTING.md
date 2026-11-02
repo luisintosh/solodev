@@ -14,7 +14,7 @@ once; tests use Vitest and bundles use esbuild.
 | `src/cli/**`                         | `pnpm run build` + `pnpm test` |
 
 `dist/` is generated and untracked. `dist/product/` is exactly what a release puts on `master`: the skills (with the CLI
-bundled at `skills/mission/scripts/solodev-cli.mjs`), `README.md` and `assets/`. Users install it with
+bundled at `skills/mission/scripts/solodev-cli.mjs`), `README.md`, `LICENSE` and `assets/`. Users install it with
 `npx skills add luisintosh/solodev`; try a build locally with `npx skills add ./dist/product` in a scratch repo. The
 shadows go to `dist/{claude,cursor,codex}/agents/` and are copied, as plain files, into
 `skills/mission/shadows/<host>/`, which the CLI reads and writes on `solodev init`.
@@ -95,7 +95,7 @@ Two tiers, cheapest first:
 | `node tools/build-cli.ts`  | the CLI into `dist/product/.../scripts/`, the shadows into `shadows/` |
 | `node tools/check.ts`      | hygiene                                                               |
 | `node tools/quiz.ts`       | prompt quiz: `[--model <alias>]`                                      |
-| `node tools/eval-stage.ts` | stage evals: `validate`, `run [--tier smoke] [--changed] [--judge]`   |
+| `node tools/eval-stage.ts` | stage evals: `validate`, `run [--stage <id>] [--changed] [--judge]`   |
 | `pnpm run release`         | publish `dist/product` to `master`, tag it, publish a GitHub Release  |
 
 `pnpm run build` runs transpile + build-cli.
@@ -118,6 +118,4 @@ pnpm run release v1.3.0  # explicit version
 install uses `https://github.com/luisintosh/solodev/tree/vX.Y.Z`. Annotated tags; don't move published tags, cut a new
 patch instead.
 
-The first release after the split finds `master` still holding the source tree (it has a `package.json`), so it starts
-`master` over as an orphan history and force-pushes it; later releases add one commit each. Tags up to v5.0.0 keep
-pointing at the old history.
+Each release adds one commit to `master`. Tags up to v5.0.0 point at the old history.

@@ -163,7 +163,7 @@ export function parseReview(md: string): Finding[] {
 
 export type Verdict = { verdict: string; evidence: string }
 
-/** review.md's `## QA`: a table `| scenario | verdict | evidence |`, verdict pass or fail. */
+/** review.md's `## QA`: a table `| scenario | verdict | evidence |`, verdict pass, fail, manual or waived. */
 export function parseQa(md: string): Map<string, Verdict> {
   const out = new Map<string, Verdict>()
   for (const r of tableRows(md, ["scenario", "verdict"])) {

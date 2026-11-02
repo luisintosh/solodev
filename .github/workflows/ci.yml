@@ -50,7 +50,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Build (transpile + CLI + manifest)
+      - name: Build (transpile + CLI)
         run: pnpm run build
       - name: Hygiene checks
         run: pnpm run check

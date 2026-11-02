@@ -22,7 +22,7 @@ pass, before the agent starts.
 ```bash
 pnpm run eval:validate                  # no agents: every stage's starting point holds (also in CI)
 pnpm run eval:stage                     # every stage
-node tools/eval-stage.ts run --changed  # only the stages whose prompts changed since master
+node tools/eval-stage.ts run --changed  # only the stages whose prompts changed since develop
 node tools/eval-stage.ts run --stage gate-stop --judge --keep
 ```
 

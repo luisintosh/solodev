@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Publish develop's build to master. master holds only the product (dist/product: the skills, README.md, assets/), one
+ * Publish develop's build to master. master holds only the product (dist/product: the skills, README.md, LICENSE, assets/), one
  * commit per release, each with a `Source: <develop sha>` trailer and tagged vX.Y.Z; `npx skills add
  * luisintosh/solodev` installs from it. Run on develop with a clean tree that is up to date with origin.
  *

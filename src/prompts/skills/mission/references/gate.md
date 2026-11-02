@@ -13,7 +13,7 @@ End with one question built from `writers` in `solodev probe`, in its order:
 
 ```text
 Approve this spec and its plan, and choose who writes the code:
-  1. Codex · gpt-6.1-sol medium, as an Orca worker   (recommended: saves your Claude usage, review stays cross-vendor)
+  1. Codex · gpt-6.1-sol max, as an Orca worker   (recommended: saves your Claude usage, review stays cross-vendor)
   2. Claude Code · Sonnet 5.5 high, as a native subagent
   3. Edit the spec first
 ```

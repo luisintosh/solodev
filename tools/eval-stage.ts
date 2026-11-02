@@ -5,7 +5,7 @@
  *   validate                     build each stage's starting point and check it (no agents)
  *   run [--tier smoke] [--stage <id>] [--changed [<ref>]] [--judge] [--keep]
  *                                run the selected stages; --changed keeps only those whose prompts changed since <ref>
- *                                (default master); --judge grades the `judge` expectations with one cheap model call
+ *                                (default develop); --judge grades the `judge` expectations with one cheap model call
  */
 import * as fsSync from "node:fs"
 import * as fs from "node:fs/promises"
@@ -384,7 +384,7 @@ async function runStages(args: string[]): Promise<number> {
   let stages = (await loadStages()).filter((s) => (!tier || s.tier === tier) && (!only || s.id === only))
   if (args.includes("--changed")) {
     const ref = flag(args, "--changed")
-    const changed = changedPrompts(changedFiles(ref && !ref.startsWith("--") ? ref : "master"))
+    const changed = changedPrompts(changedFiles(ref && !ref.startsWith("--") ? ref : "develop"))
     stages = stages.filter(
       (s) => changed.has("*") || changed.has(`stage:${s.id}`) || s.covers.some((c) => changed.has(c)),
     )

@@ -7,8 +7,8 @@ change directly. Continue if the user still wants the full run.
 
 ## Tools
 
-`solodev` is `scripts/solodev-cli.mjs` in this skill's folder; the other solodev skills sit in folders next to it. It
-reads only git and the feature folder; `solodev help <command>` explains each command.
+`solodev` is `scripts/solodev-cli.mjs` in this skill's folder; the other solodev skills sit in folders next to it. Its
+checks read only git and the feature folder; `solodev help <command>` explains each command.
 
 - `solodev probe`: coding tools and their models, Orca, the coder options, and `state`: the feature folders' home.
 - `solodev status [<slug>]`: where a feature stands and the next step.
@@ -84,9 +84,9 @@ the code, tests and docs. Every brief names the folder's absolute path.
    card ([references/pr.md](references/pr.md)).
 
 After a reviewer or verifier run, revert anything `git status` shows it changed and tell the user. Commit the coder's
-work after each passing check with a plain Conventional Commit; push once the PR exists. Log in `progress.md` attempts,
-skipped stages, the user's calls, and for a resume: `- decision implement|fix <n>: <text>` per coder `decisions:` entry,
-`- review <n> at <sha>` per review, `- fix <n>: R1 fixed · R3 rebutted: <reason>` per fix reply.
+work after each passing check or fix round with a plain Conventional Commit; push from step 7 on. Log in `progress.md`
+attempts, skipped stages, the user's calls, and for a resume: `- decision implement|fix <n>: <text>` per coder
+`decisions:` entry, `- review <n> at <sha>` per review, `- fix <n>: R1 fixed · R3 rebutted: <reason>` per fix reply.
 
 ## Shadows
 
@@ -104,7 +104,7 @@ fresh; start lens reviewers together, one spawn call each in the same turn.
 ## Keeping the user in the loop
 
 Before each delegation, one line naming who, on what, and why:
-`→ solodev-code (Codex · gpt-6.1-sol medium): J1–J2, journey tests and code for @S1–@S5`. After it, one result line with
+`→ solodev-code (Codex · gpt-6.1-sol max): J1–J2, journey tests and code for @S1–@S5`. After it, one result line with
 the numbers that matter (files changed, journeys passing, findings by severity). Start every report with a progress bar:
 `spec ✓ · gate ✓ · **implement (attempt 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate in
 a few words the first time you use them.
@@ -114,8 +114,8 @@ or start over); conflicting tools or commands at the start; no tool for the forg
 the spec; the gate; findings left after the re-review; a weakened-test finding; a spec gap from review or QA; a shadow's
 `question` or `blocked` reply; a browser tool that's missing, gone or out of the verifier's reach; two QA cycles spent;
 a `manual` QA verdict; stuck after two attempts (retry fresh, a second opinion from another tool, or take over); a
-failed Orca worker other than a lens (run it natively, or wait); a failed lens `swarm.md` needs; the ready PR. Between
-those, keep going.
+failed Orca worker other than a lens (run it natively, or wait); a required lens that failed twice; the ready PR.
+Between those, keep going.
 
 ## Budgets
 

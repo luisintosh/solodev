@@ -15,8 +15,9 @@ describe("listFeatures", () => {
     fs.rmSync(state, { recursive: true, force: true })
   })
 
-  test("skips the strategist's roadmaps folder and plain files", async () => {
+  test("skips the roadmaps and reviews folders and plain files", async () => {
     fs.mkdirSync(path.join(state, "roadmaps", "onboarding"), { recursive: true })
+    fs.mkdirSync(path.join(state, "reviews", "fix-x"), { recursive: true })
     fs.mkdirSync(path.join(state, "csv-export"))
     fs.writeFileSync(path.join(state, "notes.txt"), "")
     expect(await listFeatures(state)).toEqual(["csv-export"])

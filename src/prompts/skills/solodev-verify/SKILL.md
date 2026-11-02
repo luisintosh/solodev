@@ -13,7 +13,7 @@ API, request and response (status, body up to 20 lines); for a CLI, invocation, 
 or logs, the command that validates it. Use throwaway data and a local dev server, nothing destructive, and keep outputs
 in a scratch folder outside the repo. A scenario you can't automate gets `manual`, with a person's steps as its
 evidence. So does a UI scenario when your brief says `browser none` or you can't reach that tool: install nothing, and
-say which in your headline.
+name the reason in your headline.
 
 ## QA verdicts
 

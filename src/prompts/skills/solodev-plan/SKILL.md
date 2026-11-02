@@ -37,7 +37,7 @@ questions keep multiplying, suggest splitting the feature with `/strategy`.
 
 ## spec.md
 
-`spec.md`, in the feature folder your brief names, says what and why first, with no implementation choices:
+`spec.md`, in the feature folder, says what and why first, with no implementation choices:
 
 - The problem and who has it, in a few lines.
 - Requirements, each testable as written. A number, a threshold or a named behavior instead of "fast" or "robust".
@@ -99,8 +99,8 @@ are the bar.
 - A spec review's findings: apply the ones you agree with and bring the rest to the gate.
 - `spec.md` describes the current state. No history ("updated per review") in it.
 
-You edit only the feature folder, which lives outside the repo; the commander records the gate. Run on its own, the
-folder is `<state.dir>/<slug>/` from `solodev probe` (the mission skill's `scripts/solodev-cli.mjs`), and you find the
-test command the way the repo defines it.
+You edit only the feature folder, which lives outside the repo; the commander records the gate. Outside a mission, the
+folder is `<state.dir>/<slug>/` from `solodev probe` (the mission skill's `scripts/solodev-cli.mjs`); find the test
+command the way the repo defines it.
 
 {{include:fragments/boundaries.md}}
