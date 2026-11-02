@@ -96,9 +96,9 @@ flowchart LR
 - **Rules that code can check are code.** "No code before approval" or "every scenario is claimed by a test" are CLI
   checks over git, with unit tests; prompts keep only what needs judgment.
 - **Prompts are tested like software.** A quiz of 60 decision scenarios and 38 routing queries runs on every prompt
-  change (latest run: 60/60 scenarios, 37/38 routing). Stage evals run the real workflow headless, with real subagents,
-  graded by scripts on what reached git. They caught, for example, that a tool loads subagents only at startup, so a run
-  that installs them mid-session now stops for a restart.
+  change (latest run: 60/60 scenarios, 37/38 routing); it caught, for example, that tools load subagents only at
+  startup, so a run that installs them mid-session now stops for a restart. Stage evals run the real workflow headless,
+  with real subagents, graded by scripts on what reached git.
 - **Lean.** Each skill has a line budget enforced in CI, detail loads only when a step needs it, and a feature's stage
   is derived from git and its folder, with no state machine.
 
