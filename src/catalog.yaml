@@ -47,16 +47,14 @@ shadows:
 
 skills:
   solodev-mission:
-    budget: 126
-    # Claude Code skills can set the session model while they run; Codex and Cursor use the session's model.
-    profile: think
+    budget: 131
     description: >-
       Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one
       coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files,
       need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not
       for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (solodev-roadmap).
   solodev-plan:
-    budget: 112
+    budget: 113
     description: >-
       Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys)
       for the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it.

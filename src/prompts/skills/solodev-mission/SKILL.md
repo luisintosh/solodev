@@ -7,13 +7,15 @@ change directly. Continue if the user still wants the full run.
 
 ## Tools
 
-`solodev` is `<repo>/.agents/solodev/solodev-cli.mjs`, or `~/.agents/solodev/solodev-cli.mjs` for a global install. It
+`solodev` is `scripts/solodev-cli.mjs` in this skill's folder; the other solodev skills sit in folders next to it. It
 reads only git and the feature folder; `solodev help <command>` explains each command.
 
 - `solodev probe`: coding tools and their models, Orca, the coder options, and `state`: the feature folders' home.
 - `solodev status [<slug>]`: where a feature stands and the next step.
 - `solodev approve <slug>`: records the gate as a line in `progress.md`.
 - `solodev check <slug> --for implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
+- `solodev init [claude|codex|cursor]`: writes a coding tool's two shadows. `/solodev-mission init [tool]` runs only
+  this, as [references/init.md](references/init.md) says, and starts no feature.
 
 A feature lives in its folder, `<state.dir>/<slug>/`, outside the repo: `spec.md` with its `## Plan`, `review.md` with
 the findings and any `## QA` verdicts, and `progress.md`, the run's log. Nothing there is committed; the repo gets only
@@ -40,11 +42,12 @@ the code, tests and docs. Every brief names the folder's absolute path.
 1. **Start.** On "continue": check out the feature's branch, run `solodev status`, read `progress.md` (reuse its
    `- tools:` line), and continue at the step it names; at `implement` with an implement check logged as passed, go to
    code review. Fresh run: `solodev probe`; `state.writable` false → tell the user to allow `state.dir` in their tool's
-   sandbox, and stop. A slug that already has a folder → show its stage and ask: resume it, or start over under the next
-   free slug (`<slug>-2`). Derive the slug from the request, or from a ticket's `F<n>: <name>` title. Cut `feat/<slug>`
-   from the default branch (adopt it if you're already on it) and create the folder's `progress.md`, starting with a
-   `## Request` section that holds the request verbatim (the ticket's title and body for a ticket run). Then log the
-   toolbox as one line for the whole run, `n/a` where the repo has none:
+   sandbox, and stop. `shadows` false for the home tool → run init and stop: the user reruns in a new session. A slug
+   that already has a folder → show its stage and ask: resume it, or start over under the next free slug (`<slug>-2`).
+   Derive the slug from the request, or from a ticket's `F<n>: <name>` title. Cut `feat/<slug>` from the default branch
+   (adopt it if you're already on it) and create the folder's `progress.md`, starting with a `## Request` section that
+   holds the request verbatim (the ticket's title and body for a ticket run). Then log the toolbox as one line for the
+   whole run, `n/a` where the repo has none:
    `- tools: forge glab · tracker linear (mcp) · install … · dev … · test … · test_file … · lint … · typecheck … · build …`.
    Commands come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
 2. **Spec.** Load solodev-plan, interview the user in rounds as it says, then write `spec.md` yourself.
@@ -98,11 +101,12 @@ the numbers that matter (files changed, journeys passing, findings by severity).
 `spec ✓ · gate ✓ · **implement (attempt 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate in
 a few words the first time you use them.
 
-Ask the user only at: a slug that already has a folder (resume or start over); conflicting tools or commands at the
-start; no tool for the forge or tracker; questions while writing the spec; the gate; findings left after the re-review;
-a weakened-test finding; a spec gap from review or QA; a shadow's `question` or `blocked` reply; a `manual` QA verdict;
-stuck after two attempts (retry fresh, a second opinion from another tool, or take over); a failed Orca worker other
-than a lens (run it natively, or wait); a failed lens `swarm.md` needs; the ready PR. Between those, keep going.
+Ask the user only at: an edited shadow on init; a slug that already has a folder (resume or start over); conflicting
+tools or commands at the start; no tool for the forge or tracker; questions while writing the spec; the gate; findings
+left after the re-review; a weakened-test finding; a spec gap from review or QA; a shadow's `question` or `blocked`
+reply; a `manual` QA verdict; stuck after two attempts (retry fresh, a second opinion from another tool, or take over);
+a failed Orca worker other than a lens (run it natively, or wait); a failed lens `swarm.md` needs; the ready PR. Between
+those, keep going.
 
 ## Budgets
 

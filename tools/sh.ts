@@ -4,7 +4,11 @@ import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
 
-export async function run(cmd: string, args: string[] = []): Promise<string> {
-  const { stdout } = await execFileAsync(cmd, args, { maxBuffer: 64 * 1024 * 1024 })
+export async function run(cmd: string, args: string[] = [], cwd?: string, env?: NodeJS.ProcessEnv): Promise<string> {
+  const { stdout } = await execFileAsync(cmd, args, {
+    maxBuffer: 64 * 1024 * 1024,
+    cwd,
+    env: env && { ...process.env, ...env },
+  })
   return stdout.trim()
 }

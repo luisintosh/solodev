@@ -3,13 +3,6 @@
   "private": true,
   "type": "module",
   "description": "Spec-driven development harness for Claude Code, Codex, and Cursor — role skills, transpile, solodev CLI.",
-  "bin": {
-    "solodev": "./bin/install.js"
-  },
-  "files": [
-    "bin/install.js",
-    "README.md"
-  ],
   "engines": {
     "node": ">=20"
   },
@@ -17,9 +10,7 @@
     "test": "vitest run src/cli/ tools/",
     "transpile": "node tools/transpile.ts",
     "build:cli": "node tools/build-cli.ts",
-    "build:install": "node tools/build-install.ts",
-    "gen-manifest": "node tools/gen-manifest.ts",
-    "build": "node tools/transpile.ts && node tools/build-cli.ts && node tools/gen-manifest.ts && node tools/build-install.ts",
+    "build": "node tools/transpile.ts && node tools/build-cli.ts",
     "check": "node tools/check.ts",
     "release": "node tools/release.ts",
     "lint": "biome lint .",
@@ -31,7 +22,6 @@
     "eval:stage": "node tools/eval-stage.ts run"
   },
   "dependencies": {
-    "@clack/prompts": "^1.7.0",
     "yaml": "^2.9.0",
     "zod": "^4.1.8"
   },

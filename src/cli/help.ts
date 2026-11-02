@@ -45,14 +45,26 @@ export const HELP: Record<string, CommandHelp> = {
     ],
     example: "solodev check csv-export --for implement",
   },
-  install: {
-    usage: "npx -y github:luisintosh/solodev [install] [--dry-run] [--doctor] [--yes]",
-    summary: "Install or update solodev for Claude Code, Codex and Cursor.",
+  init: {
+    usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",
+    summary: "Write the two shadow agents (shadow-coder, shadow-reviewer) for one coding tool.",
     detail: [
-      "Downloads the release payload, checks its sha256, and installs it. Scope and hosts are asked, or set",
-      "with INSTALL_SCOPE=project|global and INSTALL_TARGET=all|claude,codex,cursor.",
+      "Run once per coding tool after `npx skills add luisintosh/solodev`. Without a tool: the one running this",
+      "session. Scope follows where the skill is installed (under $HOME: global; in a repo: that repo); --global or",
+      "--project overrides. Writes .claude/agents/*.md, .cursor/agents/*.md or .codex/agents/*.toml",
+      "(global Codex: $CODEX_HOME/agents). A shadow you edited is kept, shown as a diff, and exits 1; --force",
+      "replaces it. Also removes what the old installer left (its CLI, manifests) but never the feature folders.",
     ],
-    example: "npx -y github:luisintosh/solodev",
+    example: "solodev init codex",
+  },
+  install: {
+    usage: "npx skills add luisintosh/solodev [-g]",
+    summary: "Install or update the solodev skills; then run `solodev init` in each coding tool.",
+    detail: [
+      "`npx skills update` updates them. Pin a release with",
+      "npx skills add https://github.com/luisintosh/solodev/tree/vX.Y.Z.",
+    ],
+    example: "npx skills add luisintosh/solodev",
   },
   help: {
     usage: "solodev help [<command>]",

@@ -13,6 +13,24 @@
       "expect": "Runs `solodev probe`, derives a slug, cuts feat/<slug> from the default branch, creates progress.md starting with a ## Request section holding the request verbatim, and logs one `- tools:` line with the repo's commands (n/a where missing). Writes no code and commits nothing."
     },
     {
+      "id": "mission-init-codex",
+      "situation": "In a Codex session the user runs `/solodev-mission init`. The solodev skills were installed in this repo with `npx skills add`.",
+      "ask": "What do you do?",
+      "expect": "Runs `solodev init` (the CLI in the solodev-mission skill's scripts folder) for Codex, shows its report of the shadows it wrote, tells the user to start a new session before the next /solodev-mission and to run `/solodev-mission init` in each other coding tool they use, and stops. Starts no feature: no branch, spec or feature folder."
+    },
+    {
+      "id": "mission-init-edited",
+      "situation": "The user runs `/solodev-mission init` in Claude Code. `solodev init` exits 1 and reports `! edited .claude/agents/shadow-coder.md — kept your edits; --force replaces them`, followed by a diff that adds a line the user wrote.",
+      "ask": "What do you do?",
+      "expect": "Shows the user the diff and asks whether to replace their edited shadow; reruns `solodev init` with `--force` only if they say yes. Does not pass --force on its own."
+    },
+    {
+      "id": "mission-no-shadows",
+      "situation": "The user runs `/solodev-mission add an /healthz endpoint that returns the build sha` in Claude Code. `solodev probe` shows `tools.claude.shadows: false` and warns `claude has no solodev shadows yet; run /solodev-mission init`; `state.writable` is true.",
+      "ask": "What do you do?",
+      "expect": "Runs `solodev init` for Claude Code and shows its report, then asks the user to start a new session (agents load at startup) and rerun the command, and stops. No branch, feature folder or spec in this session."
+    },
+    {
       "id": "mission-not-writable",
       "situation": "Fresh /solodev-mission run. `solodev probe` reports `state.writable: false`.",
       "ask": "What do you do?",

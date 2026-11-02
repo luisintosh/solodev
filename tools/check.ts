@@ -3,33 +3,26 @@
  * Hygiene checks (run after `pnpm run build`):
  *   1. catalog.yaml shape, pinned models, and a prompt file per skill and shadow
  *   2. prompt rules: skill line budgets, no capitalized MUST/NEVER/CRITICAL/ALWAYS, required phrases
- *   3. dist/ skills, references and shadow frontmatter match the catalog
+ *   3. dist/product skills and references, and dist/ shadow frontmatter, match the catalog
  *   4. README profile × host matrix and shadow table match the catalog
- *   5. manifest.txt matches dist/ hashes
- *   6. bin/install.js (npx/bunx CLI) is present and not stale
+ *   5. dist/product holds only what master ships, and its CLI's `init` writes the built shadows
  */
-import { createHash } from "node:crypto"
 import type { Dirent } from "node:fs"
-import { readdir, readFile, rm, stat } from "node:fs/promises"
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises"
 import * as os from "node:os"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parse as parseYaml } from "yaml"
 import { DISPLAY, formatCodexModel, formatCursorModel, GOLDEN_MODELS, HOSTS, PROFILE_NAMES } from "./models.ts"
 import { run } from "./sh.ts"
-import { type Catalog, renderPrompt, skillReferences } from "./transpile.ts"
+import { stripHash } from "../src/cli/init.ts"
+import { type Catalog, PRODUCT_EXTRAS, renderPrompt, skillReferences } from "./transpile.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const errors: string[] = []
 
 function fail(msg: string) {
   errors.push(msg)
-}
-
-async function sha256(filePath: string) {
-  return createHash("sha256")
-    .update(await readFile(filePath))
-    .digest("hex")
 }
 
 async function walkFiles(dir: string) {
@@ -179,9 +172,6 @@ if (catalog) {
     const lines = body.trimEnd().split("\n").length
     if (typeof skill.budget !== "number") fail(`catalog: skills.${name}.budget required`)
     else if (lines > skill.budget) fail(`skills/${name}/SKILL.md is ${lines} lines, over its budget of ${skill.budget}`)
-    if (skill.profile && !(PROFILE_NAMES as readonly string[]).includes(skill.profile)) {
-      fail(`catalog: skills.${name}.profile must be ${PROFILE_NAMES.join(" or ")}`)
-    }
     for (const phrase of contracts[name] ?? []) {
       if (!flat(body).includes(phrase)) fail(`skills/${name}/SKILL.md: required phrase missing: "${phrase}"`)
     }
@@ -223,28 +213,23 @@ if (catalog) {
 // 3. dist matches the catalog.
 if (catalog) {
   for (const [name, skill] of Object.entries(catalog.skills ?? {})) {
-    for (const tree of ["agents", "claude"]) {
-      const file = path.join(root, "dist", tree, "skills", name, "SKILL.md")
-      const raw = await readOr(file)
-      const fm = frontmatter(raw)
-      if (!raw || !fm) {
-        fail(`dist/${tree}/skills/${name}/SKILL.md missing — run pnpm run build`)
-        continue
-      }
-      if (fm.name !== name) fail(`dist/${tree}/skills/${name}/SKILL.md: name ${fm.name}`)
-      if (Boolean(fm["disable-model-invocation"]) !== Boolean(skill.user_only)) {
-        fail(`dist drift: ${tree} skill ${name} disable-model-invocation — run pnpm run build`)
-      }
-      const want = tree === "claude" && skill.profile ? catalog.hosts.claude.profiles[skill.profile] : undefined
-      if (fm.model !== want?.id || fm.effort !== want?.effort) {
-        fail(`dist drift: ${tree} skill ${name} model ${fm.model}/${fm.effort} — run pnpm run build`)
-      }
-      if (raw.includes("{{")) fail(`dist/${tree}/skills/${name}/SKILL.md: unresolved {{…}} placeholder`)
-      for (const ref of await skillReferences(name)) {
-        const text = await readOr(path.join(root, "dist", tree, "skills", name, "references", ref))
-        if (text === undefined) fail(`dist/${tree}/skills/${name}/references/${ref} missing — run pnpm run build`)
-        else if (text.includes("{{")) fail(`dist/${tree}/skills/${name}/references/${ref}: unresolved placeholder`)
-      }
+    const rel = `dist/product/skills/${name}`
+    const raw = await readOr(path.join(root, rel, "SKILL.md"))
+    const fm = frontmatter(raw)
+    if (!raw || !fm) {
+      fail(`${rel}/SKILL.md missing — run pnpm run build`)
+      continue
+    }
+    if (fm.name !== name) fail(`${rel}/SKILL.md: name ${fm.name}`)
+    if (Boolean(fm["disable-model-invocation"]) !== Boolean(skill.user_only)) {
+      fail(`dist drift: skill ${name} disable-model-invocation — run pnpm run build`)
+    }
+    if (fm.model !== undefined || fm.effort !== undefined) fail(`${rel}/SKILL.md: skills carry no model or effort`)
+    if (raw.includes("{{")) fail(`${rel}/SKILL.md: unresolved {{…}} placeholder`)
+    for (const ref of await skillReferences(name)) {
+      const text = await readOr(path.join(root, rel, "references", ref))
+      if (text === undefined) fail(`${rel}/references/${ref} missing — run pnpm run build`)
+      else if (text.includes("{{")) fail(`${rel}/references/${ref}: unresolved placeholder`)
     }
   }
   for (const [name, shadow] of Object.entries(catalog.shadows ?? {})) {
@@ -279,15 +264,6 @@ if (catalog) {
         fail(`dist drift: codex ${name} model_reasoning_effort — run pnpm run build`)
       }
     }
-  }
-}
-
-const solodevBin = await readOr(path.join(root, "dist", "bin", "solodev-cli.mjs"))
-if (!solodevBin) fail("dist/bin/solodev-cli.mjs missing — run pnpm run build")
-else if (!solodevBin.startsWith("#!/usr/bin/env node\n")) fail("dist/bin/solodev-cli.mjs missing node shebang")
-for (const stale of ["quest-state.mjs", "quest-state", "quest-state.js"]) {
-  if (await stat(path.join(root, "dist", "bin", stale)).catch(() => undefined)) {
-    fail(`dist/bin/${stale} is the v1 state CLI — delete it`)
   }
 }
 
@@ -326,55 +302,38 @@ if (catalog) {
   for (const name of readmeShadows.keys()) if (!roles[name]) fail(`README.md: shadow table lists unknown "${name}"`)
 }
 
-// 5. manifest.txt.
-async function expectedManifestEntries() {
-  const files = [
-    ...(await walkFiles(path.join(root, "dist", "cursor"))),
-    ...(await walkFiles(path.join(root, "dist", "claude"))),
-    ...(await walkFiles(path.join(root, "dist", "codex"))),
-    ...(await walkFiles(path.join(root, "dist", "agents"))),
-    path.join(root, "dist", "bin", "solodev-cli.mjs"),
-  ]
-  const entries: [string, string][] = []
-  for (const abs of files.sort()) {
-    entries.push([await sha256(abs), path.relative(path.join(root, "dist"), abs).split(path.sep).join("/")])
-  }
-  return entries
+// 5. dist/product is exactly what master ships, and its CLI writes the built shadows.
+const product = path.join(root, "dist", "product")
+const shipped = (await readdir(product).catch(() => [] as string[])).sort()
+const wantShipped = ["skills", ...PRODUCT_EXTRAS].sort()
+if (JSON.stringify(shipped) !== JSON.stringify(wantShipped)) {
+  fail(`dist/product holds ${shipped.join(", ") || "nothing"}, expected ${wantShipped.join(", ")} — run pnpm run build`)
 }
-
-const manifestRaw = await readOr(path.join(root, "manifest.txt"))
-if (manifestRaw === undefined) {
-  fail("manifest.txt: missing — run pnpm run build")
-} else {
-  const actual = new Map<string, string>()
-  for (const line of manifestRaw.trim().split("\n").filter(Boolean)) {
-    const m = line.match(/^([a-f0-9]{64})\s+\*?(.+)$/)
-    if (!m) fail(`manifest.txt: malformed line "${line}"`)
-    else actual.set(m[2]!, m[1]!)
-  }
-  const expected = new Map((await expectedManifestEntries()).map(([hash, rel]) => [rel, hash]))
-  for (const [rel, hash] of expected) {
-    if (!actual.has(rel)) fail(`manifest.txt: missing ${rel} — run pnpm run build`)
-    else if (actual.get(rel) !== hash) fail(`manifest.txt: stale hash for ${rel} — run pnpm run build`)
-  }
-  for (const rel of actual.keys()) if (!expected.has(rel)) fail(`manifest.txt: lists ${rel}, which isn't installed`)
-}
-
-// 6. bin/install.js.
-{
-  const current = await readOr(path.join(root, "bin", "install.js"))
-  if (current === undefined) fail("bin/install.js missing — run pnpm run build")
-  else {
-    if (!current.startsWith("#!/usr/bin/env node\n")) fail("bin/install.js missing node shebang — run pnpm run build")
-    const tmp = path.join(os.tmpdir(), `solodev-install-check-${process.pid}.js`)
-    try {
-      await run(process.execPath, [path.join(root, "tools", "build-install.ts"), "--outfile", tmp])
-      if (current !== (await readFile(tmp, "utf8"))) fail("bin/install.js stale — run pnpm run build")
-    } catch {
-      fail("bin/install.js rebuild failed — run pnpm run build")
-    } finally {
-      await rm(tmp, { force: true })
+const cliPath = path.join(product, "skills", "solodev-mission", "scripts", "solodev-cli.mjs")
+const cli = await readOr(cliPath)
+if (!cli) fail("dist/product/skills/solodev-mission/scripts/solodev-cli.mjs missing — run pnpm run build")
+else if (!cli.startsWith("#!/usr/bin/env node\n")) fail("solodev-cli.mjs missing node shebang")
+else if (catalog) {
+  const tmp = await mkdtemp(path.join(os.tmpdir(), "solodev-check-"))
+  try {
+    for (const host of HOSTS) {
+      const out = await run(process.execPath, [cliPath, "init", host, "--project", "--dry-run", "--json"], tmp, {
+        SOLODEV_ROOT: tmp,
+      })
+      const report = JSON.parse(out) as { ops: { kind: string; path: string; content?: string }[] }
+      for (const name of Object.keys(catalog.shadows ?? {})) {
+        const file = `${name}.${host === "codex" ? "toml" : "md"}`
+        const op = report.ops.find((o) => o.path.endsWith(`${path.sep}${file}`))
+        const built = await readOr(path.join(root, "dist", host, "agents", file))
+        if (!op?.content || !built || stripHash(op.content) !== built) {
+          fail(`solodev-cli.mjs init ${host}: ${file} doesn't match dist/${host}/agents — run pnpm run build`)
+        }
+      }
     }
+  } catch (err) {
+    fail(`solodev-cli.mjs init --dry-run failed: ${(err as Error).message}`)
+  } finally {
+    await rm(tmp, { recursive: true, force: true })
   }
 }
 
@@ -385,5 +344,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `check: ok (${Object.keys(catalog?.skills ?? {}).length} skills, ${Object.keys(catalog?.shadows ?? {}).length} shadows, ${readmeProfiles.size} profile rows, manifest fresh)`,
+  `check: ok (${Object.keys(catalog?.skills ?? {}).length} skills, ${Object.keys(catalog?.shadows ?? {}).length} shadows, ${readmeProfiles.size} profile rows, CLI shadows fresh)`,
 )

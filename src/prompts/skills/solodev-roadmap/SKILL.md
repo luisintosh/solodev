@@ -8,8 +8,9 @@ A roadmap with a measurable goal, the chosen approach, the agreed data model, an
 sequencing, plus one work item per feature carrying the detail. The tracker holds it: an epic whose body is the roadmap
 and one ticket per feature, filed only if the user says yes. Drafts live outside the repo in
 `<state.dir>/roadmaps/<slug>/` (`roadmap.md`, `items/F<n>.md`); without a tracker they are the record. `state.dir` comes
-from `solodev probe` (`<repo>/.agents/solodev/solodev-cli.mjs`, or `~/.agents/solodev/solodev-cli.mjs` for a global
-install). Formats: [references/formats.md](references/formats.md).
+from `solodev probe`: `solodev` is `scripts/solodev-cli.mjs` in the solodev-mission skill folder next to this skill's;
+without that folder, ask the user to run `npx skills add luisintosh/solodev -s solodev-mission`. Formats:
+[references/formats.md](references/formats.md).
 
 {{include:fragments/tracker.md}}
 

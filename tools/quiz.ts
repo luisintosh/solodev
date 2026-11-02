@@ -14,7 +14,9 @@ import { root, sh } from "./eval-lib.ts"
 
 const quizFile = path.join(root, "evals", "quiz.json")
 const resultsFile = path.join(root, "evals", "results", "quiz.jsonl")
-const dist = path.join(root, "dist", "claude")
+// What a Claude Code install holds: the skills from dist/product, and the shadows `solodev init claude` writes.
+const skillsDir = path.join(root, "dist", "product", "skills")
+const agentsDir = path.join(root, "dist", "claude", "agents")
 
 export const Quiz = z
   .object({
@@ -46,14 +48,16 @@ export async function loadQuiz(file = quizFile): Promise<Quiz> {
   return quiz
 }
 
-/** Every installed skill, reference and shadow, each under its path. */
-export async function corpus(dir = dist): Promise<string> {
+/** Every Markdown file under `dir`, each under its path (`prefix` + its path in `dir`). */
+export async function corpus(dir: string, prefix = ""): Promise<string> {
   const files = (await fs.readdir(dir, { recursive: true, withFileTypes: true }))
     .filter((e) => e.isFile() && e.name.endsWith(".md"))
     .map((e) => path.relative(dir, path.join(e.parentPath, e.name)))
     .sort()
   const parts = await Promise.all(
-    files.map(async (f) => `<file path="${f}">\n${(await fs.readFile(path.join(dir, f), "utf8")).trim()}\n</file>`),
+    files.map(
+      async (f) => `<file path="${prefix}${f}">\n${(await fs.readFile(path.join(dir, f), "utf8")).trim()}\n</file>`,
+    ),
   )
   return parts.join("\n\n")
 }
@@ -198,14 +202,16 @@ async function main(argv: string[]): Promise<number> {
   const i = argv.indexOf("--model")
   const model = i === -1 ? "sonnet" : argv[i + 1]
   if (!model) throw new Error("usage: node tools/quiz.ts [--model <alias>]")
-  if (!fsSync.existsSync(dist)) throw new Error("no dist/: run `pnpm run build` first")
+  if (!fsSync.existsSync(skillsDir)) throw new Error("no dist/product: run `pnpm run build` first")
   const quiz = await loadQuiz()
   const system = [
     "You are an AI coding agent in a user's repository, with solodev installed for Claude Code. These are solodev's",
     "files exactly as installed: each skill's SKILL.md with its references/, and the two subagents, whose skills are",
     "preloaded.",
     "",
-    await corpus(),
+    await corpus(skillsDir, "skills/"),
+    "",
+    await corpus(agentsDir, "agents/"),
   ].join("\n")
 
   console.log(`quiz: ${quiz.questions.length} scenarios, ${quiz.routing.length} routing queries, answered by ${model}`)

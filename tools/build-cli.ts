@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Build the portable Node ESM workflow CLI into dist/bin/solodev-cli.mjs.
+ * Build the portable Node ESM workflow CLI, with the shadows `solodev init` writes, into
+ * dist/product/skills/solodev-mission/scripts/solodev-cli.mjs.
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
@@ -9,8 +10,29 @@ import { build, type Plugin } from "esbuild"
 import { parse as parseYaml } from "yaml"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
-const outDir = path.join(root, "dist", "bin")
+// The CLI ships inside the commander's skill, so `npx skills add` installs it with the skills.
+const outDir = path.join(root, "dist", "product", "skills", "solodev-mission", "scripts")
 const BUNDLES = [{ entry: path.join(root, "src", "cli", "main.ts"), out: path.join(outDir, "solodev-cli.mjs") }]
+const HOSTS = ["claude", "codex", "cursor"]
+
+/** `import agents from "solodev:agents"`: the shadows transpile built, by host and file name, for `solodev init`. */
+const agentsPlugin: Plugin = {
+  name: "solodev-agents",
+  setup(b) {
+    b.onResolve({ filter: /^solodev:agents$/ }, (args) => ({ path: args.path, namespace: "solodev-agents" }))
+    b.onLoad({ filter: /.*/, namespace: "solodev-agents" }, async () => {
+      const agents: Record<string, Record<string, string>> = {}
+      for (const host of HOSTS) {
+        const dir = path.join(root, "dist", host, "agents")
+        const files = (await fs.readdir(dir).catch(() => [] as string[])).sort()
+        if (!files.length) throw new Error(`build-cli: ${dir} is empty — run node tools/transpile.ts first`)
+        agents[host] = {}
+        for (const file of files) agents[host][file] = await fs.readFile(path.join(dir, file), "utf8")
+      }
+      return { contents: JSON.stringify(agents), loader: "json" }
+    })
+  },
+}
 
 /** Inline `import x from "*.yaml"` as parsed JSON. */
 const yamlPlugin: Plugin = {
@@ -38,7 +60,7 @@ async function bundle(entry: string, outJs: string) {
     // Bundled CJS deps (yaml) call require() for node builtins; ESM output needs a real require.
     banner: { js: 'import { createRequire } from "node:module";const require=createRequire(import.meta.url);' },
     minify: true,
-    plugins: [yamlPlugin],
+    plugins: [yamlPlugin, agentsPlugin],
     logLevel: "warning",
   })
   const js = await fs.readFile(outJs, "utf8")
@@ -46,7 +68,4 @@ async function bundle(entry: string, outJs: string) {
   await fs.writeFile(outJs, `#!/usr/bin/env node\n${body}`, { mode: 0o755 })
   await fs.chmod(outJs, 0o755)
 }
-for (const stale of ["quest-state.mjs", "quest-state", "quest-state.js"])
-  await fs.rm(path.join(outDir, stale), { force: true })
-
-console.log("build-cli: wrote portable dist/bin/solodev-cli.mjs")
+console.log("build-cli: wrote dist/product/skills/solodev-mission/scripts/solodev-cli.mjs")
