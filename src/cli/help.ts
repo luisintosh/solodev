@@ -53,7 +53,7 @@ export const HELP: Record<string, CommandHelp> = {
       "session. Scope follows where the skill is installed (under $HOME: global; in a repo: that repo); --global or",
       "--project overrides. Writes .claude/agents/*.md, .cursor/agents/*.md or .codex/agents/*.toml",
       "(global Codex: $CODEX_HOME/agents). A shadow you edited is kept, shown as a diff, and exits 1; --force",
-      "replaces it. Also removes what the old installer left (its CLI, manifests) but never the feature folders.",
+      "replaces it.",
     ],
     example: "solodev init codex",
   },

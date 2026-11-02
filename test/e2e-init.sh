@@ -58,10 +58,6 @@ echo "# consumer" >"${TARGET}/AGENTS.md"
 cp -R "${PRODUCT}/skills" "${TARGET}/.agents/skills"
 mkdir -p "${TARGET}/.claude/skills"
 for skill in "${SKILLS[@]}"; do ln -s "../../.agents/skills/${skill}" "${TARGET}/.claude/skills/${skill}"; done
-# leftovers of the old installer
-mkdir -p "${TARGET}/.agents/solodev"
-echo "old" >"${TARGET}/.agents/solodev/solodev-cli.mjs"
-echo "old" >"${TARGET}/.agents/skills/.harness-manifest"
 export SOLODEV_STATE="${WORK}/state"
 mkdir -p "${SOLODEV_STATE}/consumer-repo/kept"
 echo "# kept" >"${SOLODEV_STATE}/consumer-repo/kept/spec.md"
@@ -73,8 +69,6 @@ for shadow in "${SHADOWS[@]}"; do
   assert_file_exists "${TARGET}/.claude/agents/${shadow}.md" "init claude writes ${shadow}"
 done
 assert_grep '- solodev-code' "$(cat "${TARGET}/.claude/agents/shadow-coder.md")" "claude shadow-coder preloads solodev-code"
-assert_file_absent "${TARGET}/.agents/solodev/solodev-cli.mjs" "init removes the old installer's CLI"
-assert_file_absent "${TARGET}/.agents/skills/.harness-manifest" "init removes the old installer's manifest"
 assert_file_exists "${SOLODEV_STATE}/consumer-repo/kept/spec.md" "init never touches feature folders"
 (cd "$TARGET" && SOLODEV_HOME=codex "$SOLODEV" init >/dev/null)
 (cd "$TARGET" && "$SOLODEV" init cursor >/dev/null)
@@ -107,11 +101,10 @@ nohost_rc=$?
 set -e
 assert_eq "$nohost_rc" "2" "init without a detectable tool is a usage error"
 
-# 3b. a cloned repo's symlinks can't steer init outside it: nothing written or deleted there
+# 3b. a cloned repo's symlinks can't steer init outside it: nothing written there
 EVIL="${WORK}/evil-repo"
 OUTSIDE="${WORK}/outside"
-mkdir -p "${EVIL}/.claude" "${OUTSIDE}/skills/sddkit"
-echo "precious" >"${OUTSIDE}/skills/sddkit/keep.txt"
+mkdir -p "${EVIL}/.claude" "$OUTSIDE"
 (cd "$EVIL" && git init -q)
 cp -R "${PRODUCT}/skills" "${EVIL}/.claude/skills"
 ln -s "$OUTSIDE" "${EVIL}/.cursor"
@@ -121,7 +114,6 @@ evil_rc=$?
 set -e
 assert_eq "$evil_rc" "1" "init exits 1 when a symlink leads outside the repo"
 assert_grep 'outside' "$evil_out" "init reports what it left alone"
-assert_file_exists "${OUTSIDE}/skills/sddkit/keep.txt" "init deletes nothing outside the repo"
 assert_file_absent "${OUTSIDE}/agents" "init writes nothing outside the repo"
 
 # 4. the installed solodev CLI runs a feature through the gate and the implement checks
@@ -181,14 +173,12 @@ usage_rc=$?
 set -e
 assert_eq "$usage_rc" "2" "solodev exits 2 on a usage error"
 
-# 5. a global install: skills under $HOME, init writes the shadows there and moves the old personal defaults
+# 5. a global install: skills under $HOME, init writes the shadows there
 FAKE_HOME="${WORK}/fake-home"
-mkdir -p "${FAKE_HOME}/.claude" "${FAKE_HOME}/.codex" "${FAKE_HOME}/.agents/solodev" "${FAKE_HOME}/.cursor/agents"
+mkdir -p "${FAKE_HOME}/.claude" "${FAKE_HOME}/.codex" "${FAKE_HOME}/.cursor/agents"
 cp -R "${PRODUCT}/skills" "${FAKE_HOME}/.claude/skills"
 printf '%s' "user-agent" >"${FAKE_HOME}/.cursor/agents/user-agent.md"
 printf '%s' '{"keep":true}' >"${FAKE_HOME}/.claude/settings.json"
-printf '%s\n' "writer: codex" >"${FAKE_HOME}/.agents/solodev.yaml"
-echo "old" >"${FAKE_HOME}/.agents/solodev/solodev-cli.mjs"
 GLOBAL_TARGET="${WORK}/global-consumer"
 mkdir -p "$GLOBAL_TARGET"
 (cd "$GLOBAL_TARGET" && git init -q)
@@ -197,9 +187,6 @@ global_out="$(cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" init claude)"
 assert_grep '(global: ~)' "$global_out" "init follows the skill's global scope"
 assert_file_exists "${FAKE_HOME}/.claude/agents/shadow-coder.md" "global claude shadows land in ~/.claude/agents"
 assert_file_absent "${GLOBAL_TARGET}/.claude" "a global init writes nothing into the repo"
-assert_file_absent "${FAKE_HOME}/.agents/solodev/solodev-cli.mjs" "global init removes the old global CLI"
-assert_eq "$(cat "${FAKE_HOME}/.agents/solodev/solodev-conf.yaml")" "writer: codex" "init moves solodev.yaml to solodev-conf.yaml"
-assert_file_absent "${FAKE_HOME}/.agents/solodev.yaml" "old solodev.yaml removed after the move"
 (cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" CODEX_HOME="${WORK}/codex-home" "$GSOLODEV" init codex >/dev/null)
 assert_file_exists "${WORK}/codex-home/agents/shadow-coder.toml" "global codex shadows follow CODEX_HOME"
 (cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" init cursor >/dev/null)
