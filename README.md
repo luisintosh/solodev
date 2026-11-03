@@ -40,7 +40,9 @@ work, and loses the thread when its context fills up. solodev gives top models w
 ## How it works
 
 `/solodev-mission` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with
-their own models and fresh context: one coder and one reviewer.
+their own models and fresh context: one coder and one reviewer. `init` copies them from
+`skills/solodev-mission/shadows/<tool>/` into the tool's agents folder (`.claude/agents/`, `.codex/agents/`,
+`.cursor/agents/`), adding only a hash line that lets it spot your edits, so you can read them before installing.
 
 1. **Spec.** Requirements, acceptance scenarios tagged `@S1`, `@S2`…, and a plan of at most three **journeys**: one test
    file each, proving a group of scenarios.
