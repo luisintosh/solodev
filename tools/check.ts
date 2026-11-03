@@ -5,7 +5,8 @@
  *   2. prompt rules: skill line budgets, no capitalized MUST/NEVER/CRITICAL/ALWAYS, required phrases
  *   3. dist/product skills and references, and dist/ shadow frontmatter, match the catalog
  *   4. README profile × host matrix and shadow table match the catalog
- *   5. dist/product holds only what master ships, and its CLI's `init` writes the built shadows
+ *   5. dist/product holds only what master ships, its `shadows/` holds exactly the built shadows, and its CLI's `init`
+ *      writes them
  */
 import type { Dirent } from "node:fs"
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises"
@@ -308,6 +309,15 @@ const shipped = (await readdir(product).catch(() => [] as string[])).sort()
 const wantShipped = ["skills", ...PRODUCT_EXTRAS].sort()
 if (JSON.stringify(shipped) !== JSON.stringify(wantShipped)) {
   fail(`dist/product holds ${shipped.join(", ") || "nothing"}, expected ${wantShipped.join(", ")} — run pnpm run build`)
+}
+for (const host of HOSTS) {
+  const want = (await readdir(path.join(root, "dist", host, "agents")).catch(() => [] as string[])).sort()
+  const have = (
+    await readdir(path.join(product, "skills", "solodev-mission", "shadows", host)).catch(() => [] as string[])
+  ).sort()
+  if (!want.length || JSON.stringify(have) !== JSON.stringify(want)) {
+    fail(`dist/product/skills/solodev-mission/shadows/${host} doesn't match dist/${host}/agents — run pnpm run build`)
+  }
 }
 const cliPath = path.join(product, "skills", "solodev-mission", "scripts", "solodev-cli.mjs")
 const cli = await readOr(cliPath)

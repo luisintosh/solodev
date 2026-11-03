@@ -3,7 +3,6 @@ import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
-import agents from "solodev:agents"
 import catalog from "../catalog.yaml"
 import { approve } from "./approve.ts"
 import { CHECK_SETS, type CheckSet, formatResults, runChecks } from "./checks.ts"
@@ -11,7 +10,7 @@ import { run } from "./exec.ts"
 import { exists, featureDir, SLUG } from "./feature.ts"
 import { HELP, helpText } from "./help.ts"
 import { type AgentFiles, applyInit, formatInit, type InitOp, locate, planInit, type Scope } from "./init.ts"
-import { isTool, modelsFromCatalog } from "./models.ts"
+import { isTool, modelsFromCatalog, TOOLS } from "./models.ts"
 import { detectHome, probe } from "./probe.ts"
 import { stateDir } from "./state.ts"
 import { branchFeature, featureStatus, formatStatus, listFeatures, type Stage } from "./status.ts"
@@ -153,6 +152,18 @@ async function main(argv: string[]): Promise<number> {
   return 0
 }
 
+/** The shadows this skill ships in `shadows/<host>/`, as init writes them. */
+async function readShadows(dir: string): Promise<AgentFiles> {
+  const agents = {} as AgentFiles
+  for (const host of TOOLS) {
+    const files = await fs.readdir(path.join(dir, host)).catch(() => [] as string[])
+    if (!files.length) throw new Error(`no shadows in ${path.join(dir, host)}; reinstall solodev`)
+    agents[host] = {}
+    for (const file of files.sort()) agents[host][file] = await fs.readFile(path.join(dir, host, file), "utf8")
+  }
+  return agents
+}
+
 async function init(args: string[]): Promise<number> {
   const named = positional(args)[0]
   if (named && !isTool(named)) throw new UsageError(`unknown tool "${named}" (claude, codex or cursor)`)
@@ -162,7 +173,8 @@ async function init(args: string[]): Promise<number> {
   const home = os.homedir()
   // Both real paths: the CLI's is resolved through symlinks (npx skills links agent folders), so $HOME must be too.
   const realHome = await fs.realpath(home).catch(() => home)
-  const located = locate(await fs.realpath(fileURLToPath(import.meta.url)), realHome, process.env)
+  const cliPath = await fs.realpath(fileURLToPath(import.meta.url))
+  const located = locate(cliPath, realHome, process.env)
   const scope: Scope = args.includes("--global")
     ? "global"
     : args.includes("--project")
@@ -176,7 +188,7 @@ async function init(args: string[]): Promise<number> {
     root,
     home,
     env: process.env,
-    agents: agents as AgentFiles,
+    agents: await readShadows(path.join(path.dirname(cliPath), "..", "shadows")),
     force: args.includes("--force"),
     read: (file: string) => fs.readFile(file, "utf8").catch(() => undefined),
     inside: scope === "global" ? async () => true : await insideOf(root),

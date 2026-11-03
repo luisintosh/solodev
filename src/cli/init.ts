@@ -4,7 +4,7 @@ import type { Tool } from "./models.ts"
 
 export type Scope = "project" | "global"
 
-/** The shadows `solodev init` writes, by host and file name; build-cli bundles them from dist/<host>/agents. */
+/** The shadows `solodev init` writes, by host and file name, read from the skill's `shadows/<host>/`. */
 export type AgentFiles = Record<Tool, Record<string, string>>
 
 export type InitOp =
