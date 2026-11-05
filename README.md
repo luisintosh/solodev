@@ -39,6 +39,11 @@ work, and loses the thread when its context fills up. solodev gives top models w
 
 ## How it works
 
+Three skills are the ones you type: `/mission` ships one feature, `/strategy` plans the features, and `/gen-docs` maps a
+repo once.
+
+### `/mission`
+
 `/mission` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with their
 own models and fresh context: one coder and one reviewer. `init` copies them from `skills/mission/shadows/<tool>/` into
 the tool's agents folder (`.claude/agents/`, `.codex/agents/`, `.cursor/agents/`), adding only a hash line that lets it
@@ -57,14 +62,29 @@ Every step has a budget (two implement attempts, one fix round, one re-review); 
 looping. With [Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed
 by a different model family.
 
-| Skill                            | Role                                                                        |
-| -------------------------------- | --------------------------------------------------------------------------- |
-| `/mission`                       | carries one feature from request to a ready PR                              |
-| `/solodev-plan`                  | writes a spec on its own                                                    |
-| `/solodev-review`                | reviews a spec or any branch                                                |
-| `/strategy`                      | turns an idea into a goal, a data model and a roadmap filed in your tracker |
-| `/gen-docs`                      | maps a repo once into `AGENTS.md` and `docs/ARCHITECTURE.md`                |
-| `solodev-code`, `solodev-verify` | the coder's and QA's roles, started by the commander                        |
+### `/strategy`
+
+Turns a raw idea into a measurable goal, the chosen approach, an agreed data model and a feature roadmap sequenced in
+waves. It explores the code to answer its own questions before asking you, and red-teams the plan before you see it.
+With your yes, it files the roadmap in your tracker as an epic with one ticket per feature; without a tracker, the
+drafts stay in `~/.agents/solodev/<owner>/<repo>/roadmaps/<slug>/`. It only plans: each feature then runs through
+`/mission <ticket>`.
+
+### `/gen-docs`
+
+Run it yourself, once per repo. It writes a short `AGENTS.md` (the project's commands, confirmed against its manifests
+and scripts, plus constraints the code doesn't show) and `docs/ARCHITECTURE.md` (the module map, how data flows, key
+decisions, how tests are organized), so every agent and every `/mission` run starts from facts instead of rediscovering
+the repo. It creates only what's missing and commits nothing; `/mission init` suggests it when the repo has no
+`AGENTS.md`.
+
+### Other skills
+
+| Skill                            | Role                                              |
+| -------------------------------- | ------------------------------------------------- |
+| `/solodev-plan`                  | writes a spec on its own                          |
+| `/solodev-review`                | reviews a spec or any branch                      |
+| `solodev-code`, `solodev-verify` | the coder's and QA's roles, started by `/mission` |
 
 ## Models
 
