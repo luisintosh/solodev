@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Build the portable Node ESM workflow CLI into dist/product/skills/solodev-mission/scripts/solodev-cli.mjs, and copy
- * the shadows `solodev init` writes, as plain files, to dist/product/skills/solodev-mission/shadows/<host>/.
+ * Build the portable Node ESM workflow CLI into dist/product/skills/mission/scripts/solodev-cli.mjs, and copy
+ * the shadows `solodev init` writes, as plain files, to dist/product/skills/mission/shadows/<host>/.
  */
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
@@ -11,7 +11,7 @@ import { parse as parseYaml } from "yaml"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 // The CLI ships inside the commander's skill, so `npx skills add` installs it with the skills.
-const skillDir = path.join(root, "dist", "product", "skills", "solodev-mission")
+const skillDir = path.join(root, "dist", "product", "skills", "mission")
 const outDir = path.join(skillDir, "scripts")
 const BUNDLES = [{ entry: path.join(root, "src", "cli", "main.ts"), out: path.join(outDir, "solodev-cli.mjs") }]
 const HOSTS = ["claude", "codex", "cursor"]
@@ -70,4 +70,4 @@ async function copyShadows() {
     for (const file of files) await fs.copyFile(path.join(dir, file), path.join(shadowsDir, host, file))
   }
 }
-console.log("build-cli: wrote dist/product/skills/solodev-mission/scripts/solodev-cli.mjs and shadows/")
+console.log("build-cli: wrote dist/product/skills/mission/scripts/solodev-cli.mjs and shadows/")

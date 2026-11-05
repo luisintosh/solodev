@@ -31,20 +31,20 @@ assert_grep() {
   if grep -q -- "$1" <<<"$2"; then ok "$3"; else bad "$3 (no '$1' in: $2)"; fi
 }
 
-SKILLS=(solodev-mission solodev-plan solodev-code solodev-review solodev-verify solodev-roadmap solodev-scout)
+SKILLS=(mission solodev-plan solodev-code solodev-review solodev-verify strategy gen-docs)
 SHADOWS=(shadow-coder shadow-reviewer)
-CLI_REL="skills/solodev-mission/scripts/solodev-cli.mjs"
+CLI_REL="skills/mission/scripts/solodev-cli.mjs"
 
-# 0. build output: the product holds the skills, the CLI inside solodev-mission, README.md, LICENSE and assets/
+# 0. build output: the product holds the skills, the CLI inside the mission skill, README.md, LICENSE and assets/
 (cd "$REPO_ROOT" && pnpm run build >/dev/null)
 assert_eq "$(find "$PRODUCT" -mindepth 1 -maxdepth 1 -exec basename {} \; | LC_ALL=C sort | tr '\n' ' ')" "LICENSE README.md assets skills " "dist/product holds only what master ships"
 for skill in "${SKILLS[@]}"; do
   assert_file_exists "${PRODUCT}/skills/${skill}/SKILL.md" "${skill} skill built"
 done
-assert_file_exists "${PRODUCT}/${CLI_REL}" "the CLI ships inside solodev-mission"
+assert_file_exists "${PRODUCT}/${CLI_REL}" "the CLI ships inside the mission skill"
 if [[ -x "${PRODUCT}/${CLI_REL}" ]]; then ok "the CLI is executable"; else bad "the CLI is executable"; fi
-assert_grep 'spawn_agent' "$(cat "${PRODUCT}/skills/solodev-mission/SKILL.md")" "solodev-mission documents Codex spawn_agent"
-if grep -q '^model:' "${PRODUCT}/skills/solodev-mission/SKILL.md"; then
+assert_grep 'spawn_agent' "$(cat "${PRODUCT}/skills/mission/SKILL.md")" "mission documents Codex spawn_agent"
+if grep -q '^model:' "${PRODUCT}/skills/mission/SKILL.md"; then
   bad "skills carry no model"
 else
   ok "skills carry no model"
@@ -202,7 +202,7 @@ if [[ "${E2E_NPX_SKILLS:-}" == "1" ]]; then
   mkdir -p "$NPX_TARGET"
   (cd "$NPX_TARGET" && git init -q)
   (cd "$NPX_TARGET" && npx -y skills add "$PRODUCT" -y --copy -a claude-code >/dev/null 2>&1)
-  assert_file_exists "${NPX_TARGET}/.claude/${CLI_REL}" "npx skills add installs the CLI with solodev-mission"
+  assert_file_exists "${NPX_TARGET}/.claude/${CLI_REL}" "npx skills add installs the CLI with the mission skill"
   (cd "$NPX_TARGET" && "${NPX_TARGET}/.claude/${CLI_REL}" init claude >/dev/null)
   assert_file_exists "${NPX_TARGET}/.claude/agents/shadow-coder.md" "init after npx skills add writes the shadows"
 else

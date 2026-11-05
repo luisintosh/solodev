@@ -55,7 +55,7 @@ export async function workspace(name: string, seeds: string[] = [], remove: stri
 }
 
 /** Where a project install for Claude Code puts the CLI, relative to the workspace. */
-export const CLI = ".claude/skills/solodev-mission/scripts/solodev-cli.mjs"
+export const CLI = ".claude/skills/mission/scripts/solodev-cli.mjs"
 
 /**
  * Installs solodev into the workspace for Claude Code (`local` from this checkout's dist/product, or `ref:<tag>` through
@@ -86,11 +86,15 @@ function alive(pid: number): boolean {
   }
 }
 
+/** solodev's entry skills, which carry no `solodev-` prefix. */
+const ENTRY_SKILLS = new Set(["mission", "strategy", "gen-docs"])
+
 /**
- * Claude Code prefers a user-level skill over a project one with the same name, so `~/.claude/skills/solodev-*` would
- * shadow the workspace's skills under test. Moves them to `~/.claude/solodev-eval-aside/<pid>/` for the run and returns
- * the restore, which also runs on exit and on SIGINT, SIGTERM or SIGHUP. A folder left by a killed run is restored first;
- * another live run holding the skills aside is an error, since its restore would unshadow this run midway.
+ * Claude Code prefers a user-level skill over a project one with the same name, so solodev's skills in `~/.claude/skills`
+ * (the entry skills and `solodev-*`) would shadow the workspace's skills under test. Moves them to
+ * `~/.claude/solodev-eval-aside/<pid>/` for the run and returns the restore, which also runs on exit and on SIGINT,
+ * SIGTERM or SIGHUP. A folder left by a killed run is restored first; another live run holding the skills aside is an
+ * error, since its restore would unshadow this run midway.
  */
 export function moveUserSkillsAside(home = os.homedir()): () => void {
   const skills = path.join(home, ".claude", "skills")
@@ -112,7 +116,7 @@ export function moveUserSkillsAside(home = os.homedir()): () => void {
     putBack(path.join(asideRoot, pid))
     console.log(`eval: restored user-level skills left aside by run ${pid}`)
   }
-  const names = list(skills).filter((n) => n.startsWith("solodev-"))
+  const names = list(skills).filter((n) => ENTRY_SKILLS.has(n) || n.startsWith("solodev-"))
   if (!names.length) return () => {}
 
   const aside = path.join(asideRoot, String(process.pid))
@@ -145,7 +149,7 @@ export async function stateIn(ws: string): Promise<string> {
 
 /**
  * Commands an unattended Claude Code run may use without asking: edits, plus the git, node and package-manager calls an
- * /solodev-mission run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
+ * /mission run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
  */
 export const CLAUDE_ALLOWED = [
   "Read",

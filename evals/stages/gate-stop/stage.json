@@ -1,7 +1,7 @@
 {
   "tier": "stage",
-  "skill": "solodev-mission",
-  "covers": ["solodev-mission", "solodev-plan", "solodev-review", "shadow-reviewer"],
+  "skill": "mission",
+  "covers": ["mission", "solodev-plan", "solodev-review", "shadow-reviewer"],
   "prompt": "Add a --version flag to the CLI that prints the package.json version.\n\nThis is an unattended eval: settle open questions with stated assumptions and go on to the gate.",
   "remove": ["AGENTS.md"],
   "maxTurns": 40,

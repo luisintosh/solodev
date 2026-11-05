@@ -33,7 +33,7 @@ one can answer without seeing something (a layout, a flow's feel) gets a source 
 chat instead of more questions. An answer, including a "yes" to your recommendation, becomes a requirement or a
 `Decided:` assumption; a default you picked without asking stays a plain assumption. Stop when every question is
 answered or listed under `## Open questions` with who answers it, and name what is still unread or unresolved. When the
-questions keep multiplying, suggest splitting the feature with solodev-roadmap.
+questions keep multiplying, suggest splitting the feature with `/strategy`.
 
 ## spec.md
 
@@ -100,7 +100,7 @@ are the bar.
 - `spec.md` describes the current state. No history ("updated per review") in it.
 
 You edit only the feature folder, which lives outside the repo; the commander records the gate. Run on its own, the
-folder is `<state.dir>/<slug>/` from `solodev probe` (the solodev-mission skill's `scripts/solodev-cli.mjs`), and you
-find the test command the way the repo defines it.
+folder is `<state.dir>/<slug>/` from `solodev probe` (the mission skill's `scripts/solodev-cli.mjs`), and you find the
+test command the way the repo defines it.
 
 {{include:fragments/boundaries.md}}

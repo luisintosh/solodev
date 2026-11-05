@@ -55,7 +55,7 @@ describe("probe", () => {
   test("warns when the home tool has no shadows yet, and finds global ones", async () => {
     const none = await probe(deps({ exists: async (f) => !f.includes("/agents/shadow-") }), models)
     expect(none.tools.claude.shadows).toBe(false)
-    expect(none.warnings).toContain("claude has no solodev shadows yet; run /solodev-mission init")
+    expect(none.warnings).toContain("claude has no solodev shadows yet; run /mission init")
     const global = await probe(deps({ exists: async (f) => !f.startsWith("/repo/.claude/agents/") }), models)
     expect(global.tools.claude.shadows).toBe(true)
     expect(global.warnings).toEqual([])
@@ -65,7 +65,7 @@ describe("probe", () => {
     const p = await probe(deps({ writable: async () => false }), models)
     expect(p.state.writable).toBe(false)
     expect(p.warnings).toContain(
-      "can't write to /home/u/.agents/solodev/acme/repo; allow it in this tool's sandbox before /solodev-mission",
+      "can't write to /home/u/.agents/solodev/acme/repo; allow it in this tool's sandbox before /mission",
     )
   })
 

@@ -27,7 +27,7 @@ shadows:
     profile: implement
     skills: [solodev-code]
     description: >-
-      Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /solodev-mission
+      Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /mission
       commander; the only agent that edits source.
     permission:
       edit:
@@ -46,46 +46,44 @@ shadows:
       (solodev-verify), following the role skill its brief names. Report-only; writes only review.md.
 
 skills:
-  solodev-mission:
+  mission:
     budget: 131
     description: >-
       Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one
       coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files,
       need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not
-      for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (solodev-roadmap).
+      for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (/strategy).
   solodev-plan:
     budget: 113
     description: >-
       Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys)
-      for the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it.
+      for the spec gate. Used by /mission, or on its own to spec a feature without running it.
   solodev-code:
     budget: 80
     description: >-
       Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing
-      after it. Loaded by shadow-coder for a /solodev-mission run.
+      after it. Loaded by shadow-coder for a /mission run.
   solodev-review:
     budget: 90
     description: >-
       Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small
       change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or
-      sensitive one, findings merged in review.md. Used by /solodev-mission in a fresh context, or by the user on any
-      branch.
+      sensitive one, findings merged in review.md. Used by /mission in a fresh context, or by the user on any branch.
   solodev-verify:
     budget: 52
     description: >-
       Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
-      scenario in review.md. Loaded by shadow-reviewer for a /solodev-mission run.
-  solodev-roadmap:
+      scenario in review.md. Loaded by shadow-reviewer for a /mission run.
+  strategy:
     budget: 150
     description: >-
-      Product strategist: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your
+      Product strategy: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your
       tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan
       a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs
-      through /solodev-mission.
-  solodev-scout:
+      through /mission.
+  gen-docs:
     budget: 50
     user_only: true
     description: >-
-      Optional: maps the repo once so agents and /solodev-mission runs don't rediscover it: writes a minimal AGENTS.md
-      (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as
-      /solodev-scout.
+      Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md,
+      mapping the repo once so agents and /mission runs don't rediscover it. Optional; run by the user as /gen-docs.

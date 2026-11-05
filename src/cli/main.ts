@@ -114,7 +114,7 @@ async function main(argv: string[]): Promise<number> {
       }
       const slugs = await listFeatures(state)
       if (!slugs.length) {
-        console.log(`no features in ${state} — start one with /solodev-mission`)
+        console.log(`no features in ${state} — start one with /mission`)
         return 0
       }
       const all = await Promise.all(slugs.map((s) => featureStatus(state, s)))
@@ -145,7 +145,7 @@ async function main(argv: string[]): Promise<number> {
     case "install":
       console.log(
         "Install or update the skills with `npx skills add luisintosh/solodev` (`-g` for every repo), then run\n" +
-          "`/solodev-mission init` in each coding tool you use.",
+          "`/mission init` in each coding tool you use.",
       )
       return 0
   }
