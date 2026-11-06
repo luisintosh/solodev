@@ -9,8 +9,8 @@ Check the acceptance scenarios that no journey test covers, from outside the sys
 
 The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in the feature folder's `spec.md`.
 Their Given/When/Then is in `spec.md`. `solodev` is the CLI path your brief names. Commands come from the `- tools:` line in `progress.md`, which your brief
-quotes; find one it lacks the way the repo defines it, and name it in your reply. Judge a command by its output, not
-only its exit code. The `dev` command starts the app.
+quotes; look up a missing one in the repo and name it in your reply. Judge a command by its output, not only its exit
+code. The `dev` command starts the app.
 
 ## Checking a scenario
 
@@ -20,7 +20,7 @@ API, request and response (status, body up to 20 lines); for a CLI, invocation, 
 or logs, the command that validates it. Use throwaway data and a local dev server, nothing destructive, and keep outputs
 in a scratch folder outside the repo. A scenario you can't automate gets `manual`, with a person's steps as its
 evidence. So does a UI scenario when your brief says `browser none` or you can't reach that tool: install nothing, and
-say which in your headline.
+name the reason in your headline.
 
 ## QA verdicts
 

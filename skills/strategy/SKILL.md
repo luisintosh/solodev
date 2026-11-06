@@ -101,7 +101,7 @@ connected → ask the user how to go on.
 11. **Present the work items** with a review summary of five lines at most. ⏸ Apply edits until the user approves.
 12. **Write** `roadmap.md` and `items/F<n>.md` to `<state.dir>/roadmaps/<slug>/`.
 13. **Offer to file the tickets.** If yes, confirm the tracker tool can reach the project. No tracker, or the user
-    declines → say the drafts folder is the record, give its path, and skip this step. File the epic first, titled
+    declines → say the drafts folder is the record, give its path, and file nothing. File the epic first, titled
     `Epic: <goal>`, its body `roadmap.md` without its `#` heading. Then file features in wave order so referenced
     tickets exist: the body is `items/F<n>.md` without its `# F<n>: …` heading, with each `Blocked by F<m>` rewritten to
     the tracker's reference (`Blocked by #<n>`, `Blocked by PROJ-12`) and the Data model link to the epic's Data model

@@ -23,19 +23,18 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
   module, an edit that cuts across layers) or a sensitive one, whatever its size. When unsure, go parallel: a lens that
   finds nothing costs less than a missed blocker.
 
-Each reviewer gets a fresh agent and its own brief in the spawn call, its reply coming back as its final message:
-solodev-review's absolute `SKILL.md` path, the slug, the feature folder, the base, the coder's `decisions:`, the
-`- tools:` line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with
-Claude Code's Agent tool (`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same
-turn, or as one Orca worker each (the mission skill's `references/orca.md`); on any other coding tool use one reviewer.
-Tell the user the choice in one line:
-`→ review: 4 lenses in parallel (evidence, contract, correctness, design): 14 files, 3 journeys`.
+Each reviewer gets a fresh agent and replies in its final message. Its brief, in the spawn call: solodev-review's
+absolute `SKILL.md` path, the slug, the feature folder, the base, the coder's `decisions:`, the `- tools:` line, the
+`solodev` path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with Claude Code's Agent
+tool (`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn, or as one Orca
+worker each (the mission skill's `references/orca.md`); on any other coding tool use one reviewer. Tell the user the
+choice in one line: `→ review: 4 lenses in parallel (evidence, contract, correctness, design): 14 files, 3 journeys`.
 
 ## Merge the lenses
 
 - A lens that stops or writes no reply starts once more, fresh. If it fails again, merge without it, name it in your
-  notes and tell the user; evidence, and security on a sensitive change, you can't do without: ask the user whether to
-  retry, review that lens yourself, or go on without it.
+  notes and tell the user. For evidence, or security on a sensitive change, ask the user instead: retry, review that
+  lens yourself, or go on without it.
 - Two findings at the same location with the same cause are one row: the higher severity, both lenses in its `lens` cell
   (`contract, correctness`), and its text starts `Weakened test:` when any of them did.
 - A finding that matches a row already in `review.md`'s findings updates that row instead of adding one. The rest take
@@ -46,8 +45,8 @@ Tell the user the choice in one line:
 ## Re-review
 
 Pick the lenses and choose one reviewer or several the same way, on the fix diff since the commit the last review saw
-(so evidence, correctness and design run on every re-review, a test-only fix diff included); an open security row makes
-it sensitive. Evidence runs every time: the journeys and the project checks again at HEAD.
+(so correctness and design run too, even on a test-only fix diff); an open security row makes it sensitive. Evidence
+runs every time: the journeys and the project checks again at HEAD.
 
 - **One reviewer**, `lens: single`, rechecks every open row and reads the fix diff through every lens picked for it.
 - **Several:** the lenses picked for the fix diff, plus each lens named in an open row's `lens` cell. Give each lens the

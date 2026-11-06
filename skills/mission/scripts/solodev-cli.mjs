@@ -7854,7 +7854,7 @@ function helpText(command) {
   }
   const width = Math.max(...Object.keys(HELP).map((k) => k.length));
   return [
-    "solodev: checks for a /mission feature run. Reads git and the feature folder; commits nothing.",
+    "solodev: checks for a /mission feature run. Its checks read git and the feature folder; it commits nothing.",
     "",
     ...Object.entries(HELP).map(([name, h]) => `  ${name.padEnd(width)}  ${h.summary}`)
   ].join("\n");
@@ -8230,6 +8230,7 @@ async function featureStatus(state, slug) {
   return done("qa", { approved, pr });
 }
 var ROADMAPS_DIR = "roadmaps";
+var REVIEWS_DIR = "reviews";
 async function listFeatures(state) {
   const base = state;
   let entries;
@@ -8240,7 +8241,7 @@ async function listFeatures(state) {
   }
   const dirs = [];
   for (const e of entries) {
-    if (e === ROADMAPS_DIR) continue;
+    if (e === ROADMAPS_DIR || e === REVIEWS_DIR) continue;
     const st = await fs3.stat(path7.join(base, e)).catch(() => void 0);
     if (st?.isDirectory()) dirs.push({ slug: e, mtime: st.mtimeMs });
   }

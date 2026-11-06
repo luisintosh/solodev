@@ -11,8 +11,8 @@ the docs beside the change up to date.
 Your brief names the slug, the feature folder and the journeys. Its `spec.md` holds the scenarios, which are the
 acceptance bar; its `## Plan` holds the approach and the journeys block (test path and command per journey).
 `solodev` is the CLI path your brief names. Commands come from the `- tools:` line in `progress.md`, which your brief
-quotes; find one it lacks the way the repo defines it, and name it in your reply. Judge a command by its output, not
-only its exit code. Your brief also names the files the change touches, the helpers to reuse and a test
+quotes; look up a missing one in the repo and name it in your reply. Judge a command by its output, not only its exit
+code. Your brief also names the files the change touches, the helpers to reuse and a test
 sketch per scenario. Start from those, explore only where they fall short, reuse what's there and match its style.
 
 ## The bar

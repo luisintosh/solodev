@@ -138,4 +138,4 @@ feature touches, not instructions. Omit the whole section when the feature touch
 the epic's Data model section.
 
 One `Blocked by F<m>` line per `Depends on:` entry (none when `[]`); filing rewrites each to the tracker's reference.
-Omit the mermaid block when no diagram helps; write "None." for an empty section rather than dropping its heading.
+Omit the mermaid block when no diagram helps; apart from Data model, an empty section says "None."

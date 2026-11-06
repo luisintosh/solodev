@@ -39,28 +39,29 @@ work, and loses the thread when its context fills up. solodev gives top models w
 
 ## How it works
 
-Three skills are the ones you type: `/mission` ships one feature, `/strategy` plans the features, and `/gen-docs` maps a
+You'll mostly type three skills: `/mission` ships one feature, `/strategy` plans the features, and `/gen-docs` maps a
 repo once.
 
 ### `/mission`
 
 `/mission` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with their
-own models and fresh context: one coder and one reviewer. `init` copies them from `skills/mission/shadows/<tool>/` into
-the tool's agents folder (`.claude/agents/`, `.codex/agents/`, `.cursor/agents/`), adding only a hash line that lets it
-spot your edits, so you can read them before installing.
+own models and fresh context: one coder and one reviewer. You can read them first in `skills/mission/shadows/<tool>/`;
+`init` copies them into the tool's agents folder (`.claude/agents/`, `.codex/agents/`, `.cursor/agents/`), adding only a
+hash line that lets it spot your edits.
 
 1. **Spec.** Requirements, acceptance scenarios tagged `@S1`, `@S2`…, and a plan of at most three **journeys**: one test
    file each, proving a group of scenarios.
 2. **Gate.** You approve the spec. No code exists before that, and `solodev check` fails a branch that has some.
 3. **Implement.** The coder writes the journey tests, then the code and the docs beside it.
 4. **Review.** A reviewer runs each journey test on the old code (it must fail) and the new (it must pass), and reads
-   the diff through **lenses**: evidence, contract, correctness, security, design, UI. A sensitive change (auth,
-   payments, migrations, a public API) gets one reviewer per lens, in parallel. Blockers go back to the coder once.
+   the diff through **lenses**: evidence, contract, correctness, security, design, UI. A large or sensitive change
+   (auth, payments, migrations, a public API) gets one reviewer per lens, in parallel. Blockers and majors go back to
+   the coder once.
 5. **PR.** A draft PR, QA for any scenario no test covers, then the PR is marked ready. You merge.
 
-Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget comes to you instead of
-looping. With [Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed
-by a different model family.
+Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget stops and asks you. With
+[Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed by a different
+model family.
 
 ### `/strategy`
 
@@ -115,10 +116,10 @@ flowchart LR
 
 - **One source, three tools.** Roles are written once and compiled to each tool's native format, models pinned in one
   catalog.
-- **Rules that code can check are code.** "No code before approval" or "every scenario is claimed by a test" are CLI
-  checks over git, with unit tests; prompts keep only what needs judgment.
-- **Prompts are tested like software.** A quiz of 76 decision scenarios and 40 routing queries runs on every prompt
-  change (latest run: 76/76 scenarios, 40/40 routing); it caught, for example, that tools load subagents only at
+- **Rules that code can check are code.** "No code before approval" and "every scenario is claimed" are CLI checks over
+  git, with unit tests; prompts keep only what needs judgment.
+- **Prompts are tested like software.** A quiz of 77 decision scenarios and 40 routing queries runs after every prompt
+  change (latest run: 77/77 scenarios, 40/40 routing); it caught, for example, that tools load subagents only at
   startup, so a run that installs them mid-session now stops for a restart. Stage evals run the real workflow headless,
   with real subagents, graded by scripts on what reached git.
 - **Lean.** Each skill has a line budget enforced in CI, detail loads only when a step needs it, and a feature's stage
