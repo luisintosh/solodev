@@ -1,9 +1,9 @@
 # PR and finish
 
 **Draft PR (step 7).** A draft pull or merge request against the default branch, with the forge tool the `- tools:` line
-names. The spec stays outside the repo, so the body carries what a reviewer, human or agent, needs from them, and
-nothing the diff, the ticket or the QA comment already holds. Use these sections in this order and drop an empty one,
-except `## Follow-ups`:
+names. The spec stays outside the repo, so the body carries what a reviewer, human or agent, needs from it, and nothing
+the diff, the ticket or the QA comment already holds. Use these sections in this order and drop an empty one, except
+`## Follow-ups`:
 
 ```markdown
 Closes #2510. Lets staff record payments that don't match a customer yet.

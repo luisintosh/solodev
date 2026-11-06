@@ -361,6 +361,12 @@
       "expect": "A new coder, whose brief is rebuilt from `spec.md` and `progress.md` plus what's left, since the earlier one is gone."
     },
     {
+      "id": "fix-round-commit",
+      "situation": "The coder just replied to a fix round, with R1 fixed. A re-review comes next.",
+      "ask": "What do you do with its work before starting the re-review?",
+      "expect": "Commits it, since the re-review reads the fix diff up to HEAD."
+    },
+    {
       "id": "verifier-writes-qa",
       "situation": "You play solodev-verify for uncovered S5 and S6. The feature folder's review.md already has its findings table, all fixed.",
       "ask": "Where do you write the verdicts?",
@@ -421,13 +427,13 @@
       "expect": "@S1, @S3 and the new @S4: ids are append-only, so S2 leaves a gap."
     },
     {
-      "id": "scout-existing",
+      "id": "gen-docs-existing",
       "situation": "The user runs /gen-docs. AGENTS.md exists; docs/ARCHITECTURE.md doesn't. The user didn't ask for a refresh.",
       "ask": "What do you write?",
       "expect": "Leaves AGENTS.md as it is, creates docs/ARCHITECTURE.md, commits nothing, and ends with a short summary."
     },
     {
-      "id": "scout-no-lint",
+      "id": "gen-docs-no-lint",
       "situation": "Running /gen-docs on a repo with no lint or typecheck script.",
       "ask": "What do the Commands lines for lint and typecheck say?",
       "expect": "`- lint: n/a` and `- typecheck: n/a`; every name still appears."

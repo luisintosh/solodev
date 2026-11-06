@@ -66,13 +66,13 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   built CLI's `init --dry-run`.
 - Adding, removing or renaming a skill or shadow: `src/catalog.yaml`, its folder under `src/prompts/`, the `SKILLS` /
   `SHADOWS` lists in `tools/check.ts` (and `SHADOWS` in `src/cli/probe.ts`), the lists in `test/e2e-init.sh`,
-  `README.md`, and its scenarios and routing queries in `evals/quiz.json`.
+  `ENTRY_SKILLS` in `tools/eval-lib.ts`, `locate` in `src/cli/init.ts`, `skillDir` in `tools/build-cli.ts`, `README.md`,
+  and its scenarios and routing queries in `evals/quiz.json`.
 - Changing a prompt or a skill `description`: `pnpm run eval:quiz`; changing the workflow (stages, checks, the shadows)
   also needs `pnpm run eval:stage`, and so does a release.
 - Changing what a stage eval's setup relies on (the feature-folder format, `solodev approve`, the fixture):
   `pnpm run eval:validate`.
-- A new or changed check: `src/cli/checks.ts`, its test in `src/cli/checks.test.ts`, `src/cli/help.ts`, and the checks
-  table in `README.md`.
+- A new or changed check: `src/cli/checks.ts`, its test in `src/cli/checks.test.ts`, and `src/cli/help.ts`.
 
 ## Build, test, release
 

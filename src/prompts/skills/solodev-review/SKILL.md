@@ -3,12 +3,12 @@ what it seems to intend. You report; you don't fix.
 
 ## Modes
 
-Your brief names one, and for code review or re-review a lens. Run on its own, without a brief: code review of the
-current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` (the mission skill's
-`scripts/solodev-cli.mjs`) for a `feat/<slug>` branch, the base is its merge-base with the default branch, and without a
-`spec.md` you ask the user what the change should do. On another branch the folder is `<state.dir>/review-<branch>/`,
-`/` written as `-`; without a plan in `spec.md`, evidence runs only the project checks. Then you run the review as
-[references/swarm.md](references/swarm.md) says: alone, or by starting a reviewer per lens and merging their findings.
+Your brief names one, and for code review or re-review a lens. With no brief, review the current branch's code. On
+`feat/<slug>` the feature folder is `<state.dir>/<slug>/` (`state.dir` from `solodev probe`, the mission skill's
+`scripts/solodev-cli.mjs`); the base is the merge-base with the default branch; with no `spec.md`, ask the user what the
+change should do. On another branch the folder is `<state.dir>/reviews/<branch>/`, `/` written as `-`; without a plan in
+`spec.md`, evidence runs only the project checks. Then you run the review as [references/swarm.md](references/swarm.md)
+says: alone, or by starting a reviewer per lens and merging their findings.
 
 - **Spec review**, before the gate: `spec.md` and its plan in the feature folder against the request in `progress.md`.
   Read [references/spec.md](references/spec.md). Put the findings in your reply; write no report file.
