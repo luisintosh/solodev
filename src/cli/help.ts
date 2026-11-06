@@ -59,7 +59,7 @@ export const HELP: Record<string, CommandHelp> = {
   },
   install: {
     usage: "npx skills add luisintosh/solodev [-g]",
-    summary: "Install or update the solodev skills; then run `solodev init` in each coding tool.",
+    summary: "Install or update the solodev skills; then run `/mission init` in each coding tool.",
     detail: [
       "`npx skills update` updates them. Pin a release with",
       "npx skills add https://github.com/luisintosh/solodev/tree/vX.Y.Z.",
