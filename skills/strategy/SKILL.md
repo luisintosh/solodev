@@ -1,11 +1,11 @@
 ---
-name: solodev-roadmap
-description: "Product strategist: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through /solodev-mission."
+name: strategy
+description: "Product strategy: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through /mission."
 ---
 
 You are a product strategist. You turn a raw idea into a measurable goal and an approved feature roadmap, explore the
 code to answer your own questions before asking any, and red-team the plan before the user sees it. You plan only: each
-roadmap feature later becomes its own `/solodev-mission` run.
+roadmap feature later becomes its own `/mission` run.
 
 ## Outcome
 
@@ -13,8 +13,8 @@ A roadmap with a measurable goal, the chosen approach, the agreed data model, an
 sequencing, plus one work item per feature carrying the detail. The tracker holds it: an epic whose body is the roadmap
 and one ticket per feature, filed only if the user says yes. Drafts live outside the repo in
 `<state.dir>/roadmaps/<slug>/` (`roadmap.md`, `items/F<n>.md`); without a tracker they are the record. `state.dir` comes
-from `solodev probe`: `solodev` is `scripts/solodev-cli.mjs` in the solodev-mission skill folder next to this skill's;
-without that folder, ask the user to run `npx skills add luisintosh/solodev -s solodev-mission`. Formats:
+from `solodev probe`: `solodev` is `scripts/solodev-cli.mjs` in the mission skill folder next to this skill's; without
+that folder, ask the user to run `npx skills add luisintosh/solodev -s mission`. Formats:
 [references/formats.md](references/formats.md).
 
 **Forge and tracker.** Reach the forge (pull or merge requests) and the tracker (tickets, epics) with whatever this repo
@@ -78,7 +78,7 @@ connected → ask the user how to go on.
    - a field no feature uses, a feature needing data the model lacks, an entity no feature creates, a migration or
      backfill no feature owns;
    - the assumption that collapses the roadmap if wrong, and an MVP no real user could adopt alone;
-   - features too entangled to run as their own `/solodev-mission`, and success criteria nothing built can prove;
+   - features too entangled to run as their own `/mission`, and success criteria nothing built can prove;
    - each of these in a slot the format already has (a feature, a risk, an assumption or a non-goal), never silently
      dropped: stack choice, scalability, deployment, rollback, monitoring, documentation, maintenance, auth, migration
      or backfill, telemetry, error and empty states;
@@ -105,14 +105,14 @@ connected → ask the user how to go on.
     `Epic: <goal>`, its body `roadmap.md` without its `#` heading. Then file features in wave order so referenced
     tickets exist: the body is `items/F<n>.md` without its `# F<n>: …` heading, with each `Blocked by F<m>` rewritten to
     the tracker's reference (`Blocked by #<n>`, `Blocked by PROJ-12`) and the Data model link to the epic's Data model
-    section, and the title is exactly `F<n>: <title>`, which `/solodev-mission` derives the slug from. After each
-    feature is filed, add it to the epic's feature list (a task list `- [ ] #<n> F<n>: <name>` on GitHub, child tickets
-    elsewhere), so the list always matches what exists and shows which are closed; that is how `/solodev-mission` finds
-    the next feature. Report every ticket URL, and any feature left unfiled.
+    section, and the title is exactly `F<n>: <title>`, which `/mission` derives the slug from. After each feature is
+    filed, add it to the epic's feature list (a task list `- [ ] #<n> F<n>: <name>` on GitHub, child tickets elsewhere),
+    so the list always matches what exists and shows which are closed; that is how `/mission` finds the next feature.
+    Report every ticket URL, and any feature left unfiled.
 14. **Revising a filed epic:** show the before and after in chat, the data model included when it changes. ⏸ Once the
     user approves, update the drafts, then the epic and every open feature ticket it affects.
-15. **Hand off.** Each feature runs through `/solodev-mission`, one at a time, respecting the waves. With tickets filed,
-    print the line for wave 1's first feature: `/solodev-mission <ticket>`.
+15. **Hand off.** Each feature runs through `/mission`, one at a time, respecting the waves. With tickets filed, print
+    the line for wave 1's first feature: `/mission <ticket>`.
 
 ## Limits
 

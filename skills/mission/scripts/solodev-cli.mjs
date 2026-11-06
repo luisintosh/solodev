@@ -7374,7 +7374,7 @@ import * as path8 from "node:path";
 import { fileURLToPath } from "node:url";
 
 // src/catalog.yaml
-var catalog_default = { hosts: { claude: { profiles: { think: { id: "claude-opus-5-5", effort: "medium" }, implement: { id: "claude-sonnet-5-5", effort: "high" } } }, codex: { profiles: { think: { id: "gpt-6-astra", effort: "max" }, implement: { id: "gpt-6.1-sol", effort: "max" } } }, cursor: { profiles: { think: { id: "gemini-4-argon", effort: "high" }, implement: { id: "grok-4.7", effort: "high" } } } }, shadows: { "shadow-coder": { profile: "implement", skills: ["solodev-code"], description: "Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /solodev-mission commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } }, "shadow-reviewer": { profile: "think", skills: ["solodev-review", "solodev-verify"], description: "Fresh-context reviewer: reviews a spec or a diff (solodev-review) or checks scenarios no test covers (solodev-verify), following the role skill its brief names. Report-only; writes only review.md." } }, skills: { "solodev-mission": { budget: 131, description: "Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (solodev-roadmap)." }, "solodev-plan": { budget: 113, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it." }, "solodev-code": { budget: 80, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solodev-mission run." }, "solodev-review": { budget: 90, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solodev-mission in a fresh context, or by the user on any branch." }, "solodev-verify": { budget: 52, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per scenario in review.md. Loaded by shadow-reviewer for a /solodev-mission run." }, "solodev-roadmap": { budget: 150, description: "Product strategist: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through /solodev-mission." }, "solodev-scout": { budget: 50, user_only: true, description: "Optional: maps the repo once so agents and /solodev-mission runs don't rediscover it: writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as /solodev-scout." } } };
+var catalog_default = { hosts: { claude: { profiles: { think: { id: "claude-opus-5-5", effort: "medium" }, implement: { id: "claude-sonnet-5-5", effort: "high" } } }, codex: { profiles: { think: { id: "gpt-6-astra", effort: "max" }, implement: { id: "gpt-6.1-sol", effort: "max" } } }, cursor: { profiles: { think: { id: "gemini-4-argon", effort: "high" }, implement: { id: "grok-4.7", effort: "high" } } } }, shadows: { "shadow-coder": { profile: "implement", skills: ["solodev-code"], description: "Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /mission commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } }, "shadow-reviewer": { profile: "think", skills: ["solodev-review", "solodev-verify"], description: "Fresh-context reviewer: reviews a spec or a diff (solodev-review) or checks scenarios no test covers (solodev-verify), following the role skill its brief names. Report-only; writes only review.md." } }, skills: { mission: { budget: 138, description: "Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (/strategy)." }, "solodev-plan": { budget: 113, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /mission, or on its own to spec a feature without running it." }, "solodev-code": { budget: 80, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /mission run." }, "solodev-review": { budget: 90, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /mission in a fresh context, or by the user on any branch." }, "solodev-verify": { budget: 54, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per scenario in review.md. Loaded by shadow-reviewer for a /mission run." }, strategy: { budget: 150, description: "Product strategy: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through /mission." }, "gen-docs": { budget: 50, user_only: true, description: "Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /mission runs don't rediscover it. Optional; run by the user as /gen-docs." } } };
 
 // src/cli/approve.ts
 import * as fs2 from "node:fs/promises";
@@ -7854,7 +7854,7 @@ function helpText(command) {
   }
   const width = Math.max(...Object.keys(HELP).map((k) => k.length));
   return [
-    "solodev: checks for a /solodev-mission feature run. Reads git and the feature folder; commits nothing.",
+    "solodev: checks for a /mission feature run. Reads git and the feature folder; commits nothing.",
     "",
     ...Object.entries(HELP).map(([name, h]) => `  ${name.padEnd(width)}  ${h.summary}`)
   ].join("\n");
@@ -7890,7 +7890,7 @@ function locate(cliPath, home, env) {
   const scripts = path4.dirname(cliPath);
   const skill = path4.dirname(scripts);
   const skills = path4.dirname(skill);
-  if (path4.basename(scripts) !== "scripts" || path4.basename(skill) !== "solodev-mission") return void 0;
+  if (path4.basename(scripts) !== "scripts" || path4.basename(skill) !== "mission") return void 0;
   if (path4.basename(skills) !== "skills") return void 0;
   const config = path4.dirname(skills);
   const base = path4.dirname(config);
@@ -8097,9 +8097,9 @@ async function probe(deps, models) {
   const tools = Object.fromEntries(probed);
   const orca = await probeOrca(deps);
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor");
-  else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /solodev-mission init`);
+  else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /mission init`);
   const writable = await deps.writable(deps.state);
-  if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /solodev-mission`);
+  if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /mission`);
   const defaults = parseDefaults(
     await deps.read(path5.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
     warnings
@@ -8355,7 +8355,7 @@ async function main(argv) {
       }
       const slugs = await listFeatures(state);
       if (!slugs.length) {
-        console.log(`no features in ${state} \u2014 start one with /solodev-mission`);
+        console.log(`no features in ${state} \u2014 start one with /mission`);
         return 0;
       }
       const all = await Promise.all(slugs.map((s) => featureStatus(state, s)));
@@ -8386,7 +8386,7 @@ ${formatResults(results)}`);
     }
     case "install":
       console.log(
-        "Install or update the skills with `npx skills add luisintosh/solodev` (`-g` for every repo), then run\n`/solodev-mission init` in each coding tool you use."
+        "Install or update the skills with `npx skills add luisintosh/solodev` (`-g` for every repo), then run\n`/mission init` in each coding tool you use."
       );
       return 0;
   }

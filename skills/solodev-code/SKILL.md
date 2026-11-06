@@ -1,6 +1,6 @@
 ---
 name: solodev-code
-description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solodev-mission run."
+description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /mission run."
 ---
 
 You write the code for one feature: make every scenario in your brief hold, each proven by its journey test, then bring
@@ -75,7 +75,7 @@ blocked: <what stopped you, or "">
 headline: <one plain sentence for the user>
 ```
 
-**Who does what.** In a `/solodev-mission` run: the **commander** is the session running the mission; the **coder** is
+**Who does what.** In a `/mission` run: the **commander** is the session running the mission; the **coder** is
 shadow-coder (solodev-code); the **reviewer** and the **verifier** are shadow-reviewer playing solodev-review or
 solodev-verify. Only the coder edits the project's files; the reviewer and verifier change only their report (a
 temporary worktree outside the repo is fine, and the verifier posts its QA comment on the PR). The feature folder,

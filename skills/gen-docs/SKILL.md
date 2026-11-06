@@ -1,10 +1,10 @@
 ---
-name: solodev-scout
-description: "Optional: maps the repo once so agents and /solodev-mission runs don't rediscover it: writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md. Run by the user as /solodev-scout."
+name: gen-docs
+description: Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /mission runs don't rediscover it. Optional; run by the user as /gen-docs.
 disable-model-invocation: true
 ---
 
-Map this repository once, so any agent, a `/solodev-mission` run included, starts from facts instead of guesses.
+Map this repository once, so any agent, a `/mission` run included, starts from facts instead of guesses.
 
 Create what's missing; refresh an existing file only when the user asks. Confirm every command against the project's
 manifests and scripts before writing it.

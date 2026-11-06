@@ -1,9 +1,9 @@
 ---
 name: shadow-coder
-description: Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /solodev-mission commander; the only agent that edits source.
+description: Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /mission commander; the only agent that edits source.
 model: claude-sonnet-5-5
 effort: high
-tools: Read, Glob, Grep, Edit, Write, Bash
+disallowedTools: Agent
 skills:
   - solodev-code
 experimental:

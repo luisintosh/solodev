@@ -3,7 +3,7 @@ name: shadow-reviewer
 description: "Fresh-context reviewer: reviews a spec or a diff (solodev-review) or checks scenarios no test covers (solodev-verify), following the role skill its brief names. Report-only; writes only review.md."
 model: claude-opus-5-5
 effort: medium
-tools: Read, Glob, Grep, Edit, Write, Bash
+disallowedTools: Agent
 skills:
   - solodev-review
   - solodev-verify

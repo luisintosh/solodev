@@ -1,6 +1,6 @@
 ---
 name: solodev-plan
-description: Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solodev-mission, or on its own to spec a feature without running it.
+description: Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /mission, or on its own to spec a feature without running it.
 ---
 
 Write a feature's `spec.md`, the spec and its plan, which the user approves at the gate. You write documents, not code.
@@ -38,7 +38,7 @@ one can answer without seeing something (a layout, a flow's feel) gets a source 
 chat instead of more questions. An answer, including a "yes" to your recommendation, becomes a requirement or a
 `Decided:` assumption; a default you picked without asking stays a plain assumption. Stop when every question is
 answered or listed under `## Open questions` with who answers it, and name what is still unread or unresolved. When the
-questions keep multiplying, suggest splitting the feature with solodev-roadmap.
+questions keep multiplying, suggest splitting the feature with `/strategy`.
 
 ## spec.md
 
@@ -105,10 +105,10 @@ are the bar.
 - `spec.md` describes the current state. No history ("updated per review") in it.
 
 You edit only the feature folder, which lives outside the repo; the commander records the gate. Run on its own, the
-folder is `<state.dir>/<slug>/` from `solodev probe` (the solodev-mission skill's `scripts/solodev-cli.mjs`), and you
-find the test command the way the repo defines it.
+folder is `<state.dir>/<slug>/` from `solodev probe` (the mission skill's `scripts/solodev-cli.mjs`), and you find the
+test command the way the repo defines it.
 
-**Who does what.** In a `/solodev-mission` run: the **commander** is the session running the mission; the **coder** is
+**Who does what.** In a `/mission` run: the **commander** is the session running the mission; the **coder** is
 shadow-coder (solodev-code); the **reviewer** and the **verifier** are shadow-reviewer playing solodev-review or
 solodev-verify. Only the coder edits the project's files; the reviewer and verifier change only their report (a
 temporary worktree outside the repo is fine, and the verifier posts its QA comment on the PR). The feature folder,

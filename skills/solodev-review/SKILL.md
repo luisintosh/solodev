@@ -1,6 +1,6 @@
 ---
 name: solodev-review
-description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solodev-mission in a fresh context, or by the user on any branch."
+description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /mission in a fresh context, or by the user on any branch."
 ---
 
 Review independently, in a fresh context. You didn't write this work, so judge it against the spec rather than against
@@ -9,7 +9,7 @@ what it seems to intend. You report; you don't fix.
 ## Modes
 
 Your brief names one, and for code review or re-review a lens. Run on its own, without a brief: code review of the
-current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` (the solodev-mission skill's
+current branch, the feature folder is `<state.dir>/<slug>/` from `solodev probe` (the mission skill's
 `scripts/solodev-cli.mjs`) for a `feat/<slug>` branch, the base is its merge-base with the default branch, and without a
 `spec.md` you ask the user what the change should do. On another branch the folder is `<state.dir>/review-<branch>/`,
 `/` written as `-`; without a plan in `spec.md`, evidence runs only the project checks. Then you run the review as
@@ -76,7 +76,7 @@ notes: <spec or plan gaps, parts of a large diff you didn't reach, or "">
 headline: <one plain sentence for the user>
 ```
 
-**Who does what.** In a `/solodev-mission` run: the **commander** is the session running the mission; the **coder** is
+**Who does what.** In a `/mission` run: the **commander** is the session running the mission; the **coder** is
 shadow-coder (solodev-code); the **reviewer** and the **verifier** are shadow-reviewer playing solodev-review or
 solodev-verify. Only the coder edits the project's files; the reviewer and verifier change only their report (a
 temporary worktree outside the repo is fine, and the verifier posts its QA comment on the PR). The feature folder,

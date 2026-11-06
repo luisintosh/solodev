@@ -78,7 +78,7 @@ MVP line: through wave <n>.
 ## Work item
 
 One file per feature, `<state.dir>/roadmaps/<slug>/items/F<n>.md`. It is the ticket body when filed, and the scope
-`/solodev-mission` runs against.
+`/mission` runs against.
 
 ````markdown
 # F<n>: <short, specific, outcome-oriented title>

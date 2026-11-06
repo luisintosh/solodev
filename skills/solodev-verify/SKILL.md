@@ -1,6 +1,6 @@
 ---
 name: solodev-verify
-description: Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per scenario in review.md. Loaded by shadow-reviewer for a /solodev-mission run.
+description: Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per scenario in review.md. Loaded by shadow-reviewer for a /mission run.
 ---
 
 Check the acceptance scenarios that no journey test covers, from outside the system, and record a verdict for each.
@@ -15,11 +15,12 @@ only its exit code. The `dev` command starts the app.
 ## Checking a scenario
 
 Exercise the real path and capture, at each step, evidence that its Then holds, enough for a reader to replay: for UI,
-agent-browser with a screenshot per step (not on PATH → give the commander its install line, don't install it, and mark
-those scenarios `manual`); for an API, the request and the response (status, body up to 20 lines); for a CLI, the
-invocation, output and exit code; for config, data or logs, the command that validates it. Use throwaway data and a
-local dev server, nothing destructive, and keep outputs in a scratch folder outside the repo. A scenario you can't
-automate gets `manual`, with the steps a person would follow as its evidence.
+the browser tool your brief names, with a screenshot per step, or a saved page snapshot if it can't take one; for an
+API, request and response (status, body up to 20 lines); for a CLI, invocation, output and exit code; for config, data
+or logs, the command that validates it. Use throwaway data and a local dev server, nothing destructive, and keep outputs
+in a scratch folder outside the repo. A scenario you can't automate gets `manual`, with a person's steps as its
+evidence. So does a UI scenario when your brief says `browser none` or you can't reach that tool: install nothing, and
+say which in your headline.
 
 ## QA verdicts
 
@@ -32,8 +33,9 @@ Write or update the `## QA` section at the end of `review.md` in the feature fol
 ```
 
 One row per uncovered scenario, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
-commander. On a second QA cycle, recheck only the rows that failed and update them in place. Then post the same table,
-with a one-line manual repro per scenario, as one comment on the PR, with the forge tool the `- tools:` line names.
+commander. On a second QA cycle, recheck only the rows that failed, or went `manual` for lack of a tool, and update them
+in place. Then post the same table, with a one-line manual repro per scenario, as one comment on the PR, with the forge
+tool the `- tools:` line names.
 
 ## Reply
 
@@ -47,7 +49,7 @@ pr_comment: <url, or "">
 headline: <one plain sentence for the user>
 ```
 
-**Who does what.** In a `/solodev-mission` run: the **commander** is the session running the mission; the **coder** is
+**Who does what.** In a `/mission` run: the **commander** is the session running the mission; the **coder** is
 shadow-coder (solodev-code); the **reviewer** and the **verifier** are shadow-reviewer playing solodev-review or
 solodev-verify. Only the coder edits the project's files; the reviewer and verifier change only their report (a
 temporary worktree outside the repo is fine, and the verifier posts its QA comment on the PR). The feature folder,

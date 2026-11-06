@@ -1,6 +1,6 @@
 ---
 name: shadow-coder
-description: Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /solodev-mission commander; the only agent that edits source.
+description: Writes a feature's tests, code and the docs that live beside them (solodev-code). Started by the /mission commander; the only agent that edits source.
 model: grok-4.7[effort=high]
 ---
 

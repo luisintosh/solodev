@@ -72,4 +72,4 @@ Spec approved 2026-10-14 · [agreed decisions](https://github.com/acme/app/issue
      the follow-ups again, each as a ticket title and body ready to paste. You don't file them.
 5. Handoff, for a ticket that belongs to a roadmap epic: take the first feature in the epic's list that is still open
    and isn't this one. If the tickets it's blocked by are all closed, say it's ready; otherwise say this PR has to merge
-   first. Print the line to run next: `/solodev-mission <ticket>`.
+   first. Print the line to run next: `/mission <ticket>`.
