@@ -114,10 +114,10 @@ async function emitSkills(catalog: Catalog) {
 
 const denied = (rule: unknown) => rule === "deny"
 
-function claudeTools(shadow: Shadow): string {
-  const tools = ["Read", "Glob", "Grep"]
-  if (!denied(shadow.permission?.edit)) tools.push("Edit", "Write")
-  tools.push("Bash")
+/** Shadows inherit the session's tools, as on Codex and Cursor; only the commander starts agents. */
+export function claudeDisallowedTools(shadow: Shadow): string {
+  const tools = ["Agent"]
+  if (denied(shadow.permission?.edit)) tools.push("Edit", "Write")
   return tools.join(", ")
 }
 
@@ -148,7 +148,7 @@ async function emitShadows(catalog: Catalog) {
       model: claudeRef.id,
     }
     if (claudeRef.effort) claudeFm.effort = claudeRef.effort
-    claudeFm.tools = claudeTools(shadow)
+    claudeFm.disallowedTools = claudeDisallowedTools(shadow)
     claudeFm.skills = shadow.skills
     // Keeps a continued shadow's prompt cache alive past the 5m subagent default.
     if (shadow.claude?.cache_ttl) claudeFm.experimental = { cacheTtl: shadow.claude.cache_ttl }

@@ -6,7 +6,9 @@
 #
 # `permission` holds hard edit denies only, by path; what a shadow may run is a prompt rule (fragments/boundaries.md).
 # Hosts have no shared permission config, so transpile renders them: Cursor gets them as prose restrictions, Claude
-# Code drops Edit/Write from `tools` when editing is denied outright, Codex runs read-only then.
+# Code adds Edit/Write to `disallowedTools` when editing is denied outright, Codex runs read-only then. Shadows get no
+# fixed tool list on any host: they use what the session has. Claude Code also denies `Agent`, so a shadow starts no
+# agents.
 
 hosts:
   claude:
@@ -47,7 +49,7 @@ shadows:
 
 skills:
   mission:
-    budget: 131
+    budget: 138
     description: >-
       Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one
       coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files,
@@ -70,7 +72,7 @@ skills:
       change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or
       sensitive one, findings merged in review.md. Used by /mission in a fresh context, or by the user on any branch.
   solodev-verify:
-    budget: 52
+    budget: 54
     description: >-
       Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
       scenario in review.md. Loaded by shadow-reviewer for a /mission run.
