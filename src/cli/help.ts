@@ -59,7 +59,7 @@ export const HELP: Record<string, CommandHelp> = {
   },
   install: {
     usage: "npx skills add luisintosh/solodev [-g]",
-    summary: "Install or update the solodev skills; then run `/mission init` in each coding tool.",
+    summary: "Install or update the solodev skills; then run `/solo-task init` in each coding tool.",
     detail: [
       "`npx skills update` updates them. Pin a release with",
       "npx skills add https://github.com/luisintosh/solodev/tree/vX.Y.Z.",
@@ -81,7 +81,7 @@ export function helpText(command?: string): string {
   }
   const width = Math.max(...Object.keys(HELP).map((k) => k.length))
   return [
-    "solodev: checks for a /mission feature run. Its checks read git and the feature folder; it commits nothing.",
+    "solodev: checks for a /solo-task feature run. Its checks read git and the feature folder; it commits nothing.",
     "",
     ...Object.entries(HELP).map(([name, h]) => `  ${name.padEnd(width)}  ${h.summary}`),
   ].join("\n")

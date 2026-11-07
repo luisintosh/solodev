@@ -162,7 +162,7 @@ async function c3(ctx: CheckContext): Promise<CheckResult> {
 
 async function c4(ctx: CheckContext): Promise<CheckResult> {
   const raw = await readIfExists(path.join(ctx.dir, "review.md"))
-  if (raw === undefined) return result("C4", "fail", "no review.md — run solodev-review")
+  if (raw === undefined) return result("C4", "fail", "no review.md — run solo-review")
   const findings = parseReview(raw)
   const bad = findings.filter(
     (f) =>
@@ -205,7 +205,7 @@ async function c5(ctx: CheckContext): Promise<CheckResult> {
   if (!plan.uncovered.length) return result("C5", "pass", "every scenario has a journey test")
   const verdicts = parseQa((await readIfExists(path.join(ctx.dir, "review.md"))) ?? "")
   if (!verdicts.size) {
-    return result("C5", "fail", `no QA verdicts in review.md for ${plan.uncovered.join(", ")} — run solodev-verify`)
+    return result("C5", "fail", `no QA verdicts in review.md for ${plan.uncovered.join(", ")} — run solo-verify`)
   }
   const details: string[] = []
   for (const s of plan.uncovered) {

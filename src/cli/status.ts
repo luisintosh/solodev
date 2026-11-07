@@ -31,15 +31,15 @@ export type FeatureStatus = {
 }
 
 const NEXT: Record<Stage, (slug: string) => string> = {
-  spec: () => "write spec.md with its plan (solodev-plan), asking the user what the code can't answer",
+  spec: () => "write spec.md with its plan (solo-plan), asking the user what the code can't answer",
   gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
   implement: (s) =>
-    `solodev-code writes the journey tests and the code; then \`solodev check ${s} --for implement\`; once progress.md logs it passed, code review`,
+    `solo-code writes the journey tests and the code; then \`solodev check ${s} --for implement\`; once progress.md logs it passed, code review`,
   review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
   pr: (s) =>
     `\`solodev check ${s} --for pr\`, then push, open the draft PR and log \`- pr <url> · draft\` in progress.md`,
   qa: (s) =>
-    `solodev-verify for uncovered scenarios (if any); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> · ready\``,
+    `solo-verify for uncovered scenarios (if any); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> · ready\``,
   done: () => "the user reviews and merges the PR",
 }
 
@@ -95,10 +95,10 @@ export async function featureStatus(state: string, slug: string): Promise<Featur
   return done("qa", { approved, pr })
 }
 
-/** Where /strategy keeps roadmap drafts, beside the feature folders; not a feature. */
+/** Where /solo-epic keeps roadmap drafts, beside the feature folders; not a feature. */
 export const ROADMAPS_DIR = "roadmaps"
 
-/** Where a standalone /solodev-review keeps its reports, beside the feature folders; not a feature. */
+/** Where a standalone /solo-review keeps its reports, beside the feature folders; not a feature. */
 export const REVIEWS_DIR = "reviews"
 /** Feature slugs in the repo's state folder, newest directory first. */
 export async function listFeatures(state: string): Promise<string[]> {

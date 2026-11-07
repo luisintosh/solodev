@@ -5,6 +5,7 @@ import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
+import { parse as parseYaml } from "yaml"
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 export const fixture = path.join(root, "test", "fixture-repo")
@@ -55,7 +56,7 @@ export async function workspace(name: string, seeds: string[] = [], remove: stri
 }
 
 /** Where a project install for Claude Code puts the CLI, relative to the workspace. */
-export const CLI = ".claude/skills/mission/scripts/solodev-cli.mjs"
+export const CLI = ".claude/skills/solo-task/scripts/solodev-cli.mjs"
 
 /**
  * Installs solodev into the workspace for Claude Code (`local` from this checkout's dist/product, or `ref:<tag>` through
@@ -86,12 +87,30 @@ function alive(pid: number): boolean {
   }
 }
 
-/** solodev's entry skills, which carry no `solodev-` prefix. */
-const ENTRY_SKILLS = new Set(["mission", "strategy", "gen-docs"])
+/** Names solodev's skills had in earlier releases (v6 and v7), still found in user-level installs. */
+const LEGACY_SKILLS = [
+  "solodev-mission",
+  "solodev-roadmap",
+  "solodev-scout",
+  "solodev-plan",
+  "solodev-review",
+  "solodev-code",
+  "solodev-verify",
+  "mission",
+  "strategy",
+]
+
+/** The catalog's skills plus their legacy names: only these are moved aside, never another author's skills. */
+function solodevSkills(): Set<string> {
+  const catalog = parseYaml(fsSync.readFileSync(path.join(root, "src", "catalog.yaml"), "utf8")) as {
+    skills: Record<string, unknown>
+  }
+  return new Set([...Object.keys(catalog.skills), ...LEGACY_SKILLS])
+}
 
 /**
  * Claude Code prefers a user-level skill over a project one with the same name, so solodev's skills in `~/.claude/skills`
- * (the entry skills and `solodev-*`) would shadow the workspace's skills under test. Moves them to
+ * (see `solodevSkills`) would shadow the workspace's skills under test. Moves them to
  * `~/.claude/solodev-eval-aside/<pid>/` for the run and returns the restore, which also runs on exit and on SIGINT,
  * SIGTERM or SIGHUP. A folder left by a killed run is restored first; another live run holding the skills aside is an
  * error, since its restore would unshadow this run midway.
@@ -116,7 +135,8 @@ export function moveUserSkillsAside(home = os.homedir()): () => void {
     putBack(path.join(asideRoot, pid))
     console.log(`eval: restored user-level skills left aside by run ${pid}`)
   }
-  const names = list(skills).filter((n) => ENTRY_SKILLS.has(n) || n.startsWith("solodev-"))
+  const ours = solodevSkills()
+  const names = list(skills).filter((n) => ours.has(n))
   if (!names.length) return () => {}
 
   const aside = path.join(asideRoot, String(process.pid))
@@ -149,7 +169,7 @@ export async function stateIn(ws: string): Promise<string> {
 
 /**
  * Commands an unattended Claude Code run may use without asking: edits, plus the git, node and package-manager calls an
- * /mission run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
+ * /solo-task run makes. Anything else is denied (headless mode has nobody to ask), instead of approving every command.
  */
 export const CLAUDE_ALLOWED = [
   "Read",

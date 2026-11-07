@@ -12,7 +12,7 @@ const quiz: Quiz = {
     { id: "b", situation: "S", ask: "B?", expect: "E" },
   ],
   routing: [
-    { query: "review my branch", skill: "solodev-review" },
+    { query: "review my branch", skill: "solo-review" },
     { query: "fix a typo", skill: null },
   ],
 }
@@ -61,8 +61,8 @@ describe("grade", () => {
       {
         answers: [],
         routing: [
-          { n: 1, skill: "solodev-review" },
-          { n: 2, skill: "mission" },
+          { n: 1, skill: "solo-review" },
+          { n: 2, skill: "solo-task" },
         ],
       },
       [{ id: "a", pass: true, why: "ok" }],

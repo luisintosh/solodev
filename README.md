@@ -15,10 +15,10 @@ or [Cursor](https://cursor.com).
 npx skills add luisintosh/solodev          # -g for every repo
 ```
 
-Then, once in each coding tool: `/mission init`, start a new session, and:
+Then, once in each coding tool: `/solo-task init`, start a new session, and:
 
 ```text
-/mission Add CSV export to the accounts page
+/solo-task Add CSV export to the accounts page
 ```
 
 > I built solodev for my own work; it's the workflow I use every day to ship features with AI agents. —
@@ -39,13 +39,13 @@ work, and loses the thread when its context fills up. solodev gives top models w
 
 ## How it works
 
-You'll mostly type three skills: `/mission` ships one feature, `/strategy` plans the features, and `/gen-docs` maps a
+You'll mostly type three skills: `/solo-task` ships one feature, `/solo-epic` plans the features, and `/gen-docs` maps a
 repo once.
 
-### `/mission`
+### `/solo-task`
 
-`/mission` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with their
-own models and fresh context: one coder and one reviewer. You can read them first in `skills/mission/shadows/<tool>/`;
+`/solo-task` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with their
+own models and fresh context: one coder and one reviewer. You can read them first in `skills/solo-task/shadows/<tool>/`;
 `init` copies them into the tool's agents folder (`.claude/agents/`, `.codex/agents/`, `.cursor/agents/`), adding only a
 hash line that lets it spot your edits.
 
@@ -63,29 +63,29 @@ Every step has a budget (two implement attempts, one fix round, one re-review); 
 [Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed by a different
 model family.
 
-### `/strategy`
+### `/solo-epic`
 
 Turns a raw idea into a measurable goal, the chosen approach, an agreed data model and a feature roadmap sequenced in
 waves. It explores the code to answer its own questions before asking you, and red-teams the plan before you see it.
 With your yes, it files the roadmap in your tracker as an epic with one ticket per feature; without a tracker, the
 drafts stay in `~/.agents/solodev/<owner>/<repo>/roadmaps/<slug>/`. It only plans: each feature then runs through
-`/mission <ticket>`.
+`/solo-task <ticket>`.
 
 ### `/gen-docs`
 
 Run it yourself, once per repo. It writes a short `AGENTS.md` (the project's commands, confirmed against its manifests
 and scripts, plus constraints the code doesn't show) and `docs/ARCHITECTURE.md` (the module map, how data flows, key
-decisions, how tests are organized), so every agent and every `/mission` run starts from facts instead of rediscovering
-the repo. It creates only what's missing and commits nothing; `/mission init` suggests it when the repo has no
-`AGENTS.md`.
+decisions, how tests are organized), so every agent and every `/solo-task` run starts from facts instead of
+rediscovering the repo. It creates only what's missing and commits nothing; `/solo-task init` suggests it when the repo
+has no `AGENTS.md`.
 
 ### Other skills
 
-| Skill                            | Role                                              |
-| -------------------------------- | ------------------------------------------------- |
-| `/solodev-plan`                  | writes a spec on its own                          |
-| `/solodev-review`                | reviews a spec or any branch                      |
-| `solodev-code`, `solodev-verify` | the coder's and QA's roles, started by `/mission` |
+| Skill                      | Role                                                |
+| -------------------------- | --------------------------------------------------- |
+| `/solo-plan`               | writes a spec on its own                            |
+| `/solo-review`             | reviews a spec or any branch                        |
+| `solo-code`, `solo-verify` | the coder's and QA's roles, started by `/solo-task` |
 
 ## Models
 
@@ -136,22 +136,26 @@ scenarios.
 **Do I need GitHub?** No. Any forge or tracker your tool can reach works (`gh`, `glab`, or an MCP server for GitLab,
 Jira, Linear…); without one, it asks you.
 
-**How do I resume?** Ask `/mission` to continue. Any session can, since state lives in git and the feature folder.
+**How do I resume?** Ask `/solo-task` to continue. Any session can, since state lives in git and the feature folder.
 
 **Can it merge or push to main?** No. It opens the PR and marks it ready; use branch protection as the backstop.
 
-**Upgrading from v6?** v7 renamed `/solodev-mission` to `/mission`, `/solodev-roadmap` to `/strategy` and
-`/solodev-scout` to `/gen-docs`. `npx skills update` doesn't install renamed skills, so add them again, remove the old
-names, then run `/mission init` once in each coding tool to refresh the shadows:
+**Upgrading from v7 or earlier?** v8 names every skill `solo-*`: `/mission` (v6: `/solodev-mission`) is now
+`/solo-task`, `/strategy` (v6: `/solodev-roadmap`) is `/solo-epic`, and `solodev-plan`, `-review`, `-code` and `-verify`
+are `solo-plan`, `solo-review`, `solo-code` and `solo-verify`; `/gen-docs` (v6: `/solodev-scout`) is unchanged since v7.
+`npx skills update` doesn't install renamed skills, so add them again, remove the old names (any not installed are
+skipped), then run `/solo-task init` once in each coding tool to refresh the shadows:
 
 ```bash
 npx skills add luisintosh/solodev
-npx skills remove solodev-mission solodev-roadmap solodev-scout
+npx skills remove mission strategy solodev-mission solodev-roadmap solodev-scout \
+  solodev-plan solodev-review solodev-code solodev-verify
 ```
 
-Add `-g` to both if you installed globally. Feature folders stay where they are.
+Add `-g` to both if you installed globally. If `init` reports `! edited` for a shadow you changed, rerun it with
+`--force` or point that shadow's `skills:` line at the new names yourself. Feature folders stay where they are.
 
-**Coming from the old installer (v5 and earlier)?** Install as above and let `/mission init` use `--force` once per
+**Coming from the old installer (v5 and earlier)?** Install as above and let `/solo-task init` use `--force` once per
 tool. Feature folders stay where they are.
 
 **Requirements:** Node.js 20+, Git, and one coding tool you're logged in to. Optional: a browser tool for UI checks,

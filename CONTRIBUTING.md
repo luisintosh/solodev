@@ -14,10 +14,10 @@ once; tests use Vitest and bundles use esbuild.
 | `src/cli/**`                         | `pnpm run build` + `pnpm test` |
 
 `dist/` is generated and untracked. `dist/product/` is exactly what a release puts on `master`: the skills (with the CLI
-bundled at `skills/mission/scripts/solodev-cli.mjs`), `README.md`, `LICENSE` and `assets/`. Users install it with
+bundled at `skills/solo-task/scripts/solodev-cli.mjs`), `README.md`, `LICENSE` and `assets/`. Users install it with
 `npx skills add luisintosh/solodev`; try a build locally with `npx skills add ./dist/product` in a scratch repo. The
 shadows go to `dist/{claude,cursor,codex}/agents/` and are copied, as plain files, into
-`skills/mission/shadows/<host>/`, which the CLI reads and writes on `solodev init`.
+`skills/solo-task/shadows/<host>/`, which the CLI reads and writes on `solodev init`.
 
 `README.md` ships to users, so it describes using solodev; the layout of this repository is below.
 
@@ -34,9 +34,9 @@ test/                   e2e-init.sh, fixture repo
 dist/                   generated (untracked); dist/product is what master ships
 ```
 
-The three entry skills a user types have bare names: `mission`, `strategy` and `gen-docs`. Role skills are named
-`solodev-<action>` and shadows `shadow-<name>`, so neither collides with host built-ins such as Codex's `/review` or
-Cursor's `code-reviewer`.
+Skills are named `solo-<name>` (plus `gen-docs`) and shadows `shadow-<name>`, so neither collides with host built-ins
+such as Codex's `/review` or Cursor's `code-reviewer`. `solo-task`, `solo-epic` and `gen-docs` are the ones a user
+types; the rest are roles the shadows play or that a user can start on their own.
 
 ## Hygiene (`pnpm run check`)
 

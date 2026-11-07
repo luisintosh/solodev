@@ -60,7 +60,7 @@ function permissionValues(node: unknown, at: string[] = []): [string, string][] 
 }
 
 const SHADOWS = ["shadow-coder", "shadow-reviewer"]
-const SKILLS = ["mission", "solodev-plan", "solodev-code", "solodev-review", "solodev-verify", "strategy", "gen-docs"]
+const SKILLS = ["solo-task", "solo-plan", "solo-code", "solo-review", "solo-verify", "solo-epic", "gen-docs"]
 /** Claude Code ignores any other `experimental.cacheTtl`, so a typo would silently fall back to the 5m default. */
 const CACHE_TTLS = new Set(["5m", "1h"])
 /** Top models over-trigger on shouted rules; write "do X when Y" instead. */
@@ -134,7 +134,7 @@ if (catalog) {
 const flat = (text: string) => text.replace(/\s+/g, " ")
 if (catalog) {
   const contracts: Record<string, string[]> = {
-    mission: [
+    "solo-task": [
       "`/plan`",
       "solodev approve",
       "solodev check",
@@ -143,14 +143,14 @@ if (catalog) {
       "never push to the default branch",
       "start lens reviewers together",
     ],
-    "solodev-plan": ["journeys:", "uncovered", "@S1"],
-    "solodev-code": [
+    "solo-plan": ["journeys:", "uncovered", "@S1"],
+    "solo-code": [
       "solodev check <slug> --for implement",
       "fails because the behavior is missing",
       "references/docs.md",
     ],
-    "solodev-review": ["review.md", "deferred", "rebutted", "lens: single", "Weakened test:", "as you found it"],
-    "solodev-verify": ["## QA", "screenshot", "browser none"],
+    "solo-review": ["review.md", "deferred", "rebutted", "lens: single", "Weakened test:", "as you found it"],
+    "solo-verify": ["## QA", "screenshot", "browser none"],
     "gen-docs": ["## Commands", "test_file"],
   }
   for (const [name, skill] of Object.entries(catalog.skills ?? {})) {
@@ -178,8 +178,8 @@ if (catalog) {
   }
   // Rules a reference has to keep, on the rendered reference.
   const referenceContracts: Record<string, string[]> = {
-    "mission/references/gate.md": ["- browser <tool|none>"],
-    "solodev-review/references/swarm.md": [
+    "solo-task/references/gate.md": ["- browser <tool|none>"],
+    "solo-review/references/swarm.md": [
       "all started in the same turn",
       "When unsure, go parallel",
       "merge without it",
@@ -309,15 +309,15 @@ if (JSON.stringify(shipped) !== JSON.stringify(wantShipped)) {
 for (const host of HOSTS) {
   const want = (await readdir(path.join(root, "dist", host, "agents")).catch(() => [] as string[])).sort()
   const have = (
-    await readdir(path.join(product, "skills", "mission", "shadows", host)).catch(() => [] as string[])
+    await readdir(path.join(product, "skills", "solo-task", "shadows", host)).catch(() => [] as string[])
   ).sort()
   if (!want.length || JSON.stringify(have) !== JSON.stringify(want)) {
-    fail(`dist/product/skills/mission/shadows/${host} doesn't match dist/${host}/agents — run pnpm run build`)
+    fail(`dist/product/skills/solo-task/shadows/${host} doesn't match dist/${host}/agents — run pnpm run build`)
   }
 }
-const cliPath = path.join(product, "skills", "mission", "scripts", "solodev-cli.mjs")
+const cliPath = path.join(product, "skills", "solo-task", "scripts", "solodev-cli.mjs")
 const cli = await readOr(cliPath)
-if (!cli) fail("dist/product/skills/mission/scripts/solodev-cli.mjs missing — run pnpm run build")
+if (!cli) fail("dist/product/skills/solo-task/scripts/solodev-cli.mjs missing — run pnpm run build")
 else if (!cli.startsWith("#!/usr/bin/env node\n")) fail("solodev-cli.mjs missing node shebang")
 else if (catalog) {
   const tmp = await mkdtemp(path.join(os.tmpdir(), "solodev-check-"))

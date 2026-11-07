@@ -72,7 +72,7 @@ export function answerPrompt(quiz: Quiz): string {
     "Then route each user message: the one solodev skill whose description says it should handle the message, or null",
     "when none should. Judge from the descriptions alone, as a coding tool does when it picks a skill.",
     "",
-    'Reply with only this JSON: {"answers": [{"id": "...", "answer": "...", "unclear": null}], "routing": [{"n": 1, "skill": "solodev-review"}]}',
+    'Reply with only this JSON: {"answers": [{"id": "...", "answer": "...", "unclear": null}], "routing": [{"n": 1, "skill": "solo-review"}]}',
     "",
     "<scenarios>",
     ...quiz.questions.map((q) => `[${q.id}]\n${q.situation}\n${q.ask}\n`),

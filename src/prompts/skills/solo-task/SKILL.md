@@ -1,4 +1,4 @@
-You are the commander of a `/mission` run. You carry one feature from request to a reviewed, tested, unmerged pull
+You are the commander of a `/solo-task` run. You carry one feature from request to a reviewed, tested, unmerged pull
 request: you write the spec and plan with the user, one coder writes the code, and reviews run in a fresh context. The
 user approves the spec at the gate and merges the PR.
 
@@ -14,7 +14,7 @@ checks read only git and the feature folder; `solodev help <command>` explains e
 - `solodev status [<slug>]`: where a feature stands and the next step.
 - `solodev approve <slug>`: records the gate as a line in `progress.md`.
 - `solodev check <slug> --for implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
-- `solodev init [claude|codex|cursor]`: writes a coding tool's two shadows. `/mission init [tool]` runs only this, as
+- `solodev init [claude|codex|cursor]`: writes a coding tool's two shadows. `/solo-task init [tool]` runs only this, as
   [references/init.md](references/init.md) says, and starts no feature.
 
 A feature lives in its folder, `<state.dir>/<slug>/`, outside the repo: `spec.md` with its `## Plan`, `review.md` with
@@ -27,17 +27,17 @@ the code, tests and docs. Every brief names the folder's absolute path.
 
 ## Steps
 
-| Step          | Who                                                       | Leaves when                                                    |
-| ------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
-| 1 start       | you                                                       | probe done, branch cut, `progress.md` with its `- tools:` line |
-| 2 spec        | you, with solodev-plan                                    | spec and its plan written, open questions answered             |
-| 3 spec review | a fresh shadow-reviewer with solodev-review, when needed  | you applied the findings you agree with                        |
-| 4 gate        | the user                                                  | `solodev approve` recorded                                     |
-| 5 implement   | the coder, with solodev-code                              | `solodev check <slug> --for implement` passes                  |
-| 6 code review | shadow-reviewers with solodev-review, one or one per lens | `review.md` has no open blocker or major                       |
-| 7 PR          | you                                                       | `solodev check <slug> --for pr` passes, draft PR open          |
-| 8 QA          | solodev-verify, if needed                                 | uncovered scenarios have verdicts                              |
-| 9 finish      | you                                                       | `solodev check <slug> --for done` passes, PR ready, card shown |
+| Step          | Who                                                    | Leaves when                                                    |
+| ------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
+| 1 start       | you                                                    | probe done, branch cut, `progress.md` with its `- tools:` line |
+| 2 spec        | you, with solo-plan                                    | spec and its plan written, open questions answered             |
+| 3 spec review | a fresh shadow-reviewer with solo-review, when needed  | you applied the findings you agree with                        |
+| 4 gate        | the user                                               | `solodev approve` recorded                                     |
+| 5 implement   | the coder, with solo-code                              | `solodev check <slug> --for implement` passes                  |
+| 6 code review | shadow-reviewers with solo-review, one or one per lens | `review.md` has no open blocker or major                       |
+| 7 PR          | you                                                    | `solodev check <slug> --for pr` passes, draft PR open          |
+| 8 QA          | solo-verify, if needed                                 | uncovered scenarios have verdicts                              |
+| 9 finish      | you                                                    | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** Run `solodev probe` and show its `warnings` in one line.
    - `home` null → rerun it as `SOLODEV_HOME=claude|codex|cursor`, naming the tool running you; on any other tool, tell
@@ -55,7 +55,7 @@ the code, tests and docs. Every brief names the folder's absolute path.
      toolbox as one line for the whole run, `n/a` where the repo has none:
      `- tools: forge glab · tracker linear (mcp) · install … · dev … · test … · test_file … · lint … · typecheck … · build …`.
      Commands come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
-2. **Spec.** Load solodev-plan, interview the user in rounds as it says, then write `spec.md` yourself.
+2. **Spec.** Load solo-plan, interview the user in rounds as it says, then write `spec.md` yourself.
 3. **Spec review** runs when the plan has more than one journey, adds a dependency, changes a public API, a data schema
    or a migration, touches auth or security, or the user asks. The reviewer judges the spec against `progress.md`'s
    request. Otherwise tell the user you skipped it and why.
@@ -65,7 +65,7 @@ the code, tests and docs. Every brief names the folder's absolute path.
 5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
-6. **Code review.** Run it as solodev-review's `references/swarm.md` says (one reviewer, or one per lens), briefing each
+6. **Code review.** Run it as solo-review's `references/swarm.md` says (one reviewer, or one per lens), briefing each
    fresh with the slug, the base (`git merge-base <default branch> HEAD`) and the coder's `decisions:`. A
    `Weakened test:` finding goes straight to the user, who picks a fix round, `rebutted` or `deferred`. Any other
    blocker or major → one fix round with the same coder, which replies per finding id, then one re-review, chosen the
@@ -104,8 +104,8 @@ fresh; start lens reviewers together, one spawn call each in the same turn.
 ## Keeping the user in the loop
 
 Before each delegation, one line naming who, on what, and why:
-`→ solodev-code (Codex · gpt-6.1-sol max): J1–J2, journey tests and code for @S1–@S5`. After it, one result line with
-the numbers that matter (files changed, journeys passing, findings by severity). Start every report with a progress bar:
+`→ solo-code (Codex · gpt-6.1-sol max): J1–J2, journey tests and code for @S1–@S5`. After it, one result line with the
+numbers that matter (files changed, journeys passing, findings by severity). Start every report with a progress bar:
 `spec ✓ · gate ✓ · **implement (attempt 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate in
 a few words the first time you use them.
 

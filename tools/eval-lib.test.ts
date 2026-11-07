@@ -20,23 +20,33 @@ describe("moveUserSkillsAside", () => {
   })
 
   it("moves only solodev's skills aside and puts them back", async () => {
-    await skill(skills(), "solodev-plan")
-    await skill(skills(), "mission")
-    await skill(skills(), "strategy")
+    await skill(skills(), "solo-plan")
+    await skill(skills(), "solo-task")
+    await skill(skills(), "solo-epic")
+    await skill(skills(), "solodev-mission")
+    await skill(skills(), "solo-leveling")
     await skill(skills(), "other")
     const restore = moveUserSkillsAside(home)
-    expect(await ls(skills())).toEqual(["other"])
+    expect((await ls(skills())).sort()).toEqual(["other", "solo-leveling"])
     expect((await ls(path.join(asideRoot(), String(process.pid)))).sort()).toEqual([
-      "mission",
-      "solodev-plan",
-      "strategy",
+      "solo-epic",
+      "solo-plan",
+      "solo-task",
+      "solodev-mission",
     ])
     restore()
-    expect((await ls(skills())).sort()).toEqual(["mission", "other", "solodev-plan", "strategy"])
-    expect(await fs.readFile(path.join(skills(), "solodev-plan", "SKILL.md"), "utf8")).toBe("solodev-plan")
+    expect((await ls(skills())).sort()).toEqual([
+      "other",
+      "solo-epic",
+      "solo-leveling",
+      "solo-plan",
+      "solo-task",
+      "solodev-mission",
+    ])
+    expect(await fs.readFile(path.join(skills(), "solo-plan", "SKILL.md"), "utf8")).toBe("solo-plan")
     expect(await ls(asideRoot())).toEqual([])
     restore()
-    expect((await ls(skills())).length).toBe(4)
+    expect((await ls(skills())).length).toBe(6)
   })
 
   it("does nothing without user-level solodev skills", async () => {
@@ -47,22 +57,22 @@ describe("moveUserSkillsAside", () => {
   })
 
   it("restores skills a killed run left aside before moving them again", async () => {
-    await skill(path.join(asideRoot(), "999999"), "solodev-plan")
+    await skill(path.join(asideRoot(), "999999"), "solo-plan")
     const restore = moveUserSkillsAside(home)
-    expect(await ls(path.join(asideRoot(), String(process.pid)))).toEqual(["solodev-plan"])
+    expect(await ls(path.join(asideRoot(), String(process.pid)))).toEqual(["solo-plan"])
     restore()
-    expect(await ls(skills())).toEqual(["solodev-plan"])
+    expect(await ls(skills())).toEqual(["solo-plan"])
     expect(await ls(asideRoot())).toEqual([])
   })
 
   it("refuses when a skill left aside would overwrite an installed one", async () => {
-    await skill(path.join(asideRoot(), "999999"), "solodev-plan")
-    await skill(skills(), "solodev-plan")
+    await skill(path.join(asideRoot(), "999999"), "solo-plan")
+    await skill(skills(), "solo-plan")
     expect(() => moveUserSkillsAside(home)).toThrow(/merge them by hand/)
   })
 
   it("refuses while another live run holds the skills aside", async () => {
-    await skill(path.join(asideRoot(), String(process.ppid)), "solodev-plan")
+    await skill(path.join(asideRoot(), String(process.ppid)), "solo-plan")
     expect(() => moveUserSkillsAside(home)).toThrow(/another eval run/)
   })
 })

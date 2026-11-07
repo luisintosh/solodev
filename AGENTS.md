@@ -5,10 +5,10 @@ file. Keep it under about 100 lines: link CONTRIBUTING.md or the README instead 
 
 ## What this is
 
-solodev ships no runtime app. It ships role skills, with a small workflow CLI inside the mission skill, that
-`npx skills add luisintosh/solodev` installs into a _consuming_ repo or `$HOME`; `/mission init` (the CLI's `init`) then
-writes two shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here runs
-against this repo's own code.
+solodev ships no runtime app. It ships role skills, with a small workflow CLI inside the solo-task skill, that
+`npx skills add luisintosh/solodev` installs into a _consuming_ repo or `$HOME`; `/solo-task init` (the CLI's `init`)
+then writes two shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here
+runs against this repo's own code.
 
 Two branches: `develop` holds the source and all work (branch from it, PR into it); `master` holds only the released
 product (`dist/product`), written by `pnpm run release`. Never commit to `master` by hand.
@@ -28,14 +28,14 @@ product (`dist/product`), written by `pnpm run release`. Never commit to `master
 `src/catalog.yaml` (host × profile models, skills with line budgets, shadows with hard denies) and `src/prompts/**` are
 the **only** sources of truth. `tools/transpile.ts` emits one skill tree for every host into `dist/product/skills` and
 the two shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and copies those shadows beside
-it, as plain files, into `dist/product/skills/mission/shadows/`.
+it, as plain files, into `dist/product/skills/solo-task/shadows/`.
 
 - Never hand-edit `dist/`: it's generated and untracked. Fix the catalog or the prompt body, then `pnpm run build`.
 - Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;
   transpile adds it.
 - `{{include:fragments/<name>.md}}` in a prompt body is resolved at transpile time.
-- Names: the three entry skills a user types are bare (`mission`, `strategy`, `gen-docs`); role skills are
-  `solodev-<action>`, shadows `shadow-<name>`.
+- Names: skills are `solo-<name>` (plus `gen-docs`), shadows `shadow-<name>`. `solo-task`, `solo-epic` and `gen-docs`
+  are the ones a user types.
 
 ## How changes stay thin
 
@@ -52,7 +52,7 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   approval line live in its folder outside the repo (`~/.agents/solodev/<owner>/<repo>/<slug>/`), the code in git, and
   `solodev status` derives the stage from both. Nothing harness-related is committed to the user's repo.
 - **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
-- **The user decides.** New pauses for the user go in `/mission`'s "ask the user only at" list; nothing approves the
+- **The user decides.** New pauses for the user go in `/solo-task`'s "ask the user only at" list; nothing approves the
   gate or merges for them.
 - **No new stage or agent** unless the stage evals show it pays for itself. Two shadows, two profiles, three hosts.
 
@@ -65,9 +65,9 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
 - Any `src/` change requires a `pnpm run build` before `pnpm run check`; check compares against `dist/` and runs the
   built CLI's `init --dry-run`.
 - Adding, removing or renaming a skill or shadow: `src/catalog.yaml`, its folder under `src/prompts/`, the `SKILLS` /
-  `SHADOWS` lists in `tools/check.ts` (and `SHADOWS` in `src/cli/probe.ts`), the lists in `test/e2e-init.sh`,
-  `ENTRY_SKILLS` in `tools/eval-lib.ts`, `locate` in `src/cli/init.ts`, `skillDir` in `tools/build-cli.ts`, `README.md`,
-  and its scenarios and routing queries in `evals/quiz.json`.
+  `SHADOWS` lists in `tools/check.ts` (and `SHADOWS` in `src/cli/probe.ts`), the lists in `test/e2e-init.sh`, the old
+  name in `LEGACY_SKILLS` in `tools/eval-lib.ts`, `locate` in `src/cli/init.ts`, `skillDir` in `tools/build-cli.ts`,
+  `README.md`, and its scenarios and routing queries in `evals/quiz.json`.
 - Changing a prompt or a skill `description`: `pnpm run eval:quiz`; changing the workflow (stages, checks, the shadows)
   also needs `pnpm run eval:stage`, and so does a release.
 - Changing what a stage eval's setup relies on (the feature-folder format, `solodev approve`, the fixture):

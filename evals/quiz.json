@@ -2,43 +2,43 @@
   "questions": [
     {
       "id": "mission-trivial",
-      "situation": "The user runs `/mission fix the typo 'recieve' in src/mailer.ts line 40`.",
+      "situation": "The user runs `/solo-task fix the typo 'recieve' in src/mailer.ts line 40`.",
       "ask": "What do you do?",
       "expect": "Says in one line that this is a one-line fix and suggests /plan or making the change directly; continues the full run only if the user still wants it. No branch, feature folder or coder yet."
     },
     {
       "id": "mission-fresh-start",
-      "situation": "The user runs `/mission add a --version flag to the CLI that prints the package.json version`. No feature folder exists for it and you are on the default branch.",
+      "situation": "The user runs `/solo-task add a --version flag to the CLI that prints the package.json version`. No feature folder exists for it and you are on the default branch.",
       "ask": "What do you do before writing the spec?",
       "expect": "Runs `solodev probe`, derives a slug, cuts feat/<slug> from the default branch, creates progress.md starting with a ## Request section holding the request verbatim, and logs one `- tools:` line with the repo's commands (n/a where missing). Writes no code and commits nothing."
     },
     {
       "id": "mission-init-codex",
-      "situation": "In a Codex session the user runs `/mission init`. The solodev skills were installed in this repo with `npx skills add`.",
+      "situation": "In a Codex session the user runs `/solo-task init`. The solodev skills were installed in this repo with `npx skills add`.",
       "ask": "What do you do?",
-      "expect": "Runs `solodev init` (the CLI in the mission skill's scripts folder) for Codex, shows its report of the shadows it wrote, tells the user to start a new session before the next /mission and to run `/mission init` in each other coding tool they use, and stops. Starts no feature: no branch, spec or feature folder."
+      "expect": "Runs `solodev init` (the CLI in the solo-task skill's scripts folder) for Codex, shows its report of the shadows it wrote, tells the user to start a new session before the next /solo-task and to run `/solo-task init` in each other coding tool they use, and stops. Starts no feature: no branch, spec or feature folder."
     },
     {
       "id": "mission-init-edited",
-      "situation": "The user runs `/mission init` in Claude Code. `solodev init` exits 1 and reports `! edited .claude/agents/shadow-coder.md — kept your edits; --force replaces them`, followed by a diff that adds a line the user wrote.",
+      "situation": "The user runs `/solo-task init` in Claude Code. `solodev init` exits 1 and reports `! edited .claude/agents/shadow-coder.md — kept your edits; --force replaces them`, followed by a diff that adds a line the user wrote.",
       "ask": "What do you do?",
       "expect": "Shows the user the diff and asks whether to replace their edited shadow; reruns `solodev init` with `--force` only if they say yes. Does not pass --force on its own."
     },
     {
       "id": "mission-no-shadows",
-      "situation": "The user runs `/mission add an /healthz endpoint that returns the build sha` in Claude Code. `solodev probe` shows `tools.claude.shadows: false` and warns `claude has no solodev shadows yet; run /mission init`; `state.writable` is true.",
+      "situation": "The user runs `/solo-task add an /healthz endpoint that returns the build sha` in Claude Code. `solodev probe` shows `tools.claude.shadows: false` and warns `claude has no solodev shadows yet; run /solo-task init`; `state.writable` is true.",
       "ask": "What do you do?",
       "expect": "Runs `solodev init` for Claude Code and shows its report, then asks the user to start a new session (agents load at startup) and rerun the command, and stops. No branch, feature folder or spec in this session."
     },
     {
       "id": "mission-not-writable",
-      "situation": "Fresh /mission run. `solodev probe` reports `state.writable: false`.",
+      "situation": "Fresh /solo-task run. `solodev probe` reports `state.writable: false`.",
       "ask": "What do you do?",
       "expect": "Tells the user to allow state.dir in their tool's sandbox and stops."
     },
     {
       "id": "mission-slug-exists",
-      "situation": "The user asks /mission for a CSV export feature. A feature folder for the slug `csv-export` already exists.",
+      "situation": "The user asks /solo-task for a CSV export feature. A feature folder for the slug `csv-export` already exists.",
       "ask": "What do you do?",
       "expect": "Shows that feature's stage and asks the user whether to resume it or start over under the next free slug (csv-export-2)."
     },
@@ -52,7 +52,7 @@
       "id": "mission-run-spec-review",
       "situation": "Your plan in spec.md has two journeys and the feature adds a login token check.",
       "ask": "Does a spec review run, and how?",
-      "expect": "Yes: a fresh shadow-reviewer playing solodev-review in spec mode judges spec.md and its plan against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
+      "expect": "Yes: a fresh shadow-reviewer playing solo-review in spec mode judges spec.md and its plan against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
     },
     {
       "id": "gate-unattended",
@@ -260,13 +260,13 @@
     },
     {
       "id": "verifier-no-browser",
-      "situation": "You are shadow-reviewer playing solodev-verify. S5 is a UI scenario and your brief says `browser none`.",
+      "situation": "You are shadow-reviewer playing solo-verify. S5 is a UI scenario and your brief says `browser none`.",
       "ask": "What do you do?",
       "expect": "Installs nothing and marks S5 `manual`, with a person's steps as evidence and the lack of a browser in its headline; it doesn't fake a verdict."
     },
     {
       "id": "verifier-browser-unreachable",
-      "situation": "You are shadow-reviewer playing solodev-verify. S5 is a UI scenario, your brief says `browser Chrome DevTools MCP`, and that tool isn't in your session.",
+      "situation": "You are shadow-reviewer playing solo-verify. S5 is a UI scenario, your brief says `browser Chrome DevTools MCP`, and that tool isn't in your session.",
       "ask": "What do you do?",
       "expect": "Marks S5 `manual` with a person's steps as evidence and says in its headline that it couldn't reach the tool; it installs nothing."
     },
@@ -368,7 +368,7 @@
     },
     {
       "id": "verifier-writes-qa",
-      "situation": "You play solodev-verify for uncovered S5 and S6. The feature folder's review.md already has its findings table, all fixed.",
+      "situation": "You play solo-verify for uncovered S5 and S6. The feature folder's review.md already has its findings table, all fixed.",
       "ask": "Where do you write the verdicts?",
       "expect": "In a `## QA` section at the end of review.md, a `scenario | verdict | evidence` table with one row each for S5 and S6, leaving the findings as they are; no separate file. Posting the same table on the PR is fine."
     },
@@ -410,7 +410,7 @@
     },
     {
       "id": "plan-interview",
-      "situation": "You are writing a spec with solodev-plan. Exploring the code left eight open decisions, two of which depend on others.",
+      "situation": "You are writing a spec with solo-plan. Exploring the code left eight open decisions, two of which depend on others.",
       "ask": "How does your first round look?",
       "expect": "Opens with a briefing (The ask, Today, Gaps); asks at most five numbered decisions whose prerequisites are settled, each with a recommended answer, plus an assumptions list to veto by number; the dependent questions wait for a later round."
     },
@@ -440,7 +440,7 @@
     },
     {
       "id": "roadmap-first-round",
-      "situation": "The user asks /strategy to plan 'scheduled greetings'. You have twelve possible questions; seven are routine choices.",
+      "situation": "The user asks /solo-epic to plan 'scheduled greetings'. You have twelve possible questions; seven are routine choices.",
       "ask": "What do you do before and in the first round?",
       "expect": "Reads AGENTS.md, docs/ARCHITECTURE.md and the code first and strikes what the code answers; asks at most five high-leverage numbered questions with recommended answers; routine choices become a numbered assumptions ledger."
     },
@@ -466,43 +466,43 @@
   "routing": [
     {
       "query": "add rate limiting to /api/upload — 10 req/min per api key, 429 with Retry-After, across the router, middleware and config",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "we need SSO with our existing auth module; not sure yet whether to use SAML or OIDC — can you spec it and build it?",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "integrate Stripe billing into the accounts service and the dashboard, end to end with a PR",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "users want to export invoices as CSV from the dashboard; requirements are fuzzy, figure out the details with me",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "continue the csv-export feature, i approved the plan last night",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "pick up issue 118 (F2: team invites) and take it all the way to a ready PR",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "new feature: admins can soft-delete projects and restore them within 30 days — touches the API, the jobs runner and the UI",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "resume — where were we on the password reset feature?",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "implement F2 from the onboarding roadmap",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "add rate limiting to /api/upload with a spec and a PR",
-      "skill": "mission"
+      "skill": "solo-task"
     },
     {
       "query": "fix the typo 'recieve' in src/mailer.ts line 40",
@@ -530,31 +530,31 @@
     },
     {
       "query": "review my branch before I open the PR",
-      "skill": "solodev-review"
+      "skill": "solo-review"
     },
     {
       "query": "can you do a code review of feat/csv-export against its spec?",
-      "skill": "solodev-review"
+      "skill": "solo-review"
     },
     {
       "query": "check this diff for bugs and security holes, it touches the auth middleware",
-      "skill": "solodev-review"
+      "skill": "solo-review"
     },
     {
       "query": "do an independent review of the changes since main, I wrote them with another agent",
-      "skill": "solodev-review"
+      "skill": "solo-review"
     },
     {
       "query": "review the spec and plan for the billing feature before I approve it",
-      "skill": "solodev-review"
+      "skill": "solo-review"
     },
     {
       "query": "re-review the fixes the coder made for R1 and R2",
-      "skill": "solodev-review"
+      "skill": "solo-review"
     },
     {
       "query": "review PR #77 for security issues before i merge it",
-      "skill": "solodev-review"
+      "skill": "solo-review"
     },
     {
       "query": "review my resume and suggest improvements",
@@ -574,27 +574,27 @@
     },
     {
       "query": "i want to build a referral program for our saas — help me nail the goal and break it into features",
-      "skill": "strategy"
+      "skill": "solo-epic"
     },
     {
       "query": "turn this idea into a roadmap: offline mode for the mobile app",
-      "skill": "strategy"
+      "skill": "solo-epic"
     },
     {
       "query": "plan a self-serve billing portal as a product and create github issues for each feature",
-      "skill": "strategy"
+      "skill": "solo-epic"
     },
     {
       "query": "decompose 'team workspaces' into vertical slices and waves, and mark the MVP line",
-      "skill": "strategy"
+      "skill": "solo-epic"
     },
     {
       "query": "revise the onboarding roadmap, we dropped the email verification requirement",
-      "skill": "strategy"
+      "skill": "solo-epic"
     },
     {
       "query": "write a roadmap for our invoicing product",
-      "skill": "strategy"
+      "skill": "solo-epic"
     },
     {
       "query": "file a github issue: login button does nothing on safari 17",
@@ -606,7 +606,7 @@
     },
     {
       "query": "write the spec and gherkin contracts for the csv export feature",
-      "skill": "solodev-plan"
+      "skill": "solo-plan"
     },
     {
       "query": "create AGENTS.md and docs/ARCHITECTURE.md for this repo",
