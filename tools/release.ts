@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
- * Publish develop's build to master. master holds only the product (dist/product: the skills, README.md, LICENSE, assets/), one
- * commit per release, each with a `Source: <develop sha>` trailer and tagged vX.Y.Z; `npx skills add
- * luisintosh/solodev` installs from it. Run on develop with a clean tree that is up to date with origin.
+ * Cut a release on master. `npx skills add luisintosh/solodev` installs the committed skills/ at the repo root, and only
+ * a release writes it: this builds, checks and tests, replaces skills/ with dist/product/skills in one commit,
+ * `release vX.Y.Z`, that touches nothing else, tags it and pushes both. Run on master with a clean tree that is up to
+ * date with origin.
  *
  *   pnpm run release              # patch bump from the latest vX.Y.Z
  *   pnpm run release --minor
@@ -10,12 +11,12 @@
  *   pnpm run release v1.3.0
  */
 import * as fs from "node:fs/promises"
-import * as os from "node:os"
 import * as path from "node:path"
+import { fileURLToPath } from "node:url"
 import { run } from "./sh.ts"
 
-const SOURCE_BRANCH = "develop"
-const RELEASE_BRANCH = "master"
+const BRANCH = "master"
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 
 type Bump = "major" | "minor" | "patch"
 
@@ -69,39 +70,6 @@ async function latestTag(): Promise<string | undefined> {
   return raw.split("\n").find((t) => /^v\d+\.\d+\.\d+$/.test(t))
 }
 
-async function succeeds(cmd: string, args: string[]): Promise<boolean> {
-  return run(cmd, args).then(
-    () => true,
-    () => false,
-  )
-}
-
-/** Release notes: develop's commit subjects since the last release, grouped by Conventional Commit type. */
-async function releaseNotes(previous: string | undefined): Promise<string> {
-  let since = previous
-  if (previous) {
-    // Releases since the split record their develop commit; older tags sit in develop's own history.
-    const source = await run("git", ["log", "-1", "--format=%(trailers:key=Source,valueonly)", previous])
-    if (source) since = source.trim()
-  }
-  const subjects = (await run("git", ["log", "--format=%s", "--no-merges", since ? `${since}..HEAD` : "HEAD"]))
-    .split("\n")
-    .filter(Boolean)
-  const groups: [string, RegExp][] = [
-    ["Features", /^feat(\(.+\))?!?:/],
-    ["Fixes", /^fix(\(.+\))?!?:/],
-    ["Other", /./],
-  ]
-  const used = new Set<string>()
-  const out: string[] = []
-  for (const [title, re] of groups) {
-    const items = subjects.filter((s) => !used.has(s) && re.test(s))
-    for (const s of items) used.add(s)
-    if (items.length) out.push(`## ${title}`, "", ...items.map((s) => `- ${s}`), "")
-  }
-  return out.join("\n") || "No changes since the last release.\n"
-}
-
 async function main() {
   const { bump, explicit } = parseArgs(process.argv.slice(2))
 
@@ -109,14 +77,10 @@ async function main() {
   if (dirty) die("working tree is dirty — commit or stash first")
 
   const branch = await run("git", ["branch", "--show-current"])
-  if (branch !== SOURCE_BRANCH) die(`on ${branch || "a detached HEAD"} — releases are cut from ${SOURCE_BRANCH}`)
-  await run("git", ["fetch", "origin", SOURCE_BRANCH])
-  const [, behind] = (
-    await run("git", ["rev-list", "--left-right", "--count", `HEAD...origin/${SOURCE_BRANCH}`])
-  ).split(/\s+/)
-  if (behind !== "0") die(`${SOURCE_BRANCH} is ${behind} commit(s) behind origin/${SOURCE_BRANCH} — pull first`)
-
-  if (!(await succeeds("gh", ["--version"]))) die("gh is required to publish the GitHub Release")
+  if (branch !== BRANCH) die(`on ${branch || "a detached HEAD"} — releases are cut from ${BRANCH}`)
+  await run("git", ["fetch", "origin", BRANCH])
+  const [, behind] = (await run("git", ["rev-list", "--left-right", "--count", `HEAD...origin/${BRANCH}`])).split(/\s+/)
+  if (behind !== "0") die(`${BRANCH} is ${behind} commit(s) behind origin/${BRANCH} — pull first`)
 
   const previous = await latestTag()
   const tag = explicit ?? (previous ? bumpVersion(previous, bump) : "v0.1.0")
@@ -129,47 +93,21 @@ async function main() {
   await run("pnpm", ["run", "check"])
   await run("pnpm", ["test"])
 
-  // The first release after the split replaces the old master (the whole source tree, with package.json) with an
-  // orphan product history; every later one adds a commit on top of origin/master.
-  const remoteMaster = await run("git", ["ls-remote", "--heads", "origin", RELEASE_BRANCH])
-  if (remoteMaster) await run("git", ["fetch", "origin", RELEASE_BRANCH])
-  const oldLayout =
-    Boolean(remoteMaster) && (await succeeds("git", ["cat-file", "-e", `origin/${RELEASE_BRANCH}:package.json`]))
-  const orphan = !remoteMaster || oldLayout
-  if (oldLayout)
-    console.error(`release: origin/${RELEASE_BRANCH} still holds the source tree; replacing it (force push)`)
+  const skills = path.join(root, "skills")
+  await fs.rm(skills, { recursive: true, force: true })
+  await fs.cp(path.join(root, "dist", "product", "skills"), skills, { recursive: true })
+  await run("git", ["add", "-A", "--", "skills"])
+  if (!(await run("git", ["diff", "--cached", "--name-only"])))
+    die("skills/ already matches the build — nothing to release")
+  await run("git", ["commit", "-q", "-m", `release ${tag}`])
+  // The new commit must pass the skills/ rule: a release commit, touching only skills/, equal to the build.
+  await run("pnpm", ["run", "check"])
 
-  const source = await run("git", ["rev-parse", "HEAD"])
-  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-release-"))
-  const tree = path.join(tmp, "master")
-  const tempBranch = `solodev-release-${process.pid}`
-  try {
-    if (orphan) {
-      await run("git", ["worktree", "add", "--detach", tree, "HEAD"])
-      await run("git", ["checkout", "-q", "--orphan", tempBranch], tree)
-    } else {
-      await run("git", ["worktree", "add", "--detach", tree, `origin/${RELEASE_BRANCH}`])
-    }
-    await run("git", ["rm", "-rfq", "--ignore-unmatch", "."], tree)
-    await fs.cp(path.join("dist", "product"), tree, { recursive: true })
-    await run("git", ["add", "-A"], tree)
-    await run("git", ["commit", "-q", "--allow-empty", "-m", `release ${tag}`, "-m", `Source: ${source}`], tree)
-    const sha = await run("git", ["rev-parse", "HEAD"], tree)
-    console.error(`release: ${RELEASE_BRANCH} ${sha.slice(0, 7)} = develop ${source.slice(0, 7)}, tagged ${tag}`)
-    await run("git", ["tag", "-a", tag, sha, "-m", `release ${tag}`])
-    await run("git", ["push", ...(oldLayout ? ["--force"] : []), "origin", `${sha}:refs/heads/${RELEASE_BRANCH}`])
-    await run("git", ["push", "origin", tag])
-  } finally {
-    await run("git", ["worktree", "remove", "--force", tree]).catch(() => undefined)
-    if (orphan) await run("git", ["branch", "-D", tempBranch]).catch(() => undefined)
-  }
-
-  const notes = path.join(tmp, "notes.md")
-  await fs.writeFile(notes, await releaseNotes(previous))
-  await run("gh", ["release", "create", tag, "--title", tag, "--notes-file", notes, "--verify-tag"])
-  await fs.rm(tmp, { recursive: true, force: true })
+  await run("git", ["tag", "-a", tag, "-m", `release ${tag}`])
+  await run("git", ["push", "origin", BRANCH])
+  await run("git", ["push", "origin", tag])
   console.error(
-    `release: published ${tag} — npx skills add luisintosh/solodev, or pin https://github.com/luisintosh/solodev/tree/${tag}`,
+    `release: pushed ${tag} — npx skills add luisintosh/solodev, or pin npx skills add luisintosh/solodev@${tag}`,
   )
 }
 

@@ -44,7 +44,7 @@ async function bundle(entry: string, outJs: string) {
     // Readable on purpose: users and skill registries audit this file, so it ships unminified.
     banner: {
       js: [
-        "// solodev CLI, bundled from src/cli/ at https://github.com/luisintosh/solodev/tree/develop/src/cli",
+        "// solodev CLI, bundled from src/cli/ at https://github.com/luisintosh/solodev/tree/master/src/cli",
         'import { createRequire } from "node:module";const require=createRequire(import.meta.url);',
       ].join("\n"),
     },

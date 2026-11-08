@@ -5,8 +5,9 @@
  *   2. prompt rules: skill line budgets, no capitalized MUST/NEVER/CRITICAL/ALWAYS, required phrases
  *   3. dist/product skills and references, and dist/ shadow frontmatter, match the catalog
  *   4. README profile × host matrix and shadow table match the catalog
- *   5. dist/product holds only what master ships, its `shadows/` holds exactly the built shadows, and its CLI's `init`
+ *   5. dist/product holds only what a release ships, its `shadows/` holds exactly the built shadows, and its CLI's `init`
  *      writes them
+ *   6. only `release vX.Y.Z` commits touch skills/, and nothing else; at a release, skills/ equals the build
  */
 import type { Dirent } from "node:fs"
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises"
@@ -15,6 +16,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parse as parseYaml } from "yaml"
 import { DISPLAY, formatCodexModel, formatCursorModel, GOLDEN_MODELS, HOSTS, PROFILE_NAMES } from "./models.ts"
+import { RELEASE_SUBJECT, skillsRuleViolations, treeDiff } from "./release-rule.ts"
 import { run } from "./sh.ts"
 import { stripHash } from "../src/cli/init.ts"
 import { type Catalog, claudeDisallowedTools, PRODUCT_EXTRAS, renderPrompt, skillReferences } from "./transpile.ts"
@@ -299,7 +301,7 @@ if (catalog) {
   for (const name of readmeShadows.keys()) if (!roles[name]) fail(`README.md: shadow table lists unknown "${name}"`)
 }
 
-// 5. dist/product is exactly what master ships, and its CLI writes the built shadows.
+// 5. dist/product is exactly what a release ships, and its CLI writes the built shadows.
 const product = path.join(root, "dist", "product")
 const shipped = (await readdir(product).catch(() => [] as string[])).sort()
 const wantShipped = ["skills", ...PRODUCT_EXTRAS].sort()
@@ -340,6 +342,30 @@ else if (catalog) {
     fail(`solodev-cli.mjs init --dry-run failed: ${(err as Error).message}`)
   } finally {
     await rm(tmp, { recursive: true, force: true })
+  }
+}
+
+// 6. skills/ at the root is what `npx skills add` installs; only `pnpm run release` writes it.
+{
+  const log = await run("git", ["log", "--format=%H%x09%s", "--", "skills"], root).catch(() => "")
+  const commits = []
+  for (const line of log.split("\n").filter(Boolean)) {
+    const [sha, subject] = line.split("\t")
+    const files = await run("git", ["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", sha], root)
+    commits.push({ sha, subject, files: files.split("\n").filter(Boolean) })
+  }
+  for (const v of skillsRuleViolations(commits)) fail(`skills/: ${v}`)
+  const pending = await run("git", ["status", "--porcelain", "--", "skills"], root).catch(() => "")
+  if (pending) fail("skills/ has uncommitted changes — only `pnpm run release` writes it")
+  const head = await run("git", ["log", "-1", "--format=%s"], root).catch(() => "")
+  if (RELEASE_SUBJECT.test(head)) {
+    const read = async (dir: string) => {
+      const files = new Map<string, string>()
+      for (const f of await walkFiles(dir)) files.set(path.relative(dir, f), await readFile(f, "utf8"))
+      return files
+    }
+    const drift = treeDiff(await read(path.join(root, "skills")), await read(path.join(product, "skills")))
+    if (drift.length) fail(`skills/ at "${head}" doesn't match the build: ${drift.slice(0, 5).join(", ")}`)
   }
 }
 
