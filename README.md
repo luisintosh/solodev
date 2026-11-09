@@ -125,7 +125,8 @@ flowchart LR
 - **Lean.** Each skill has a line budget enforced in CI, detail loads only when a step needs it, and a feature's stage
   is derived from git and its folder, with no state machine.
 
-Source, evals and build: the [`develop`](https://github.com/luisintosh/solodev/tree/develop) branch.
+Source, evals and build: [`src/`](src), [`evals/`](evals) and [`tools/`](tools), with the contributor guide in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## FAQ
 

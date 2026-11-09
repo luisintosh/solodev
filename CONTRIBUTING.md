@@ -1,7 +1,11 @@
 # Contributing
 
-Work happens on `develop`: branch `feat/<slug>` from it and open pull requests against it. `master` is release output,
-written only by `pnpm run release`; never commit to it by hand.
+One branch, `master`: branch `feat/<slug>` from it and open pull requests against it.
+
+**`skills/` is written only by a release.** It's what `npx skills add luisintosh/solodev` installs, so it changes only
+when `pnpm run release` cuts a version. Don't edit, rebuild or copy into `skills/` by hand or in a feature PR; a feature
+PR changes `src/` and the release ships it. `pnpm run check` (and CI) fails on any commit other than a `release vX.Y.Z`
+commit that touches `skills/`, and on a release commit that touches anything else.
 
 Requires Node ≥22.18 (runs `tools/*.ts` directly via type stripping) and pnpm (`corepack enable`). Run `pnpm install`
 once; tests use Vitest and bundles use esbuild.
@@ -13,10 +17,10 @@ once; tests use Vitest and bundles use esbuild.
 | `src/prompts/**`, `src/catalog.yaml` | `pnpm run build`               |
 | `src/cli/**`                         | `pnpm run build` + `pnpm test` |
 
-`dist/` is generated and untracked. `dist/product/` is exactly what a release puts on `master`: the skills (with the CLI
-bundled at `skills/solo-task/scripts/solodev-cli.mjs`), `README.md`, `LICENSE` and `assets/`. Users install it with
-`npx skills add luisintosh/solodev`; try a build locally with `npx skills add ./dist/product` in a scratch repo. The
-shadows go to `dist/{claude,cursor,codex}/agents/` and are copied, as plain files, into
+`dist/` is generated and untracked. `dist/product/` is what a release ships: the skills (with the CLI bundled at
+`skills/solo-task/scripts/solodev-cli.mjs`), next to the `README.md`, `LICENSE` and `assets/` at the root. A release
+copies `dist/product/skills` to `skills/`; try a build locally with `npx skills add ./dist/product` in a scratch repo.
+The shadows go to `dist/{claude,cursor,codex}/agents/` and are copied, as plain files, into
 `skills/solo-task/shadows/<host>/`, which the CLI reads and writes on `solodev init`.
 
 `README.md` ships to users, so it describes using solodev; the layout of this repository is below.
@@ -31,7 +35,8 @@ src/
 tools/                  transpile, build-cli, hygiene check, release, evals
 evals/                  prompt quiz, stage evals
 test/                   e2e-init.sh, fixture repo
-dist/                   generated (untracked); dist/product is what master ships
+skills/                 the installed skills, written only by pnpm run release
+dist/                   generated (untracked); dist/product/skills is what a release copies to skills/
 ```
 
 Skills are named `solo-<name>` (plus `gen-docs`) and shadows `shadow-<name>`, so neither collides with host built-ins
@@ -50,6 +55,8 @@ Requires a prior `pnpm run build`. Validates:
 - README profile × host matrix and shadow → profile table match the catalog
 - `dist/product` holds only `skills/`, `README.md`, `LICENSE` and `assets/`, and its CLI's `init --dry-run` writes
   exactly the built shadows for each host
+- Only `release vX.Y.Z` commits touch `skills/`, and they touch nothing else; `skills/` has no uncommitted changes; at a
+  release commit, `skills/` equals `dist/product/skills`
 
 ## Before committing
 
@@ -96,16 +103,16 @@ Two tiers, cheapest first:
 | `node tools/check.ts`      | hygiene                                                               |
 | `node tools/quiz.ts`       | prompt quiz: `[--model <alias>]`                                      |
 | `node tools/eval-stage.ts` | stage evals: `validate`, `run [--stage <id>] [--changed] [--judge]`   |
-| `pnpm run release`         | publish `dist/product` to `master`, tag it, publish a GitHub Release  |
+| `pnpm run release`         | copy `dist/product/skills` to `skills/` in a release commit, tag it   |
 
 `pnpm run build` runs transpile + build-cli.
 
 ## Releasing
 
-Run it on `develop`, with a clean tree and nothing to pull; it refuses otherwise. It builds, runs `pnpm run check` and
-`pnpm test`, then replaces `master`'s tree with `dist/product` in one commit, `release vX.Y.Z`, whose `Source:` trailer
-names the develop commit. It tags that commit, pushes `master` and the tag, and publishes a GitHub Release whose notes
-are develop's commit subjects since the last release, grouped by type. Nothing is committed to `develop`.
+Run it on `master`, with a clean tree and nothing to pull; it refuses otherwise. It builds, runs `pnpm run check` and
+`pnpm test`, then replaces `skills/` with `dist/product/skills` in one commit, `release vX.Y.Z`, that touches nothing
+else. It runs `pnpm run check` on that commit, tags it, and pushes `master` and the tag. Run `pnpm run eval:stage`
+first.
 
 ```bash
 pnpm run release            # patch bump from the latest tag (v1.2.0 → v1.2.1)
@@ -114,8 +121,6 @@ pnpm run release --major
 pnpm run release v1.3.0  # explicit version
 ```
 
-`npx skills add luisintosh/solodev` installs from `master`, so users get a change only at the next release; a pinned
-install uses `https://github.com/luisintosh/solodev/tree/vX.Y.Z`. Annotated tags; don't move published tags, cut a new
-patch instead.
-
-Each release adds one commit to `master`. Tags up to v5.0.0 point at the old history.
+`npx skills add luisintosh/solodev` installs `skills/` from `master`, so users get a change only at the next release; a
+pinned install uses `npx skills add luisintosh/solodev@vX.Y.Z`. Annotated tags; don't move published tags, cut a new
+patch instead. Tags before v8.1.0 predate the committed `skills/`, so they can't be installed by pin.

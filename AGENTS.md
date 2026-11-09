@@ -10,8 +10,9 @@ solodev ships no runtime app. It ships role skills, with a small workflow CLI in
 then writes two shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here
 runs against this repo's own code.
 
-Two branches: `develop` holds the source and all work (branch from it, PR into it); `master` holds only the released
-product (`dist/product`), written by `pnpm run release`. Never commit to `master` by hand.
+One branch, `master`: branch from it and PR into it. `skills/` at the root is what `npx skills add` installs, and only
+`pnpm run release` writes it: never edit, rebuild or copy into `skills/` by hand or in a feature PR. `pnpm run check`
+fails on any other commit that touches it.
 
 ## Commands
 
@@ -30,7 +31,8 @@ the **only** sources of truth. `tools/transpile.ts` emits one skill tree for eve
 the two shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and copies those shadows beside
 it, as plain files, into `dist/product/skills/solo-task/shadows/`.
 
-- Never hand-edit `dist/`: it's generated and untracked. Fix the catalog or the prompt body, then `pnpm run build`.
+- Never hand-edit `dist/` or `skills/`: `dist/` is generated and untracked, `skills/` changes only in a release. Fix the
+  catalog or the prompt body, then `pnpm run build`.
 - Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;
   transpile adds it.
 - `{{include:fragments/<name>.md}}` in a prompt body is resolved at transpile time.
@@ -69,7 +71,7 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   name in `LEGACY_SKILLS` in `tools/eval-lib.ts`, `locate` in `src/cli/init.ts`, `skillDir` in `tools/build-cli.ts`,
   `README.md`, and its scenarios and routing queries in `evals/quiz.json`.
 - Changing a prompt or a skill `description`: `pnpm run eval:quiz`; changing the workflow (stages, checks, the shadows)
-  also needs `pnpm run eval:stage`, and so does a release.
+  also needs `pnpm run eval:stage`, and so does a release (`pnpm run release`, the only writer of `skills/`).
 - Changing what a stage eval's setup relies on (the feature-folder format, `solodev approve`, the fixture):
   `pnpm run eval:validate`.
 - A new or changed check: `src/cli/checks.ts`, its test in `src/cli/checks.test.ts`, and `src/cli/help.ts`.
@@ -93,4 +95,4 @@ conventions already in the tree, so keep to them:
 ## Commits
 
 Conventional Commits, lowercase, imperative, no scope: `fix: allow openai/ model prefix for codex agents, sync README`.
-Types in use: `feat`, `fix`, `refactor`, `chore`, `docs`. Feature branches are `feat/<slug>`, cut from `develop`.
+Types in use: `feat`, `fix`, `refactor`, `chore`, `docs`. Feature branches are `feat/<slug>`, cut from `master`.
