@@ -1,10 +1,10 @@
 ![Solodev](assets/header.jpg)
 
-# Solodev
+# SoloDev
 
 **Ship features with an AI team, not a single agent.** Describe a feature, approve one spec, and get back a reviewed,
 tested, documented pull request, on [Claude Code](https://code.claude.com), [Codex](https://developers.openai.com/codex)
-or [Cursor](https://cursor.com).
+or [Cursor](https://cursor.com). The name comes from [_Solo Leveling_](https://www.crunchyroll.com/series/GDKHZEJ0K/solo-leveling), where one hunter commands an army of shadows. 
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-supported-d97757)](https://code.claude.com)
 [![Codex](https://img.shields.io/badge/Codex-supported-10a37f)](https://developers.openai.com/codex)
@@ -163,7 +163,3 @@ tool. Feature folders stay where they are.
 such as your coding tool's built-in browser, Chrome DevTools MCP or
 [agent-browser](https://github.com/vercel-labs/agent-browser); [rtk](https://github.com/rtk-ai/rtk) for quieter command
 output.
-
----
-
-The name comes from _Solo Leveling_, where one hunter commands an army of shadows. Licensed under Apache 2.0.
