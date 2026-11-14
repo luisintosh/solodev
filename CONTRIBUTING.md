@@ -29,7 +29,7 @@ The shadows go to `dist/{claude,cursor,codex}/agents/` and are copied, as plain 
 src/
   catalog.yaml          models per host and profile, skills, shadows   ← source of truth
   prompts/skills/       role skills and their references               ← source of truth
-  prompts/agents/       the two shadow shells
+  prompts/agents/       the shadow shells
   prompts/fragments/    shared includes
   cli/                  the solodev CLI
 tools/                  transpile, build-cli, hygiene check, release, evals
@@ -47,7 +47,7 @@ types; the rest are roles the shadows play or that a user can start on their own
 
 Requires a prior `pnpm run build`. Validates:
 
-- `src/catalog.yaml` shape: the three hosts × `think`/`implement` with the pinned models in `tools/models.ts`, the two
+- `src/catalog.yaml` shape: the three hosts × `think`/`implement` with the pinned models in `tools/models.ts`, the four
   shadows, the seven skills, and a prompt file for each; a shadow's `permission` holds only `edit` path denies
 - Prompt rules: each skill within its line budget, no capitalized MUST/NEVER/CRITICAL/ALWAYS, required phrases, every
   `references/` link resolves and every reference is linked

@@ -19,7 +19,15 @@ import { DISPLAY, formatCodexModel, formatCursorModel, GOLDEN_MODELS, HOSTS, PRO
 import { RELEASE_SUBJECT, skillsRuleViolations, treeDiff } from "./release-rule.ts"
 import { run } from "./sh.ts"
 import { stripHash } from "../src/cli/init.ts"
-import { type Catalog, claudeDisallowedTools, PRODUCT_EXTRAS, renderPrompt, skillReferences } from "./transpile.ts"
+import {
+  type Catalog,
+  claudeDisallowedTools,
+  PRODUCT_EXTRAS,
+  renderPrompt,
+  type Shadow,
+  shadowModel,
+  skillReferences,
+} from "./transpile.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const errors: string[] = []
@@ -61,7 +69,7 @@ function permissionValues(node: unknown, at: string[] = []): [string, string][] 
   return Object.entries(node as Record<string, unknown>).flatMap(([k, v]) => permissionValues(v, [...at, k]))
 }
 
-const SHADOWS = ["shadow-coder", "shadow-reviewer"]
+const SHADOWS = ["shadow-coder", "shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"]
 const SKILLS = ["solo-task", "solo-plan", "solo-code", "solo-review", "solo-verify", "solo-epic", "gen-docs"]
 /** Claude Code ignores any other `experimental.cacheTtl`, so a typo would silently fall back to the 5m default. */
 const CACHE_TTLS = new Set(["5m", "1h"])
@@ -103,6 +111,9 @@ if (catalog) {
     if (!shadow.description?.trim()) fail(`catalog: shadows.${name}.description required`)
     if (!(PROFILE_NAMES as readonly string[]).includes(shadow.profile)) {
       fail(`catalog: shadows.${name}.profile must be ${PROFILE_NAMES.join(" or ")}`)
+    }
+    for (const host of Object.keys(shadow.effort ?? {})) {
+      if (!(HOSTS as readonly string[]).includes(host)) fail(`catalog: shadows.${name}.effort.${host} is not a host`)
     }
     for (const skill of shadow.skills ?? []) {
       if (!catalog.skills?.[skill]) fail(`catalog: shadows.${name} plays ${skill}, which is not a skill`)
@@ -230,10 +241,11 @@ if (catalog) {
   }
   for (const [name, shadow] of Object.entries(catalog.shadows ?? {})) {
     const claudeFm = frontmatter(await readOr(path.join(root, "dist", "claude", "agents", `${name}.md`)))
-    const claudeRef = catalog.hosts.claude.profiles[shadow.profile]
+    if (!(PROFILE_NAMES as readonly string[]).includes(shadow.profile)) continue
+    const claudeRef = shadowModel(catalog, "claude", shadow)
     if (!claudeFm) fail(`dist/claude/agents/${name}.md missing — run pnpm run build`)
     else {
-      if (claudeFm.model !== claudeRef?.id || claudeFm.effort !== claudeRef?.effort) {
+      if (claudeFm.model !== claudeRef.id || claudeFm.effort !== claudeRef.effort) {
         fail(`dist drift: claude ${name} model — run pnpm run build`)
       }
       if (JSON.stringify(claudeFm.skills) !== JSON.stringify(shadow.skills)) {
@@ -247,15 +259,15 @@ if (catalog) {
       }
     }
     const cursorFm = frontmatter(await readOr(path.join(root, "dist", "cursor", "agents", `${name}.md`)))
-    const cursorRef = catalog.hosts.cursor.profiles[shadow.profile]
+    const cursorRef = shadowModel(catalog, "cursor", shadow)
     if (!cursorFm) fail(`dist/cursor/agents/${name}.md missing — run pnpm run build`)
-    else if (cursorRef && cursorFm.model !== formatCursorModel(cursorRef)) {
+    else if (cursorFm.model !== formatCursorModel(cursorRef)) {
       fail(`dist drift: cursor ${name} model ${cursorFm.model} — run pnpm run build`)
     }
     const toml = await readOr(path.join(root, "dist", "codex", "agents", `${name}.toml`))
-    const codexRef = catalog.hosts.codex.profiles[shadow.profile]
+    const codexRef = shadowModel(catalog, "codex", shadow)
     if (!toml) fail(`dist/codex/agents/${name}.toml missing — run pnpm run build`)
-    else if (codexRef) {
+    else {
       const want = formatCodexModel(codexRef)
       if (toml.match(/^model = "(.*)"$/m)?.[1] !== want.model)
         fail(`dist drift: codex ${name} model — run pnpm run build`)
@@ -270,12 +282,17 @@ if (catalog) {
 const readme = await readFile(path.join(root, "README.md"), "utf8")
 const modelsSection = readme.split("## Models")[1]?.split(/^## /m)[0] ?? ""
 const readmeProfiles = new Map<string, Record<string, string>>()
-const readmeShadows = new Map<string, string>()
+const readmeShadows = new Map<string, { profile: string; effort: string }>()
+/** A shadow's effort cell in the README: its per-host overrides in host order, or a dash when it has none. */
+const effortCell = (shadow: Shadow) =>
+  HOSTS.filter((h) => shadow.effort?.[h])
+    .map((h) => `${h} ${shadow.effort![h]}`)
+    .join(" · ") || "—"
 for (const m of modelsSection.matchAll(/^\|\s*`([a-z-]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|/gm)) {
   readmeProfiles.set(m[1]!, { claude: m[2]!, codex: m[3]!, cursor: m[4]! })
 }
-for (const m of modelsSection.matchAll(/^\|\s*`([a-z-]+)`\s*\|\s*`([a-z]+)`\s*\|\s*$/gm)) {
-  readmeShadows.set(m[1]!, m[2]!)
+for (const m of modelsSection.matchAll(/^\|\s*`([a-z-]+)`\s*\|\s*`([a-z]+)`\s*\|\s*([^|`]*?)\s*\|\s*$/gm)) {
+  readmeShadows.set(m[1]!, { profile: m[2]!, effort: m[3]! })
 }
 if (catalog) {
   for (const profile of PROFILE_NAMES) {
@@ -292,11 +309,12 @@ if (catalog) {
   for (const profile of readmeProfiles.keys()) {
     if (!(PROFILE_NAMES as readonly string[]).includes(profile)) fail(`README.md: matrix lists unknown "${profile}"`)
   }
-  const roles: Record<string, string> = Object.fromEntries(
-    Object.entries(catalog.shadows ?? {}).map(([n, s]) => [n, s.profile]),
-  )
-  for (const [name, profile] of Object.entries(roles)) {
-    if (readmeShadows.get(name) !== profile) fail(`README.md: shadow table needs | \`${name}\` | \`${profile}\` |`)
+  const roles = catalog.shadows ?? {}
+  for (const [name, shadow] of Object.entries(roles)) {
+    const row = readmeShadows.get(name)
+    if (row?.profile !== shadow.profile || row.effort !== effortCell(shadow)) {
+      fail(`README.md: shadow table needs | \`${name}\` | \`${shadow.profile}\` | ${effortCell(shadow)} |`)
+    }
   }
   for (const name of readmeShadows.keys()) if (!roles[name]) fail(`README.md: shadow table lists unknown "${name}"`)
 }

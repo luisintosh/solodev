@@ -29,11 +29,12 @@ export type ToolProbe = {
   loggedIn: boolean | null
   /** solodev's coder skill is where this tool looks for skills. */
   skills: boolean
-  /** `solodev init` wrote both shadows for this tool, in this repo or globally. */
+  /** `solodev init` wrote every shadow for this tool, in this repo or globally. */
   shadows: boolean
   think: string
   implement: string
-  launch: { think: Launch; implement: Launch }
+  /** `shadows` is keyed by shadow name: what each one launches with. */
+  launch: { think: Launch; implement: Launch; shadows: Record<string, Launch> }
 }
 
 export type WriterOption = { tool: Tool; via: "native" | "orca"; model: string; launch: Launch; recommended: boolean }
@@ -61,7 +62,7 @@ const SKILL_DIRS: Record<Tool, string[]> = {
   codex: [".agents/skills", ".codex/skills"],
   cursor: [".agents/skills", ".cursor/skills", ".claude/skills"],
 }
-export const SHADOWS = ["shadow-coder", "shadow-reviewer"]
+export const SHADOWS = ["shadow-coder", "shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"]
 
 function launch(tool: Tool, ref: ModelRef): Launch {
   return ref.effort ? { agent: tool, model: ref.id, effort: ref.effort } : { agent: tool, model: ref.id }
@@ -186,7 +187,13 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
           shadows: await hasShadows(deps, tool),
           think: writerId(tool, models[tool].think),
           implement: writerId(tool, models[tool].implement),
-          launch: { think: launch(tool, models[tool].think), implement: launch(tool, models[tool].implement) },
+          launch: {
+            think: launch(tool, models[tool].think),
+            implement: launch(tool, models[tool].implement),
+            shadows: Object.fromEntries(
+              Object.entries(models[tool].shadows).map(([name, ref]) => [name, launch(tool, ref)]),
+            ),
+          },
         },
       ]
     }),

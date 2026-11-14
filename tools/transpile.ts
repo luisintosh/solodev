@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Emit the product (dist/product: the role skills every host installs with `npx skills add`, plus README.md, LICENSE and assets/)
- * and the two shadow agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents), which build-cli copies
+ * and the shadow agents per host (dist/claude/agents, dist/cursor/agents, dist/codex/agents), which build-cli copies
  * beside the CLI for `solodev init`.
  */
 import * as fs from "node:fs/promises"
@@ -26,6 +26,8 @@ export type Shadow = {
   /** Role skills this shadow plays; Claude Code preloads them. */
   skills: string[]
   description: string
+  /** Per host, the effort this shadow runs at instead of its profile's. */
+  effort?: Partial<Record<Host, string>>
   permission?: Permission
   claude?: {
     /** Only for a shadow the commander continues: a longer TTL costs 2x per write and pays off only on reuse. */
@@ -54,6 +56,13 @@ function resolveModel(catalog: Catalog, host: Host, profile: string): ModelRef {
   const ref = catalog.hosts[host]?.profiles[profile]
   if (!ref?.id) throw new Error(`catalog: hosts.${host}.profiles.${profile} missing`)
   return ref
+}
+
+/** The model a shadow runs on for a host: its profile's, at the shadow's own effort when it sets one. */
+export function shadowModel(catalog: Catalog, host: Host, shadow: Shadow): ModelRef {
+  const ref = resolveModel(catalog, host, shadow.profile)
+  const effort = shadow.effort?.[host]
+  return effort ? { ...ref, effort } : ref
 }
 
 async function inlineIncludes(body: string, depth: number): Promise<string> {
@@ -141,7 +150,7 @@ async function emitShadows(catalog: Catalog) {
   for (const [name, shadow] of Object.entries(catalog.shadows)) {
     const body = await renderPrompt(`agents/${name}.md`)
 
-    const claudeRef = resolveModel(catalog, "claude", shadow.profile)
+    const claudeRef = shadowModel(catalog, "claude", shadow)
     const claudeFm: Record<string, unknown> = {
       name,
       description: shadow.description,
@@ -157,14 +166,14 @@ async function emitShadows(catalog: Catalog) {
     const cursorFm = {
       name,
       description: shadow.description,
-      model: formatCursorModel(resolveModel(catalog, "cursor", shadow.profile)),
+      model: formatCursorModel(shadowModel(catalog, "cursor", shadow)),
     }
     await writeFile(
       path.join(distDir, "cursor", "agents", `${name}.md`),
       `${frontmatter(cursorFm)}${body.trimEnd()}\n${cursorRestrictions(shadow)}`,
     )
 
-    const codex = formatCodexModel(resolveModel(catalog, "codex", shadow.profile))
+    const codex = formatCodexModel(shadowModel(catalog, "codex", shadow))
     const toml = [
       `name = ${JSON.stringify(name)}`,
       `description = ${JSON.stringify(shadow.description)}`,

@@ -1,7 +1,7 @@
 # Init
 
 `/solo-task init [tool]` sets up one coding tool: run `solodev init`, naming the tool if the user did, and show its
-report. It writes the two shadows where that tool reads agents, in the repo or globally, matching where the skills were
+report. It writes the shadows where that tool reads agents, in the repo or globally, matching where the skills were
 installed; `--global` or `--project` overrides when the user asks for the other.
 
 - An `edited` shadow is one init didn't write, or one the user changed since; init kept it and printed the diff. Show

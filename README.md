@@ -4,7 +4,9 @@
 
 **Ship features with an AI team, not a single agent.** Describe a feature, approve one spec, and get back a reviewed,
 tested, documented pull request, on [Claude Code](https://code.claude.com), [Codex](https://developers.openai.com/codex)
-or [Cursor](https://cursor.com). The name comes from [_Solo Leveling_](https://www.crunchyroll.com/series/GDKHZEJ0K/solo-leveling), where one hunter commands an army of shadows. 
+or [Cursor](https://cursor.com). The name comes from
+[_Solo Leveling_](https://www.crunchyroll.com/series/GDKHZEJ0K/solo-leveling), where one hunter commands an army of
+shadows.
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-supported-d97757)](https://code.claude.com)
 [![Codex](https://img.shields.io/badge/Codex-supported-10a37f)](https://developers.openai.com/codex)
@@ -44,10 +46,10 @@ repo once.
 
 ### `/solo-task`
 
-`/solo-task` is the commander. It writes the spec with you, then hands the work to two **shadows**, subagents with their
-own models and fresh context: one coder and one reviewer. You can read them first in `skills/solo-task/shadows/<tool>/`;
-`init` copies them into the tool's agents folder (`.claude/agents/`, `.codex/agents/`, `.cursor/agents/`), adding only a
-hash line that lets it spot your edits.
+`/solo-task` is the commander. It writes the spec with you, then hands the work to four **shadows**, subagents with
+their own models and fresh context: a coder, a spec reviewer, a code reviewer and a verifier. You can read them first in
+`skills/solo-task/shadows/<tool>/`; `init` copies them into the tool's agents folder (`.claude/agents/`,
+`.codex/agents/`, `.cursor/agents/`), adding only a hash line that lets it spot your edits.
 
 1. **Spec.** Requirements, acceptance scenarios tagged `@S1`, `@S2`…, and a plan of at most three **journeys**: one test
    file each, proving a group of scenarios.
@@ -89,15 +91,17 @@ has no `AGENTS.md`.
 
 ## Models
 
-| profile     | Claude Code                      | Codex              | Cursor                        |
-| ----------- | -------------------------------- | ------------------ | ----------------------------- |
-| `think`     | `claude-opus-5-5[effort=medium]` | `gpt-6-astra[max]` | `gemini-4-argon[effort=high]` |
-| `implement` | `claude-sonnet-5-5[effort=high]` | `gpt-6.1-sol[max]` | `grok-4.7[effort=high]`       |
+| profile     | Claude Code                      | Codex                 | Cursor                        |
+| ----------- | -------------------------------- | --------------------- | ----------------------------- |
+| `think`     | `claude-opus-5-5[effort=medium]` | `gpt-6-astra[medium]` | `gemini-4-argon[effort=high]` |
+| `implement` | `claude-sonnet-5-5[effort=high]` | `gpt-6.1-sol[high]`   | `grok-4.7[effort=high]`       |
 
-| shadow            | profile     |
-| ----------------- | ----------- |
-| `shadow-coder`    | `implement` |
-| `shadow-reviewer` | `think`     |
+| shadow                 | profile     | effort instead of the profile's |
+| ---------------------- | ----------- | ------------------------------- |
+| `shadow-coder`         | `implement` | —                               |
+| `shadow-spec-reviewer` | `think`     | claude high · codex high        |
+| `shadow-reviewer`      | `think`     | —                               |
+| `shadow-verifier`      | `implement` | claude medium · codex medium    |
 
 Start your session on the `think` model; it plans and reviews, and the cheaper `implement` model writes the code.
 

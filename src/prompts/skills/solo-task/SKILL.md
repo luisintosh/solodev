@@ -14,7 +14,7 @@ checks read only git and the feature folder; `solodev help <command>` explains e
 - `solodev status [<slug>]`: where a feature stands and the next step.
 - `solodev approve <slug>`: records the gate as a line in `progress.md`.
 - `solodev check <slug> --for implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
-- `solodev init [claude|codex|cursor]`: writes a coding tool's two shadows. `/solo-task init [tool]` runs only this, as
+- `solodev init [claude|codex|cursor]`: writes a coding tool's shadows. `/solo-task init [tool]` runs only this, as
   [references/init.md](references/init.md) says, and starts no feature.
 
 A feature lives in its folder, `<state.dir>/<slug>/`, outside the repo: `spec.md` with its `## Plan`, `review.md` with
@@ -31,12 +31,12 @@ the code, tests and docs. Every brief names the folder's absolute path.
 | ------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
 | 1 start       | you                                                    | probe done, branch cut, `progress.md` with its `- tools:` line |
 | 2 spec        | you, with solo-plan                                    | spec and its plan written, open questions answered             |
-| 3 spec review | a fresh shadow-reviewer with solo-review, when needed  | you applied the findings you agree with                        |
+| 3 spec review | a fresh shadow-spec-reviewer, when needed              | you applied the findings you agree with                        |
 | 4 gate        | the user                                               | `solodev approve` recorded                                     |
 | 5 implement   | the coder, with solo-code                              | `solodev check <slug> --for implement` passes                  |
 | 6 code review | shadow-reviewers with solo-review, one or one per lens | `review.md` has no open blocker or major                       |
 | 7 PR          | you                                                    | `solodev check <slug> --for pr` passes, draft PR open          |
-| 8 QA          | solo-verify, if needed                                 | uncovered scenarios have verdicts                              |
+| 8 QA          | a fresh shadow-verifier, if needed                     | uncovered scenarios have verdicts                              |
 | 9 finish      | you                                                    | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** Run `solodev probe` and show its `warnings` in one line.
@@ -95,7 +95,7 @@ the `solodev` path and what to do now; the reply is the shadow's final message. 
 hold the rest. One coder serves the whole feature: continue it for fix rounds. Reviewers and verifiers always start
 fresh; start lens reviewers together, one spawn call each in the same turn.
 
-- **Claude Code:** the Agent tool with `subagent_type` shadow-coder or shadow-reviewer; their role skills are preloaded.
+- **Claude Code:** the Agent tool with the shadow's name as `subagent_type`; its role skill is preloaded.
   Continue the coder with SendMessage.
 - **Codex:** `spawn_agent` with the shadow's name, continued with `send_input`. **Cursor:** the Task tool with the
   shadow's name, resumed by agent id. On both, the brief gives the role skill's absolute `SKILL.md` path.

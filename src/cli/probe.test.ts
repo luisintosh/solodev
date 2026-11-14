@@ -6,9 +6,18 @@ const models: Models = {
   claude: {
     think: { id: "claude-opus-5-5", effort: "medium" },
     implement: { id: "claude-sonnet-5-5", effort: "high" },
+    shadows: { "shadow-spec-reviewer": { id: "claude-opus-5-5", effort: "high" } },
   },
-  codex: { think: { id: "gpt-6.1-sol", effort: "max" }, implement: { id: "gpt-6.1-sol", effort: "medium" } },
-  cursor: { think: { id: "grok-4.7", effort: "xhigh" }, implement: { id: "grok-4.7", effort: "medium" } },
+  codex: {
+    think: { id: "gpt-6.1-sol", effort: "max" },
+    implement: { id: "gpt-6.1-sol", effort: "medium" },
+    shadows: {},
+  },
+  cursor: {
+    think: { id: "grok-4.7", effort: "xhigh" },
+    implement: { id: "grok-4.7", effort: "medium" },
+    shadows: {},
+  },
 }
 
 const ready = JSON.stringify({ ok: true, result: { runtime: { state: "ready" } } })
@@ -47,6 +56,9 @@ describe("probe", () => {
     ])
     expect(p.writers[0]!.launch).toEqual({ agent: "codex", model: "gpt-6.1-sol", effort: "medium" })
     expect(p.tools.claude.launch.think).toEqual({ agent: "claude", model: "claude-opus-5-5", effort: "medium" })
+    expect(p.tools.claude.launch.shadows).toEqual({
+      "shadow-spec-reviewer": { agent: "claude", model: "claude-opus-5-5", effort: "high" },
+    })
     expect(p.defaults).toEqual({ writer: "ask", dispatch: "auto" })
     expect(p.state).toEqual({ dir: "/home/u/.agents/solodev/acme/repo", writable: true })
     expect(p.warnings).toEqual([])

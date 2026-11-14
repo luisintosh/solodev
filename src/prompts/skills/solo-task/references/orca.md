@@ -3,8 +3,8 @@
 A shadow runs as an Orca worker. Use the `orchestration` skill for every Orca step.
 
 - Launch: a supervised worker in the current worktree, with `--agent`, `--model` and `--effort` from `solodev probe`:
-  the coder's from its writer's `launch` (`progress.md` records the choice), the reviewer's and verifier's from the home
-  tool's `launch.think`.
+  the coder's from its writer's `launch` (`progress.md` records the choice), every other shadow's from the home tool's
+  `launch.shadows.<shadow name>`.
 - Task: the brief itself as `--spec`, starting "Use the `solodev-<skill>` skill at <absolute SKILL.md path>", and ending
   "Write your reply to <reply path> and pass it as `--report-path` to `worker_done`." `worker_done` carries only a short
   summary, so the reply goes to `review-output/<role>[-<lens>]-<n>.md` in the feature folder, which you create first;

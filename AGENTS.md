@@ -7,7 +7,7 @@ file. Keep it under about 100 lines: link CONTRIBUTING.md or the README instead 
 
 solodev ships no runtime app. It ships role skills, with a small workflow CLI inside the solo-task skill, that
 `npx skills add luisintosh/solodev` installs into a _consuming_ repo or `$HOME`; `/solo-task init` (the CLI's `init`)
-then writes two shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here
+then writes the shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here
 runs against this repo's own code.
 
 One branch, `master`: branch from it and PR into it. `skills/` at the root is what `npx skills add` installs, and only
@@ -28,8 +28,8 @@ fails on any other commit that touches it.
 
 `src/catalog.yaml` (host × profile models, skills with line budgets, shadows with hard denies) and `src/prompts/**` are
 the **only** sources of truth. `tools/transpile.ts` emits one skill tree for every host into `dist/product/skills` and
-the two shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and copies those shadows beside
-it, as plain files, into `dist/product/skills/solo-task/shadows/`.
+the shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and copies those shadows beside it,
+as plain files, into `dist/product/skills/solo-task/shadows/`.
 
 - Never hand-edit `dist/` or `skills/`: `dist/` is generated and untracked, `skills/` changes only in a release. Fix the
   catalog or the prompt body, then `pnpm run build`.
@@ -56,7 +56,9 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
 - **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
 - **The user decides.** New pauses for the user go in `/solo-task`'s "ask the user only at" list; nothing approves the
   gate or merges for them.
-- **No new stage or agent** unless the stage evals show it pays for itself. Two shadows, two profiles, three hosts.
+- **No new stage or agent** unless the stage evals show it pays for itself. Four shadows, two profiles, three hosts. A
+  shadow exists per model-and-effort a role needs, never per lens: reviewers share a prompt cache through one
+  definition.
 
 ## Checked artifacts
 

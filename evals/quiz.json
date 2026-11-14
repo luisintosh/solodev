@@ -52,7 +52,7 @@
       "id": "mission-run-spec-review",
       "situation": "Your plan in spec.md has two journeys and the feature adds a login token check.",
       "ask": "Does a spec review run, and how?",
-      "expect": "Yes: a fresh shadow-reviewer playing solo-review in spec mode judges spec.md and its plan against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
+      "expect": "Yes: a fresh shadow-spec-reviewer playing solo-review in spec mode judges spec.md and its plan against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
     },
     {
       "id": "gate-unattended",
@@ -260,13 +260,13 @@
     },
     {
       "id": "verifier-no-browser",
-      "situation": "You are shadow-reviewer playing solo-verify. S5 is a UI scenario and your brief says `browser none`.",
+      "situation": "You are shadow-verifier playing solo-verify. S5 is a UI scenario and your brief says `browser none`.",
       "ask": "What do you do?",
       "expect": "Installs nothing and marks S5 `manual`, with a person's steps as evidence and the lack of a browser in its headline; it doesn't fake a verdict."
     },
     {
       "id": "verifier-browser-unreachable",
-      "situation": "You are shadow-reviewer playing solo-verify. S5 is a UI scenario, your brief says `browser Chrome DevTools MCP`, and that tool isn't in your session.",
+      "situation": "You are shadow-verifier playing solo-verify. S5 is a UI scenario, your brief says `browser Chrome DevTools MCP`, and that tool isn't in your session.",
       "ask": "What do you do?",
       "expect": "Marks S5 `manual` with a person's steps as evidence and says in its headline that it couldn't reach the tool; it installs nothing."
     },

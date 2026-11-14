@@ -26,7 +26,7 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
 Each reviewer gets a fresh agent and replies in its final message. Its brief, in the spawn call: solo-review's absolute
 `SKILL.md` path, the slug, the feature folder, the base, the coder's `decisions:`, the `- tools:` line, the `solodev`
 path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with Claude Code's Agent tool
-(`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn, or as one Orca worker
+(`shadow-reviewer` for every lens), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn, or as one Orca worker
 each (the solo-task skill's `references/orca.md`); on any other coding tool use one reviewer. Tell the user the choice
 in one line: `→ review: 4 lenses in parallel (evidence, contract, correctness, design): 14 files, 3 journeys`.
 

@@ -32,7 +32,7 @@ assert_grep() {
 }
 
 SKILLS=(solo-task solo-plan solo-code solo-review solo-verify solo-epic gen-docs)
-SHADOWS=(shadow-coder shadow-reviewer)
+SHADOWS=(shadow-coder shadow-spec-reviewer shadow-reviewer shadow-verifier)
 CLI_REL="skills/solo-task/scripts/solodev-cli.mjs"
 
 # 0. build output: the product holds the skills, the CLI inside the solo-task skill, README.md, LICENSE and assets/
@@ -69,6 +69,12 @@ for shadow in "${SHADOWS[@]}"; do
   assert_file_exists "${TARGET}/.claude/agents/${shadow}.md" "init claude writes ${shadow}"
 done
 assert_grep '- solo-code' "$(cat "${TARGET}/.claude/agents/shadow-coder.md")" "claude shadow-coder preloads solo-code"
+assert_grep 'effort: high' "$(cat "${TARGET}/.claude/agents/shadow-spec-reviewer.md")" "claude shadow-spec-reviewer runs at its own effort"
+if grep -q -- '- solo-verify' "${TARGET}/.claude/agents/shadow-reviewer.md"; then
+  bad "claude shadow-reviewer preloads only solo-review"
+else
+  ok "claude shadow-reviewer preloads only solo-review"
+fi
 assert_file_exists "${SOLODEV_STATE}/consumer-repo/kept/spec.md" "init never touches feature folders"
 (cd "$TARGET" && SOLODEV_HOME=codex "$SOLODEV" init >/dev/null)
 (cd "$TARGET" && "$SOLODEV" init cursor >/dev/null)

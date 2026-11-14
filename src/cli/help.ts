@@ -47,7 +47,7 @@ export const HELP: Record<string, CommandHelp> = {
   },
   init: {
     usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",
-    summary: "Write the two shadow agents (shadow-coder, shadow-reviewer) for one coding tool.",
+    summary: "Write the shadow agents (coder, spec reviewer, reviewer, verifier) for one coding tool.",
     detail: [
       "Run once per coding tool after `npx skills add luisintosh/solodev`. Without a tool: the one running this",
       "session. Scope follows where the skill is installed (under $HOME: global; in a repo: that repo); --global or",
