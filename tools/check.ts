@@ -196,9 +196,9 @@ if (catalog) {
       "all started in the same turn",
       "When unsure, go parallel",
       "merge without it",
-      "an open security row makes it sensitive",
-      "Evidence runs every time",
-      "stays `open` if either says so",
+      "whatever the size of the first review",
+      "A security row is open",
+      "never starts another fix round",
     ],
   }
   for (const [ref, phrases] of Object.entries(referenceContracts)) {

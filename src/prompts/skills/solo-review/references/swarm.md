@@ -43,14 +43,12 @@ user the choice in one line: `→ review: 3 lenses in parallel (evidence, correc
 
 ## Re-review
 
-Pick the lenses and choose one reviewer or several the same way, on the fix diff since the commit the last review saw
-(so correctness and design run too, even on a test-only fix diff); an open security row makes it sensitive. Evidence
-runs every time: the journeys and the project checks again at HEAD.
+One reviewer, `lens: single`, whatever the size of the first review. On the fix diff since the commit the last review
+saw, it rechecks every row the coder replied to, reads the fix diff through the first review's lenses, and runs the
+journeys and the project checks again at HEAD.
 
-- **One reviewer**, `lens: single`, rechecks every open row and reads the fix diff through every lens picked for it.
-- **Several:** the lenses picked for the fix diff, plus each lens named in an open row's `lens` cell. Give each lens the
-  rows its cell names; a row whose cell names no current lens (`single`, the former `contract`, or none) goes to the
-  lens that fits it best. Each lens returns a result per row it was given and new findings in the fix diff. A row given
-  to two lenses stays `open` if either says so, else is `rebutted` if either rebuts (both reasons, and never on a
-  `Weakened test:` row, which stays `open`), else `fixed`. Write the statuses and reasons into `review.md`, and new
-  findings under the next free ids.
+- **A security row is open:** start a second fresh reviewer with `lens: security` in the same turn. It gets the rows
+  whose `lens` cell names security and replies with a result per row and any new finding; the single reviewer gets the
+  rest. Write security's results into `review.md` once both have replied.
+- **A new minor** in the fix diff is written as an open row and never starts another fix round; the PR lists it under
+  Follow-ups. A new blocker or major goes to the user with the rows still open.

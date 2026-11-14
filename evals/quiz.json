@@ -177,14 +177,14 @@
     {
       "id": "review-fix-round",
       "situation": "review.md has an open blocker R1 and an open major R3 (neither a weakened test). It's the first fix round.",
-      "ask": "What do you do, and what do the re-review briefs carry?",
-      "expect": "One fix round with the same coder (continued with SendMessage, not a new one), which replies per finding id; then one re-review, chosen the same way, whose briefs carry the coder's replies and the commit the last review saw."
+      "ask": "What do you do, and what does the re-review brief carry?",
+      "expect": "One fix round with the same coder (continued with SendMessage, not a new one), which replies per finding id; then one re-review by a single reviewer (`lens: single`), whose brief carries the coder's replies and the commit the last review saw."
     },
     {
       "id": "resume-after-fix-round",
       "situation": "The user says \"continue\" in a fresh session. `solodev status` says review, open: R1, R3. progress.md ends with `- review 1 at 3f2a9c1` and `- fix 1: R1 fixed · R3 rebutted: the null check is upstream in parse()`, and the coder's fix is committed.",
       "ask": "Do you run a fix round, and what does the next brief carry?",
-      "expect": "No new fix round: fix 1 is spent. It starts the re-review, chosen as in code review, whose briefs carry the `- fix 1` line (R1 fixed, R3 rebutted with its reason) and 3f2a9c1 as the commit the last review saw."
+      "expect": "No new fix round: fix 1 is spent. It starts the re-review, one `lens: single` reviewer, whose brief carries the `- fix 1` line (R1 fixed, R3 rebutted with its reason) and 3f2a9c1 as the commit the last review saw."
     },
     {
       "id": "review-still-open",
@@ -195,26 +195,26 @@
     {
       "id": "rereview-security-row",
       "situation": "Re-review. review.md has open row R1 with lens `security`. The fix diff touches only src/users.test.js.",
-      "ask": "Which lenses run, and what does each get?",
-      "expect": "The open security row makes the re-review sensitive: security rechecks R1 against the fix diff and evidence runs again at HEAD. It isn't treated as a small test-only change reviewed alone."
+      "ask": "How many reviewers run, and what does each get?",
+      "expect": "Two, started in the same turn: a `lens: security` reviewer rechecks R1, and a `lens: single` reviewer takes the rest of the re-review, including the journeys and project checks again at HEAD."
     },
     {
-      "id": "rereview-mixed-verdict",
-      "situation": "Re-review. Row R2 (`evidence, correctness`, an ordinary finding) went to both lenses. Evidence says fixed; correctness says rebutted, the coder's reason holds.",
-      "ask": "What status does R2 get?",
-      "expect": "rebutted, with both reasons written in review.md."
+      "id": "rereview-new-minor",
+      "situation": "The re-review marked R1 and R3 fixed and found one new minor, R7, in the fix diff. No blocker or major is open.",
+      "ask": "What happens to R7, and what do you do next?",
+      "expect": "R7 stays an open minor row in review.md and is listed under Follow-ups in the PR. No second fix round: on to the PR step."
     },
     {
-      "id": "rereview-mixed-weakened",
-      "situation": "Re-review. Row R4 starts `Weakened test:` and went to evidence and correctness. One says fixed, the other rebutted.",
-      "ask": "What status does R4 get?",
-      "expect": "It stays open: a Weakened test: row is never rebutted by the lenses."
+      "id": "rereview-large-fix",
+      "situation": "Re-review. The first review ran four lenses in parallel. The fix diff touches 9 files; no security row is open.",
+      "ask": "How many reviewers run the re-review?",
+      "expect": "One, with `lens: single`: a re-review doesn't go parallel for size. Only an open security row adds a second reviewer."
     },
     {
       "id": "rereview-single-row",
-      "situation": "Re-review with several lenses. Row R5's lens cell says `single` (the first review was one reviewer); it's about an unhandled empty input.",
-      "ask": "Which lens gets R5?",
-      "expect": "The lens that fits it best: correctness."
+      "situation": "Re-review. Row R1 (lens `security`) and row R5 (lens `correctness`, an unhandled empty input) are open, so two reviewers run.",
+      "ask": "Which reviewer gets R5?",
+      "expect": "The `lens: single` reviewer; the security reviewer gets only the rows whose lens cell names security."
     },
     {
       "id": "reviewer-lens-no-subagents",
