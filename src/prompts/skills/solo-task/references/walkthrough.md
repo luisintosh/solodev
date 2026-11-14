@@ -1,9 +1,9 @@
 # Walkthrough
 
 The run ends on this: what the user needs to know the feature as if they had written it. Build it from the coder's
-latest `how:` and `try:` (the `- how` and `- try` lines in `progress.md`), the verifier's `repro` lines for the
-scenarios QA covered, and the diff, which you read yourself wherever those leave a gap. Write for someone who hasn't
-opened the code yet: plain words, real names, no restating the spec.
+latest `how:` and `try:` (the `- how` and `- try` lines in `progress.md`), the `repro` column of `review.md`'s `## QA`
+for the scenarios QA covered, and the diff, which you read yourself wherever those leave a gap. Write for someone who
+hasn't opened the code yet: plain words, real names, no restating the spec.
 
 ```markdown
 ## Walkthrough

@@ -39,7 +39,7 @@ const NEXT: Record<Stage, (slug: string) => string> = {
   pr: (s) =>
     `\`solodev check ${s} --for pr\`, then push, open the draft PR and log \`- pr <url> · draft\` in progress.md`,
   qa: (s) =>
-    `solo-verify for uncovered scenarios (if any); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> · ready\``,
+    `post the QA comment and settle any manual verdict (if the plan has uncovered scenarios); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> · ready\``,
   done: () => "the user reviews and merges the PR",
 }
 

@@ -166,7 +166,7 @@
       "id": "orca-reply",
       "situation": "`dispatch: orca`. You're starting the coder as an Orca worker for implement.",
       "ask": "How does the brief reach it, and where does its reply land?",
-      "expect": "The brief goes inline as the worker's `--spec`; the worker writes its full reply to `review-output/coder-<n>.md` in the feature folder (created first) and passes it as `--report-path` to `worker_done`, since worker_done carries only a short summary."
+      "expect": "The brief goes inline as the worker's `--spec`; the worker writes its full reply to `coder-<n>.md` in a temp folder outside the repo and the feature folder (created first) and passes it as `--report-path` to `worker_done`, since worker_done carries only a short summary."
     },
     {
       "id": "review-security-lens-fails",
@@ -292,7 +292,7 @@
       "id": "qa-commander-writes",
       "situation": "The reviewer wrote review.md and the verifier replied with its table: S5 pass. The draft PR isn't open yet.",
       "ask": "What do you do with the verifier's table now, and what later?",
-      "expect": "Now: writes it as the `## QA` section at the end of review.md, leaving the findings as they are. Later, once the draft PR is open: posts the same table with its repro lines as one PR comment."
+      "expect": "Now: writes it as the `## QA` section at the end of review.md, leaving the findings as they are. Later, once the draft PR is open: posts the same table as one PR comment."
     },
     {
       "id": "qa-manual",
@@ -412,7 +412,7 @@
       "id": "verifier-writes-qa",
       "situation": "You play solo-verify for uncovered S5 and S6. The feature folder's review.md already has its findings table, all fixed.",
       "ask": "Where do the verdicts go, and do you edit review.md?",
-      "expect": "In its reply: a `scenario | verdict | evidence` table with one row each for S5 and S6. It doesn't edit review.md or post on the PR; the commander writes the `## QA` section and posts the comment."
+      "expect": "In its reply: the QA table with one row each for S5 and S6. It doesn't edit review.md or post on the PR; the commander writes the `## QA` section and posts the comment."
     },
     {
       "id": "finish-no-merge",
@@ -422,7 +422,7 @@
     },
     {
       "id": "finish-walkthrough",
-      "situation": "`solodev check <slug> --for done` passed and the PR is marked ready. progress.md holds the coder's `- how:` line and a `- try S<n>:` line per scenario; QA covered S3 and its repro is in review.md.",
+      "situation": "`solodev check <slug> --for done` passed and the PR is marked ready. progress.md holds the coder's `- how:` line and a `- try S<n>:` line per scenario; QA covered S3 and review.md's `## QA` row for it has a repro.",
       "ask": "What does the finish card open with, and where is that kept?",
       "expect": "The walkthrough: how the feature works (the path a request takes, `file:symbol` in order) and the steps to try each scenario, from the coder's how/try and the verifier's repro for S3. It is saved as the last section of progress.md."
     },
@@ -465,8 +465,8 @@
     {
       "id": "evidence-red-broken-import",
       "situation": "You are a reviewer with `lens: evidence`. progress.md's `- proof J1 red` record ends with a syntax error in a test helper unrelated to the feature, and J1's green record is fine.",
-      "ask": "Is that a finding, and do you run J1 on the base to check?",
-      "expect": "A `blocker`: the red failed for a reason other than the missing behavior, so it proves nothing. You don't run anything on the base; you read the recorded runs and run the journey's command at HEAD only."
+      "ask": "Is that a finding, and how severe?",
+      "expect": "A `blocker`: the red failed for a reason other than the missing behavior, so it proves nothing."
     },
     {
       "id": "coder-test-seems-wrong",
@@ -500,7 +500,7 @@
     },
     {
       "id": "plan-skip-interview",
-      "situation": "You are writing a spec with solo-plan for adding a `--json` flag to an existing CLI command. Exploring the code answered everything: no blocker, and the only open choices are the flag's name and the key order, neither of which changes scope.",
+      "situation": "You are writing a spec with solo-plan for adding a `--json` flag to an existing CLI command. Exploring the code answered everything: no blocker, and the only open choices are an internal helper's name and which file it lives in, neither of which a user would see.",
       "ask": "Do you interview the user before drafting?",
       "expect": "No: with no blocker and no decision that changes scope or what a user would see, it skips the rounds and drafts the spec with each default as a numbered assumption, which the user can veto by number on the gate card."
     },

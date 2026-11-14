@@ -85,8 +85,8 @@ scenario's Then; a unit test of an internal helper doesn't count. One journey is
 each extra one in a line. `command` runs that one file, built from the `test_file` command in `progress.md`'s `- tools:`
 line. A new test dependency, such as Playwright, is named in the plan, and approving the gate approves it.
 
-`uncovered` lists scenarios no test can reasonably reach, often a UI path; the verifier checks them after the PR opens.
-Every scenario is claimed by a journey or listed as uncovered.
+`uncovered` lists scenarios no test can reasonably reach, often a UI path; the verifier checks them beside the code
+review. Every scenario is claimed by a journey or listed as uncovered.
 
 Leave out file-by-file steps, reading lists and done-when lines. The coder explores the code itself, and the scenarios
 are the bar.

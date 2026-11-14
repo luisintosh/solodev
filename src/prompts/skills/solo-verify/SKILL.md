@@ -1,4 +1,4 @@
-Check the acceptance scenarios that no journey test covers, from outside the system, and record a verdict for each.
+Check the acceptance scenarios that no journey test covers, from outside the system, and reply with a verdict for each.
 
 ## Inputs
 
@@ -21,20 +21,19 @@ name the reason in your headline.
 Your reply carries the table; the commander writes it as `review.md`'s `## QA` and posts it on the PR:
 
 ```markdown
-| scenario | verdict | evidence                                                          |
-| -------- | ------- | ----------------------------------------------------------------- |
-| S5       | pass    | `/tmp/qa-csv-export/s5.png`: the download link shows after export |
+| scenario | verdict | evidence                                                          | repro                             |
+| -------- | ------- | ----------------------------------------------------------------- | --------------------------------- |
+| S5       | pass    | `/tmp/qa-csv-export/s5.png`: the download link shows after export | Accounts → Export → open the link |
 ```
 
-One row per scenario in your brief, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
-commander. With no `review.md` to write to, as when a user runs this skill on its own, show the table in chat.
+One row per scenario in your brief, verdict `pass`, `fail` or `manual`; `repro` is one line a person can follow to see
+it. `waived` is the user's decision, written by the commander. Run by a user on its own, show the table in chat.
 
 ## Reply
 
 ```yaml
 verdicts: { S5: pass, S6: fail, S7: manual }
 table: <the markdown table above>
-repro: { S5: <one line a person can follow to see it> }
 failures:
   - scenario: S6
     cause: code | spec # code → a fix round; spec → the user decides

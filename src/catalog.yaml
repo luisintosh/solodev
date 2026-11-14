@@ -65,7 +65,7 @@ shadows:
     skills: [solo-verify]
     description: >-
       Fresh-context verifier: checks the scenarios no test covers from outside the system (solo-verify). Report-only;
-      writes only the QA section of review.md.
+      replies with its verdicts and changes no file.
 
 skills:
   solo-task:

@@ -18,8 +18,8 @@ says: alone, or by starting a reviewer per lens and merging their findings.
   against the spec: one that contradicts it is a finding, one the spec leaves open goes in `notes`. A large diff: review
   the riskiest files first and name in `notes` what you didn't reach.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
-  commit the brief names, nothing else. With `lens: single`, every open row, and the evidence lens's runs again at HEAD;
-  with another lens, the rows your brief gives you.
+  commit the brief names, nothing else. With `lens: single`, every open row your brief doesn't give another reviewer,
+  and the evidence lens's runs at HEAD; with another lens, the rows your brief gives you.
 
 The lenses: [evidence](references/lens-evidence.md) walks the scenarios through the diff, reads the coder's recorded
 runs and runs the journey tests at HEAD and the project's checks; [correctness](references/lens-correctness.md),
@@ -54,7 +54,7 @@ catches. Each finding names `file:line` and a concrete fix.
   diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
   `Weakened test:` row. Leave those rows as they are.
-- `review.md` is the only file you change, and its `## QA` belongs to the verifier; the repo stays as you found it.
+- `review.md` is the only file you change, and its `## QA` belongs to the commander; the repo stays as you found it.
 
 A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it
 to the user.

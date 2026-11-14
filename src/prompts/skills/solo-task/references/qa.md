@@ -13,7 +13,7 @@ review. Both only read, so one fix round can answer both.
 - **A failure in code** joins step 6's fix round, the scenario id as its finding id. Beside the re-review, a fresh
   verifier rechecks every `uncovered` scenario, since a fix can break one that passed. A spec gap goes to the user. Two
   cycles spent → the user.
-- **PR comment (step 8).** Once the draft PR is open, post the table, with the verifier's one-line repro per scenario,
+- **PR comment (step 8).** Once the draft PR is open, post the table, its `repro` column included,
   as one comment with the forge tool the `- tools:` line names.
 - **A `manual` verdict (step 8)** goes to the user: they check it and you record `pass` with their words as evidence,
   they waive it and you record `waived`, or they install a browser tool and you log it and rerun those rows.
