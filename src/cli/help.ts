@@ -35,14 +35,15 @@ export const HELP: Record<string, CommandHelp> = {
     example: "solodev approve csv-export",
   },
   check: {
-    usage: "solodev check <slug> [--for implement|pr|done] [--json]",
-    summary: "Run the checks that must pass before implement → review, PR, or PR ready.",
+    usage: "solodev check <slug> [--for gate|implement|pr|done] [--json]",
+    summary: "Run the checks that must pass before the gate card, implement → review, PR, or PR ready.",
     detail: [
       "Prints one line per check and exits 1 if any fails, naming what to fix. It reads only git and the feature",
       "folder and never runs the project's tools. C1 coverage: every scenario is claimed, and each journey test",
       "tags the scenarios it claims with `@S<n>` · C2 gate held · C3 reports only · C4 review settled · C5 QA",
       "verdicts · C6 proof recorded: each journey has a red, then a green on the tree as it stands. implement",
-      "runs C1, C2 and C6; pr runs C1–C4; done adds C5. Without --for: the set for the stage.",
+      "runs C1, C2 and C6; pr runs C1–C4; done adds C5. gate runs C1 on the plan alone, before any test exists,",
+      "and notes a feature large enough to split. Without --for: the set for the stage.",
     ],
     example: "solodev check csv-export --for implement",
   },

@@ -29,6 +29,7 @@ export const CHECK_IDS = ["C1", "C2", "C3", "C4", "C5", "C6"] as const
 export type CheckId = (typeof CHECK_IDS)[number]
 
 export const CHECK_SETS = {
+  gate: ["C1"],
   implement: ["C1", "C2", "C6"],
   pr: ["C1", "C2", "C3", "C4"],
   done: ["C1", "C2", "C3", "C4", "C5"],
@@ -111,14 +112,22 @@ export async function coverage(root: string, dir: string, requireTests: boolean)
   if (details.length) return result("C1", "fail", details[0]!, details.slice(1))
   const tests = plan.journeys.length
   const uncovered = plan.uncovered.length ? `, ${plan.uncovered.length} left to QA` : ""
+  // Before the gate is the cheap moment to split: a feature this size sends every review down the parallel path.
+  const large =
+    !requireTests && (scenarios.length > MAX_SCENARIOS || tests > MAX_JOURNEYS)
+      ? ` — large for one feature (over ${MAX_SCENARIOS} scenarios or ${MAX_JOURNEYS} journeys): consider splitting it with /solo-epic`
+      : ""
   return result(
     "C1",
     "pass",
-    `${scenarios.length} scenarios, ${tests} journey test${tests === 1 ? "" : "s"}${uncovered}`,
+    `${scenarios.length} scenarios, ${tests} journey test${tests === 1 ? "" : "s"}${uncovered}${large}`,
   )
 }
 
-const c1 = (ctx: CheckContext) => coverage(ctx.root, ctx.dir, true)
+const MAX_SCENARIOS = 12
+const MAX_JOURNEYS = 3
+
+const c1 = (ctx: CheckContext) => coverage(ctx.root, ctx.dir, ctx.set !== "gate")
 
 async function c2(ctx: CheckContext): Promise<CheckResult> {
   const { approval, approvals, matches } = await currentApproval(ctx.dir)

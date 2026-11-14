@@ -129,6 +129,22 @@ describe("checks", () => {
     expect(byId).toEqual({ C1: "pass", C2: "pass", C3: "pass", C4: "fail" })
   })
 
+  test("the gate set checks the plan alone, before any test exists, and notes a large feature", async () => {
+    feat("spec.md", `${SPEC}- @S3 a third one\n\n${plan()}`)
+    const [unclaimed] = await runChecks({ root, dir, set: "gate" })
+    expect(unclaimed!.summary).toBe("no journey or uncovered entry claims S3")
+    feat("spec.md", `${SPEC}\n${plan()}`)
+    expect(await runChecks({ root, dir, set: "gate" })).toMatchObject([
+      { id: "C1", status: "pass", summary: "2 scenarios, 1 journey test" },
+    ])
+    const many = Array.from({ length: 13 }, (_, i) => `- @S${i + 3} one more`).join("\n")
+    const ids = Array.from({ length: 14 }, (_, i) => `S${i + 2}`).join(", ")
+    feat("spec.md", `${SPEC}${many}\n\n${plan(ids)}`)
+    const [large] = await runChecks({ root, dir, set: "gate" })
+    expect(large!.status).toBe("pass")
+    expect(large!.summary).toContain("consider splitting it with /solo-epic")
+  })
+
   test("C1 requires each journey's test file once past the gate", async () => {
     await gate()
     const r = await check("C1")

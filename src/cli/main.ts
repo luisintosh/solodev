@@ -55,7 +55,14 @@ async function requireFeature(state: string, slug: string | undefined): Promise<
   return slug
 }
 
-const SET_FOR_STAGE: Partial<Record<Stage, CheckSet>> = { review: "pr", pr: "pr", qa: "done", done: "done" }
+const SET_FOR_STAGE: Partial<Record<Stage, CheckSet>> = {
+  spec: "gate",
+  gate: "gate",
+  review: "pr",
+  pr: "pr",
+  qa: "done",
+  done: "done",
+}
 
 async function main(argv: string[]): Promise<number> {
   const [command, ...args] = argv
@@ -133,7 +140,7 @@ async function main(argv: string[]): Promise<number> {
     case "check": {
       const slug = await requireFeature(state, positional(args)[0])
       const forFlag = flag(args, "--for")
-      if (forFlag && !(forFlag in CHECK_SETS)) throw new UsageError("--for must be implement, pr or done")
+      if (forFlag && !(forFlag in CHECK_SETS)) throw new UsageError("--for must be gate, implement, pr or done")
       let set = forFlag as CheckSet | undefined
       if (!set) {
         const stage = (await featureStatus(state, slug)).stage

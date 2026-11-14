@@ -43,6 +43,12 @@
       "expect": "Shows that feature's stage and asks the user whether to resume it or start over under the next free slug (csv-export-2)."
     },
     {
+      "id": "spec-gate-check",
+      "situation": "You just wrote spec.md with its plan: 14 scenarios across 2 journeys. `solodev check <slug> --for gate` passes, and its line ends with a note that the feature is large and could be split with /solo-epic.",
+      "ask": "What do you do with that note?",
+      "expect": "Carries on, since the check passed, and shows the note on the gate card so the user can decide whether to split the feature. It doesn't split or stop on its own."
+    },
+    {
       "id": "mission-skip-spec-review",
       "situation": "You wrote spec.md, with its plan, for a --version flag: one journey, no new dependency, no public API, schema, migration, auth or security change, and the user didn't ask for a review.",
       "ask": "Does a spec review run? What do you do next?",

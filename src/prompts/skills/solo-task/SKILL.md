@@ -13,7 +13,7 @@ checks read only git and the feature folder; `solodev help <command>` explains e
 - `solodev probe`: coding tools and their models, Orca, the coder options, and `state`: the feature folders' home.
 - `solodev status [<slug>]`: where a feature stands and the next step.
 - `solodev approve <slug>`: records the gate as a line in `progress.md`.
-- `solodev check <slug> --for implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
+- `solodev check <slug> --for gate|implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
 - `solodev init [claude|codex|cursor]`: writes a coding tool's shadows. `/solo-task init [tool]` runs only this, as
   [references/init.md](references/init.md) says, and starts no feature.
 
@@ -55,7 +55,7 @@ the code, tests and docs. Every brief names the folder's absolute path.
      toolbox as one line for the whole run, `n/a` where the repo has none:
      `- tools: forge glab · tracker linear (mcp) · install … · dev … · test … · test_file … · lint … · typecheck … · build …`.
      Commands come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
-2. **Spec.** Load solo-plan, interview the user in rounds as it says, then write `spec.md` yourself.
+2. **Spec.** Load solo-plan, interview the user as it says, write `spec.md`, pass `solodev check <slug> --for gate`.
 3. **Spec review** runs when the plan has more than one journey, adds a dependency, changes a public API, a data schema
    or a migration, touches auth or security, or the user asks. The reviewer judges the spec against `progress.md`'s
    request. Otherwise tell the user you skipped it and why.

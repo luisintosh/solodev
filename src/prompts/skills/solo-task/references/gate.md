@@ -6,7 +6,7 @@ Show it concisely, after a progress bar:
 - Assumptions, and any open question still standing.
 - The approach and why; rejected alternatives, one line each.
 - The journeys: id, scenarios, test path. Scenarios left to QA (`uncovered`).
-- Spec review: what it changed and what's left, or why it was skipped.
+- Spec review: what it changed and what's left, or why it was skipped. The gate check's note on size, when it gave one.
 - For a ticket run, the ticket comment below, as it will be posted on approval.
 
 End with one question built from `writers` in `solodev probe`, in its order:
