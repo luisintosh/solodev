@@ -60,6 +60,9 @@ their own models and fresh context: a coder, a spec reviewer, a code reviewer an
    payments, migrations, a public API) gets one reviewer per lens, in parallel. A verifier checks any scenario no test
    covers at the same time. Blockers, majors and QA failures go back to the coder once.
 5. **PR.** A draft PR with the QA results as a comment, then the PR is marked ready. You merge.
+6. **Walkthrough.** The run ends by showing how the feature works, file by file in the order a request flows, and the
+   steps to try each scenario yourself. Ask it anything about the feature afterwards; `/solo-task explain` shows the
+   walkthrough again in a later session.
 
 Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget stops and asks you. With
 [Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed by a different

@@ -16,6 +16,8 @@ checks read only git and the feature folder; `solodev help <command>` explains e
 - `solodev check <slug> --for gate|implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
 - `solodev init [claude|codex|cursor]`: writes a coding tool's shadows. `/solo-task init [tool]` runs only this, as
   [references/init.md](references/init.md) says, and starts no feature.
+- `/solo-task explain [<slug>]` starts no feature either: it shows a feature's walkthrough again and answers questions
+  about it, as [references/walkthrough.md](references/walkthrough.md) says.
 
 A feature lives in its folder, `<state.dir>/<slug>/`, outside the repo: `spec.md` with its `## Plan`, `review.md` with
 the findings and any `## QA` verdicts, and `progress.md`, the run's log. Nothing there is committed; the repo gets only
@@ -77,13 +79,15 @@ the code, tests and docs. Every brief names the folder's absolute path.
    starts. The verifier runs beside the reviewers in step 6; [references/qa.md](references/qa.md) says how to brief it,
    what to do with its verdicts, and what is left for this step: the PR comment and any `manual` verdict.
 9. **Finish.** Run `solodev check <slug> --for done`, mark the PR ready, log `- pr <url> · ready`, and show the finish
-   card ([references/pr.md](references/pr.md)).
+   card ([references/pr.md](references/pr.md)). It opens with the walkthrough: how the feature works and how to try it,
+   written from the coder's `how:` and `try:`. Afterwards, answer the user's questions about the feature yourself.
 
 After a reviewer or verifier run, revert anything `git status` shows it changed and tell the user. Commit the coder's
 work after each passing check or fix round with a plain Conventional Commit; push from step 7 on. Log in `progress.md`
 attempts, skipped stages, the user's calls, and for a resume: the coder's brief as `- brief: files <paths> · helpers
 <names>` and a `- sketch S<n>: <text>` per scenario, `- decision implement|fix <n>: <text>` per coder `decisions:`
-entry, `- review <n> at <sha>` per review, `- fix <n>: R1 fixed · R3 rebutted: <reason>` per fix reply.
+entry, its latest `how:` and `try:` as `- how: <entries>` and `- try S<n>: <steps>`, `- review <n> at <sha>` per review,
+`- fix <n>: R1 fixed · R3 rebutted: <reason>` per fix reply.
 
 ## Shadows
 

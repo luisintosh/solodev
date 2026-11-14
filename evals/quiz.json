@@ -421,6 +421,36 @@
       "expect": "Marks the PR ready, shows the finish card with the PR link, and declines to merge: merging belongs to the user. Never pushes to the default branch."
     },
     {
+      "id": "finish-walkthrough",
+      "situation": "`solodev check <slug> --for done` passed and the PR is marked ready. progress.md holds the coder's `- how:` line and a `- try S<n>:` line per scenario; QA covered S3 and its repro is in review.md.",
+      "ask": "What does the finish card open with, and where is that kept?",
+      "expect": "The walkthrough: how the feature works (the path a request takes, `file:symbol` in order) and the steps to try each scenario, from the coder's how/try and the verifier's repro for S3. It is saved as the last section of progress.md."
+    },
+    {
+      "id": "finish-question",
+      "situation": "You showed the finish card ten minutes ago. The user asks: \"why does createPayment allow a null customer, and how do I test the error case?\"",
+      "ask": "Who answers, and how?",
+      "expect": "The commander answers itself from the diff and the feature folder, read-only: no shadow starts and nothing changes. It points at file:line and says when part of the answer is a guess."
+    },
+    {
+      "id": "explain-old-run",
+      "situation": "The user types `/solo-task explain csv-export` in a fresh session. That feature's progress.md has no `## Walkthrough` section; its branch is merged.",
+      "ask": "What do you do, and does a run start?",
+      "expect": "No run and no shadow starts. It builds a walkthrough from the feature's diff against the default branch and the feature folder, says what it couldn't source, prints it, then answers questions."
+    },
+    {
+      "id": "walkthrough-missing-step",
+      "situation": "You are writing the walkthrough. The coder's `try:` has steps for S1 and S2 but nothing for S3, and no verifier ran.",
+      "ask": "What do you write for S3 under Try it?",
+      "expect": "It reads the diff to work out the steps where it can, and says plainly that S3's steps weren't sourced from a real run; it never presents a guess as a tested step."
+    },
+    {
+      "id": "coder-how-try",
+      "situation": "You are shadow-coder. All journeys pass, the implement check passes, and you are writing your `done` reply.",
+      "ask": "Beyond status, journeys, files and decisions, what does the reply carry for the user's walkthrough?",
+      "expect": "`how:` the path one request takes through the change, in order, as file:symbol entries each with its part; and `try:` per scenario the command or steps and data it used to see it work, and what shows."
+    },
+    {
       "id": "coder-red-green",
       "situation": "You are shadow-coder. You wrote J1's journey test before any code for the feature, ran its command, and it passed.",
       "ask": "Is that run J1's red record, and what do you do?",
@@ -530,6 +560,10 @@
     }
   ],
   "routing": [
+    {
+      "query": "/solo-task explain csv-export",
+      "skill": "solo-task"
+    },
     {
       "query": "add rate limiting to /api/upload — 10 req/min per api key, 429 with Retry-After, across the router, middleware and config",
       "skill": "solo-task"

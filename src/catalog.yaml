@@ -69,7 +69,7 @@ shadows:
 
 skills:
   solo-task:
-    budget: 138
+    budget: 142
     description: >-
       Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one
       coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files,
@@ -89,13 +89,13 @@ skills:
     budget: 90
     description: >-
       Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small
-      change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or
-      sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch.
+      change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive
+      one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch.
   solo-verify:
     budget: 54
     description: >-
-      Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per
-      scenario in review.md. Loaded by shadow-verifier for a /solo-task run.
+      Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per
+      scenario. Loaded by shadow-verifier for a /solo-task run.
   solo-epic:
     budget: 150
     description: >-
