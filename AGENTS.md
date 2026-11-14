@@ -53,7 +53,7 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
 - **Git for code, one folder per feature.** No state files and no stage machine. A feature's spec, plan, reports and
   approval line live in its folder outside the repo (`~/.agents/solodev/<owner>/<repo>/<slug>/`), the code in git, and
   `solodev status` derives the stage from both. Nothing harness-related is committed to the user's repo.
-- **One writer.** Only `shadow-coder` edits source; reviewers and the verifier change only their report.
+- **One writer.** Only `shadow-coder` edits source; reviewers change only their report, and the verifier nothing.
 - **The user decides.** New pauses for the user go in `/solo-task`'s "ask the user only at" list; nothing approves the
   gate or merges for them.
 - **No new stage or agent** unless the stage evals show it pays for itself. Four shadows, two profiles, three hosts. A

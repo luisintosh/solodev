@@ -2,7 +2,8 @@ Check the acceptance scenarios that no journey test covers, from outside the sys
 
 ## Inputs
 
-The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in the feature folder's `spec.md`.
+The brief names the slug and the scenarios to check: the `uncovered` list in the feature folder's `spec.md`, on the
+code as it stands in the working tree. A code review may be running beside you; neither of you changes the repo.
 Their Given/When/Then is in `spec.md`. {{include:fragments/commands.md}} The `dev` command starts the app.
 
 ## Checking a scenario
@@ -17,7 +18,7 @@ name the reason in your headline.
 
 ## QA verdicts
 
-Write or update the `## QA` section at the end of `review.md` in the feature folder, leaving its findings as they are:
+Your reply carries the table; the commander writes it as `review.md`'s `## QA` and posts it on the PR:
 
 ```markdown
 | scenario | verdict | evidence                                                          |
@@ -25,20 +26,19 @@ Write or update the `## QA` section at the end of `review.md` in the feature fol
 | S5       | pass    | `/tmp/qa-csv-export/s5.png`: the download link shows after export |
 ```
 
-One row per uncovered scenario, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
-commander. On a second QA cycle, recheck only the rows that failed, or went `manual` for lack of a tool, and update them
-in place. Then post the same table, with a one-line manual repro per scenario, as one comment on the PR, with the forge
-tool the `- tools:` line names.
+One row per scenario in your brief, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
+commander. With no `review.md` to write to, as when a user runs this skill on its own, show the table in chat.
 
 ## Reply
 
 ```yaml
 verdicts: { S5: pass, S6: fail, S7: manual }
+table: <the markdown table above>
+repro: { S5: <one line a person can follow to see it> }
 failures:
   - scenario: S6
     cause: code | spec # code → a fix round; spec → the user decides
     detail: <one line, with file:line when you know it>
-pr_comment: <url, or "">
 headline: <one plain sentence for the user>
 ```
 

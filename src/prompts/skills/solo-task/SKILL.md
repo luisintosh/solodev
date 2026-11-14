@@ -34,9 +34,9 @@ the code, tests and docs. Every brief names the folder's absolute path.
 | 3 spec review | a fresh shadow-spec-reviewer, when needed              | you applied the findings you agree with                        |
 | 4 gate        | the user                                               | `solodev approve` recorded                                     |
 | 5 implement   | the coder, with solo-code                              | `solodev check <slug> --for implement` passes                  |
-| 6 code review | shadow-reviewers with solo-review, one or one per lens | `review.md` has no open blocker or major                       |
+| 6 code review | shadow-reviewers, and a shadow-verifier if needed      | `review.md` has no open blocker or major, no failed verdict    |
 | 7 PR          | you                                                    | `solodev check <slug> --for pr` passes, draft PR open          |
-| 8 QA          | a fresh shadow-verifier, if needed                     | uncovered scenarios have verdicts                              |
+| 8 QA          | you, with the user for a `manual` verdict              | uncovered scenarios pass or are waived, QA comment posted      |
 | 9 finish      | you                                                    | `solodev check <slug> --for done` passes, PR ready, card shown |
 
 1. **Start.** Run `solodev probe` and show its `warnings` in one line.
@@ -66,20 +66,16 @@ the code, tests and docs. Every brief names the folder's absolute path.
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
 6. **Code review.** Run it as solo-review's `references/swarm.md` says, briefing each reviewer fresh with the slug, the
-   base (`git merge-base <default branch> HEAD`) and the coder's `decisions:`. A `Weakened test:` finding goes straight
-   to the user, who picks a fix round, `rebutted` or `deferred`. Any other blocker or major → one fix round with the
+   base (`git merge-base <default branch> HEAD`) and the coder's `decisions:`; with `uncovered` scenarios in the plan,
+   start the verifier in the same turn, as step 8 says. A `Weakened test:` finding goes straight to the user, who picks
+   a fix round, `rebutted` or `deferred`. Any other blocker or major, or a QA failure in code → one fix round with the
    same coder, which replies per finding id, the implement check again, then one re-review by a single reviewer, whose
    brief carries the `- fix` line and the sha of the last `- review` line. Blockers and majors still open go to the
    user: another fix round, `deferred` or `dropped`, written into `review.md`; so do spec gaps in `notes`.
 7. **PR.** `solodev check <slug> --for pr`, push, open a draft PR ([pr.md](references/pr.md)), log `- pr <url> · draft`.
-8. **QA.** The verifier runs only for scenarios listed as `uncovered` in the plan. When none are, the journey tests are
-   the QA and no agent starts. When one needs a browser, the brief carries the last `- browser` line from `progress.md`,
-   as `browser <tool>` or `browser none`. No such line, a tool that's gone, or one the verifier couldn't reach → ask the
-   user as [references/gate.md](references/gate.md) does, leaving out a tool that failed, and log the answer. A QA
-   failure in code goes to the coder as a fix round, the scenario ids as finding ids, then a re-review as in step 6 and
-   a recheck of those rows; a spec gap goes to the user. A `manual` verdict goes to the user: they check it and you
-   record `pass` with their words as evidence, they waive it and you record `waived`, or they install a browser tool and
-   you log it and rerun those rows.
+8. **QA.** Only for scenarios the plan lists as `uncovered`; when none are, the journey tests are the QA and no agent
+   starts. The verifier runs beside the reviewers in step 6; [references/qa.md](references/qa.md) says how to brief it,
+   what to do with its verdicts, and what is left for this step: the PR comment and any `manual` verdict.
 9. **Finish.** Run `solodev check <slug> --for done`, mark the PR ready, log `- pr <url> · ready`, and show the finish
    card ([references/pr.md](references/pr.md)).
 

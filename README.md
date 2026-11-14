@@ -55,11 +55,11 @@ their own models and fresh context: a coder, a spec reviewer, a code reviewer an
    file each, proving a group of scenarios.
 2. **Gate.** You approve the spec. No code exists before that, and `solodev check` fails a branch that has some.
 3. **Implement.** The coder writes the journey tests, then the code and the docs beside it.
-4. **Review.** A reviewer runs each journey test on the old code (it must fail) and the new (it must pass), and reads
-   the diff through **lenses**: evidence, correctness, security, design, UI. A large or sensitive change (auth,
-   payments, migrations, a public API) gets one reviewer per lens, in parallel. Blockers and majors go back to the coder
-   once.
-5. **PR.** A draft PR, QA for any scenario no test covers, then the PR is marked ready. You merge.
+4. **Review.** A reviewer reads each journey test's recorded failing run, runs it on the new code (it must pass), and
+   reads the diff through **lenses**: evidence, correctness, security, design, UI. A large or sensitive change (auth,
+   payments, migrations, a public API) gets one reviewer per lens, in parallel. A verifier checks any scenario no test
+   covers at the same time. Blockers, majors and QA failures go back to the coder once.
+5. **PR.** A draft PR with the QA results as a comment, then the PR is marked ready. You merge.
 
 Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget stops and asks you. With
 [Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed by a different

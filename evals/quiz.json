@@ -260,9 +260,27 @@
     },
     {
       "id": "qa-none",
-      "situation": "The draft PR is open. The plan in spec.md has `uncovered: []`.",
+      "situation": "Code review is about to start. The plan in spec.md has `uncovered: []`.",
       "ask": "Does a verifier run?",
-      "expect": "No agent starts; the journey tests are the QA. It goes on to finish."
+      "expect": "No verifier starts; the journey tests are the QA. Only the reviewers run."
+    },
+    {
+      "id": "qa-with-review",
+      "situation": "The implement check passed and the coder's work is committed. The plan lists `uncovered: [S5]`, a CLI scenario, and the change is small: one reviewer.",
+      "ask": "Which agents do you start, and when?",
+      "expect": "The `lens: single` shadow-reviewer and a fresh shadow-verifier for S5, both in the same turn, before any PR exists. QA doesn't wait for the PR."
+    },
+    {
+      "id": "qa-fail-with-findings",
+      "situation": "Review 1 left an open major R2, and the verifier started beside it returned `S5: fail`, cause code.",
+      "ask": "How many fix rounds, and what runs after?",
+      "expect": "One fix round with the same coder covering both R2 and S5 (the scenario id as its finding id). Then the implement check, one re-review by a single reviewer, and a fresh verifier rechecking every uncovered scenario beside it."
+    },
+    {
+      "id": "qa-commander-writes",
+      "situation": "The reviewer wrote review.md and the verifier replied with its table: S5 pass. The draft PR isn't open yet.",
+      "ask": "What do you do with the verifier's table now, and what later?",
+      "expect": "Now: writes it as the `## QA` section at the end of review.md, leaving the findings as they are. Later, once the draft PR is open: posts the same table with its repro lines as one PR comment."
     },
     {
       "id": "qa-manual",
@@ -308,7 +326,7 @@
     },
     {
       "id": "browser-none-manual",
-      "situation": "Step 8. S5 is an uncovered UI scenario, and `progress.md` has `- browser none` because the user chose a manual test at the gate.",
+      "situation": "Code review is about to start. S5 is an uncovered UI scenario, and `progress.md` has `- browser none` because the user chose a manual test at the gate.",
       "ask": "What does the verifier's brief say about the browser, and do you ask the user anything first?",
       "expect": "`browser none`, with no new question; the verifier writes a person's steps for S5 as a `manual` verdict."
     },
@@ -381,8 +399,8 @@
     {
       "id": "verifier-writes-qa",
       "situation": "You play solo-verify for uncovered S5 and S6. The feature folder's review.md already has its findings table, all fixed.",
-      "ask": "Where do you write the verdicts?",
-      "expect": "In a `## QA` section at the end of review.md, a `scenario | verdict | evidence` table with one row each for S5 and S6, leaving the findings as they are; no separate file. Posting the same table on the PR is fine."
+      "ask": "Where do the verdicts go, and do you edit review.md?",
+      "expect": "In its reply: a `scenario | verdict | evidence` table with one row each for S5 and S6, plus a repro line per scenario. It doesn't edit review.md or post on the PR; the commander writes the `## QA` section and posts the comment."
     },
     {
       "id": "finish-no-merge",
