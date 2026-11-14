@@ -21,8 +21,8 @@ says: alone, or by starting a reviewer per lens and merging their findings.
   commit the brief names, nothing else. With `lens: single`, every open row, and the evidence lens's runs again at HEAD;
   with another lens, the rows your brief gives you.
 
-The lenses: [evidence](references/lens-evidence.md) reads the coder's recorded runs and runs the journey tests at HEAD and
-the project's checks; [contract](references/lens-contract.md), [correctness](references/lens-correctness.md),
+The lenses: [evidence](references/lens-evidence.md) walks the scenarios through the diff, reads the coder's recorded
+runs and runs the journey tests at HEAD and the project's checks; [correctness](references/lens-correctness.md),
 [security](references/lens-security.md), [design](references/lens-design.md) and [ui](references/lens-ui.md) read the
 diff.
 
@@ -63,7 +63,7 @@ to the user.
 
 ```yaml
 mode: spec | code | re-review
-lens: single | evidence | contract | correctness | security | design | ui
+lens: single | evidence | correctness | security | design | ui
 counts: { blocker: 0, major: 1, minor: 2 }
 findings: [] # spec review and lens runs: severity, location, finding
 rows: [] # lens re-review: id, result (fixed | rebutted | open), reason

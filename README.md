@@ -31,13 +31,13 @@ Then, once in each coding tool: `/solo-task init`, start a new session, and:
 Ask one agent to "build feature X" and it guesses at the scope, writes tests that pass by construction, reviews its own
 work, and loses the thread when its context fills up. solodev gives top models what they can't give themselves:
 
-|                                               | One agent | Plan mode (`/plan`) | solodev                                       |
-| --------------------------------------------- | --------- | ------------------- | --------------------------------------------- |
-| Spec you approve before code                  | no        | a plan              | requirements + acceptance scenarios + plan    |
-| Tests checked to fail first                   | no        | no                  | yes, by the reviewer, on the old and new code |
-| Review by an agent that didn't write the code | no        | no                  | yes, fresh context, by lens                   |
-| Machine-checked gates                         | no        | no                  | yes, the `solodev` CLI reads git              |
-| Ends in                                       | a diff    | a diff              | a ready PR you merge                          |
+|                                               | One agent | Plan mode (`/plan`) | solodev                                      |
+| --------------------------------------------- | --------- | ------------------- | -------------------------------------------- |
+| Spec you approve before code                  | no        | a plan              | requirements + acceptance scenarios + plan   |
+| Tests checked to fail first                   | no        | no                  | yes, each run recorded, read by the reviewer |
+| Review by an agent that didn't write the code | no        | no                  | yes, fresh context, by lens                  |
+| Machine-checked gates                         | no        | no                  | yes, the `solodev` CLI reads git             |
+| Ends in                                       | a diff    | a diff              | a ready PR you merge                         |
 
 ## How it works
 
@@ -56,9 +56,9 @@ their own models and fresh context: a coder, a spec reviewer, a code reviewer an
 2. **Gate.** You approve the spec. No code exists before that, and `solodev check` fails a branch that has some.
 3. **Implement.** The coder writes the journey tests, then the code and the docs beside it.
 4. **Review.** A reviewer runs each journey test on the old code (it must fail) and the new (it must pass), and reads
-   the diff through **lenses**: evidence, contract, correctness, security, design, UI. A large or sensitive change
-   (auth, payments, migrations, a public API) gets one reviewer per lens, in parallel. Blockers and majors go back to
-   the coder once.
+   the diff through **lenses**: evidence, correctness, security, design, UI. A large or sensitive change (auth,
+   payments, migrations, a public API) gets one reviewer per lens, in parallel. Blockers and majors go back to the coder
+   once.
 5. **PR.** A draft PR, QA for any scenario no test covers, then the PR is marked ready. You merge.
 
 Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget stops and asks you. With

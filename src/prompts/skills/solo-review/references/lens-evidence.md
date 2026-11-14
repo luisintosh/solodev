@@ -1,8 +1,12 @@
 # Evidence lens
 
-You run things; the other lenses only read. Judge each command by its output, not only its exit code. The commands are
-the brief's `- tools:` line and each journey's `command` in the plan. Test files in the diff are under review too, not
-evidence.
+You judge whether the tests prove the scenarios, and you run things; the other lenses only read. Judge each command by
+its output, not only its exit code. The commands are the brief's `- tools:` line and each journey's `command` in the
+plan. Test files in the diff are under review too, not evidence.
+
+- **Scenarios pinned.** Walk each scenario in `spec.md` and each journey in its `## Plan` through the diff: find the
+  code that makes its Given/When/Then hold and the assertion that proves it. A violated scenario is a `blocker`; a
+  changed code path no test asserts, or a scenario its journey test doesn't really pin, is a `major`.
 
 - **Fail, then pass.** `progress.md` holds the coder's runs, a `- proof <journey> red` and a `green` per journey with the
   last lines of each output. Read the red: one that failed for any reason but the missing behavior (a broken import
@@ -17,5 +21,7 @@ evidence.
 - **Config documented.** Undocumented config, as below, is a `major`.
 
 On re-review, run the journeys and the project checks again at HEAD.
+
+{{include:fragments/practices-contract.md}}
 
 {{include:fragments/practices-evidence.md}}

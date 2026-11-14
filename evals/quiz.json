@@ -118,13 +118,13 @@
       "id": "review-small",
       "situation": "Code review. `git diff --stat`: src/greet.js and src/greet.test.js, 30 lines; one journey; nothing touches auth, data, secrets or the UI.",
       "ask": "One reviewer or one per lens, and which lenses?",
-      "expect": "One reviewer with `lens: single`, listing evidence, correctness and design (contract too, since it adds behavior). No security or ui lens."
+      "expect": "One reviewer with `lens: single`, listing evidence, correctness and design. No security or ui lens."
     },
     {
       "id": "review-sensitive",
       "situation": "Code review. 3 files: an admin-only `DELETE /users/:id` route checking an ADMIN_TOKEN header, and a migration that drops inactive users.",
       "ask": "One reviewer or one per lens, which lenses, and how do you start them?",
-      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design, contract and security, each a fresh shadow-reviewer with its own brief in its spawn call, all Agent calls in the same turn."
+      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design and security, each a fresh shadow-reviewer with its own brief in its spawn call, all Agent calls in the same turn."
     },
     {
       "id": "review-unsure-size",
@@ -158,9 +158,9 @@
     },
     {
       "id": "review-merge-duplicate",
-      "situation": "Merging lens replies. Contract found a minor at src/users.js:14, correctness a major at src/users.js:14, both about the same missing await.",
+      "situation": "Merging lens replies. Evidence found a minor at src/users.js:14, correctness a major at src/users.js:14, both about the same missing await.",
       "ask": "What row goes in review.md, with its severity, lens cell and status?",
-      "expect": "One row, not two: severity major, lens cell `contract, correctness`, status open."
+      "expect": "One row, not two: severity major, lens cell `evidence, correctness`, status open."
     },
     {
       "id": "review-merge-existing-row",
@@ -200,13 +200,13 @@
     },
     {
       "id": "rereview-mixed-verdict",
-      "situation": "Re-review. Row R2 (`contract, correctness`, an ordinary finding) went to both lenses. Contract says fixed; correctness says rebutted, the coder's reason holds.",
+      "situation": "Re-review. Row R2 (`evidence, correctness`, an ordinary finding) went to both lenses. Evidence says fixed; correctness says rebutted, the coder's reason holds.",
       "ask": "What status does R2 get?",
       "expect": "rebutted, with both reasons written in review.md."
     },
     {
       "id": "rereview-mixed-weakened",
-      "situation": "Re-review. Row R4 starts `Weakened test:` and went to evidence and contract. One says fixed, the other rebutted.",
+      "situation": "Re-review. Row R4 starts `Weakened test:` and went to evidence and correctness. One says fixed, the other rebutted.",
       "ask": "What status does R4 get?",
       "expect": "It stays open: a Weakened test: row is never rebutted by the lenses."
     },
