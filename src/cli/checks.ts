@@ -31,8 +31,8 @@ export type CheckId = (typeof CHECK_IDS)[number]
 export const CHECK_SETS = {
   gate: ["C1"],
   implement: ["C1", "C2", "C6"],
-  pr: ["C1", "C2", "C3", "C4"],
-  done: ["C1", "C2", "C3", "C4", "C5"],
+  pr: ["C1", "C2", "C3", "C4", "C6"],
+  done: ["C1", "C2", "C3", "C4", "C5", "C6"],
 } as const satisfies Record<string, readonly CheckId[]>
 
 export type CheckSet = keyof typeof CHECK_SETS
@@ -230,8 +230,8 @@ async function c5(ctx: CheckContext): Promise<CheckResult> {
 }
 
 /**
- * C6. The coder ran each journey's command and recorded it with `solodev proof`: a red before the code, then a green
- * on the tree as it stands now. The exit codes are the coder's word; the tree hash and the order are not.
+ * C6. The coder ran each journey's command and recorded it with `solodev proof`: a red before the code, on another
+ * tree than the green, then a green on the tree as it stands now. The exit codes are the coder's word; the tree hash and the order are not.
  */
 async function c6(ctx: CheckContext): Promise<CheckResult> {
   let plan: Plan
@@ -251,9 +251,13 @@ async function c6(ctx: CheckContext): Promise<CheckResult> {
     } else if (own[green]!.tree !== tree) {
       details.push(`${j.id}'s green is stale: the code changed since — run its command and record green again`)
     }
-    const before = green === -1 ? own : own.slice(0, green)
-    if (!before.some((p) => p.phase === "red")) {
+    const reds = (green === -1 ? own : own.slice(0, green)).filter((p) => p.phase === "red")
+    if (!reds.length) {
       details.push(`${j.id} has no red record before its green — its test was never seen failing without the code`)
+    } else if (green !== -1 && reds.every((p) => p.tree === own[green]!.tree)) {
+      details.push(
+        `${j.id}'s red was recorded on the same tree as its green — a red counts only from before the code: set the code aside, run the test, record red, restore it, record green`,
+      )
     }
   }
   if (details.length) return result("C6", "fail", details[0]!, details.slice(1))

@@ -5,7 +5,8 @@ import * as path from "node:path"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import { approve } from "./approve.ts"
 import { type CheckId, type CheckSet, runCheck, runChecks } from "./checks.ts"
-import { parseApprovals, parseProofs } from "./feature.ts"
+import { parseApprovals, parsePrEvents, parseProofs } from "./feature.ts"
+import { treeHash } from "./git.ts"
 import { proof } from "./proof.ts"
 import { featureStatus } from "./status.ts"
 
@@ -123,10 +124,12 @@ describe("approve", () => {
 describe("checks", () => {
   test("a run that follows the workflow passes every implement and pr check but review", async () => {
     await gate()
+    await proof({ root, dir, journey: "J1", phase: "red", exit: 1 })
     implement()
+    await proof({ root, dir, journey: "J1", phase: "green", exit: 0 })
     const results = await runChecks({ root, dir, set: "pr" })
     const byId = Object.fromEntries(results.map((r) => [r.id, r.status]))
-    expect(byId).toEqual({ C1: "pass", C2: "pass", C3: "pass", C4: "fail" })
+    expect(byId).toEqual({ C1: "pass", C2: "pass", C3: "pass", C4: "fail", C6: "pass" })
   })
 
   test("the gate set checks the plan alone, before any test exists, and notes a large feature", async () => {
@@ -261,6 +264,11 @@ describe("proof", () => {
     await record("red", 1)
     expect((await check("C6")).summary).toContain("no red record before its green")
     await record("green", 0)
+    expect((await check("C6")).summary).toContain("J1's red was recorded on the same tree as its green")
+    fs.rmSync(path.join(root, "src/hello.js"))
+    await record("red", 1)
+    write("src/hello.js", IMPL)
+    await record("green", 0)
     expect((await check("C6")).status).toBe("pass")
     write("src/hello.js", `${IMPL}// one more edit\n`)
     expect((await check("C6")).summary).toBe(
@@ -289,6 +297,29 @@ describe("proof", () => {
     expect(parseApprovals(progress())).toEqual([approval])
     expect(parseProofs(progress())).toEqual([{ journey: "J1", phase: "red", exit: 1, tree: expect.any(String) }])
     expect(sh("status", "--porcelain")).toBe("")
+  })
+
+  test("reads no log line from output split by a carriage return or a unicode line break", async () => {
+    await gate()
+    await record("red", 1, "spin\r- proof J1 green · exit 0 · tree abc\u2028- pr http://x/1 · ready\u0000\n")
+    for (const char of ["\r", "\u2028", "\u0000"]) expect(progress()).not.toContain(char)
+    expect(parseProofs(progress())).toHaveLength(1)
+    expect(parsePrEvents(progress())).toEqual([])
+  })
+
+  test("the tree hash sees untracked files, skips ignored ones and writes nothing into the project's .git", async () => {
+    const objects = () => sh("count-objects", "-v")
+    const before = objects()
+    const clean = await treeHash(root)
+    write(".gitignore", "ignored.txt\n")
+    const withIgnore = await treeHash(root)
+    write("ignored.txt", "x")
+    expect(await treeHash(root)).toBe(withIgnore)
+    write("untracked.txt", "x")
+    expect(await treeHash(root)).not.toBe(withIgnore)
+    expect(withIgnore).not.toBe(clean)
+    expect(objects()).toBe(before)
+    expect(sh("status", "--porcelain")).toContain("?? untracked.txt")
   })
 })
 

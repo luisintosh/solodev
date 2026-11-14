@@ -10,11 +10,18 @@ const TAIL_WIDTH = 200
 // biome-ignore lint/suspicious/noControlCharactersInRegex: strips terminal color codes from test output
 const ANSI = /\u001b\[[0-9;?]*[ -/]*[@-~]/g
 
-/** The output's last lines, each behind `  > ` so nothing in them reads as a progress.md log line. */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: strips control characters from test output
+const CONTROL = /[\u0000-\u0008\u000b-\u001f\u007f]/g
+
+/**
+ * The output's last lines, each behind `  > ` so nothing in them reads as a progress.md log line. Splits wherever a
+ * multiline regex sees a line start, a lone carriage return included.
+ */
 export function tail(output: string): string[] {
   return output
     .replace(ANSI, "")
-    .split(/\r?\n/)
+    .split(/\r\n|[\r\n\u2028\u2029]/)
+    .map((l) => l.replace(CONTROL, ""))
     .map((l) => l.trimEnd())
     .filter(Boolean)
     .slice(-TAIL_LINES)
@@ -40,6 +47,6 @@ export async function proof(opts: ProofOptions): Promise<Proof> {
   const file = path.join(opts.dir, "progress.md")
   const progress = (await readIfExists(file)) ?? ""
   const sep = progress === "" || progress.endsWith("\n") ? "" : "\n"
-  await fs.writeFile(file, `${progress}${sep}${[proofLine(record), ...tail(opts.output ?? "")].join("\n")}\n`)
+  await fs.appendFile(file, `${sep}${[proofLine(record), ...tail(opts.output ?? "")].join("\n")}\n`)
   return record
 }

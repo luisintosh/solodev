@@ -28,15 +28,33 @@ export async function resolveBase(root: string, env = process.env): Promise<stri
 }
 
 /**
- * A hash of the working tree as it stands: tracked and untracked files, not ignored ones. Built in a throwaway index,
- * so the project's own index and HEAD are untouched; it stays the same when that tree is later committed.
+ * A hash of the working tree as it stands: tracked and untracked files, not ignored ones. Built in a throwaway index
+ * and a throwaway object store that reads the project's own as an alternate, so nothing in the project's `.git`
+ * changes; it stays the same when that tree is later committed.
  */
 export async function treeHash(root: string): Promise<string> {
+  const gitPath = async (name: string) =>
+    (await git(root, ["rev-parse", "--path-format=absolute", "--git-path", name])).trim()
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "solodev-tree-"))
-  const opts = { cwd: root, env: { GIT_INDEX_FILE: path.join(tmp, "index") } }
+  const index = path.join(tmp, "index")
+  const objects = path.join(tmp, "objects")
+  const opts = {
+    cwd: root,
+    env: {
+      GIT_INDEX_FILE: index,
+      GIT_OBJECT_DIRECTORY: objects,
+      GIT_ALTERNATE_OBJECT_DIRECTORIES: await gitPath("objects"),
+    },
+  }
   try {
-    // Starting from HEAD's tree keeps `add` to the changed files; a repo with no commit starts empty.
-    await run("git", ["read-tree", "HEAD"], opts)
+    await fs.mkdir(objects)
+    // The project's index carries the stat data that lets `add` skip unchanged files; without one, start from HEAD's
+    // tree, or empty in a repo with no commit.
+    const seeded = await fs.copyFile(await gitPath("index"), index).then(
+      () => true,
+      () => false,
+    )
+    if (!seeded) await run("git", ["read-tree", "HEAD"], opts)
     const add = await run("git", ["add", "-A"], opts)
     if (add.code !== 0) throw new Error(`git add failed: ${add.stderr.trim()}`)
     const tree = await run("git", ["write-tree"], opts)
