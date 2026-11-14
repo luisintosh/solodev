@@ -41,9 +41,21 @@ export const HELP: Record<string, CommandHelp> = {
       "Prints one line per check and exits 1 if any fails, naming what to fix. It reads only git and the feature",
       "folder and never runs the project's tools. C1 coverage: every scenario is claimed, and each journey test",
       "tags the scenarios it claims with `@S<n>` · C2 gate held · C3 reports only · C4 review settled · C5 QA",
-      "verdicts. implement runs C1–C2, pr adds C3–C4, done adds C5. Without --for: the set for the stage.",
+      "verdicts · C6 proof recorded: each journey has a red, then a green on the tree as it stands. implement",
+      "runs C1, C2 and C6; pr runs C1–C4; done adds C5. Without --for: the set for the stage.",
     ],
     example: "solodev check csv-export --for implement",
+  },
+  proof: {
+    usage: "solodev proof <slug> <journey> red|green --exit <code> [< output]",
+    summary: "Record one run of a journey's command, which you ran yourself, in progress.md.",
+    detail: [
+      "Runs nothing. Appends `- proof <journey> red|green · exit <code> · tree <hash>` with the hash of the working",
+      "tree as it stands (tracked and untracked files) and the last lines of the output given on stdin. red is the",
+      "journey test failing before the code exists, so it needs a non-zero exit; green needs 0. Any change to the",
+      "tree after a green makes it stale for C6: run the command and record it again.",
+    ],
+    example: "npm test -- export > out.txt 2>&1; solodev proof csv-export J1 green --exit $? < out.txt",
   },
   init: {
     usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",

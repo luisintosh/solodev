@@ -14,14 +14,14 @@ Each journey is one test at its `test` path that exercises its scenarios through
 the brief's sketch on the repo's existing fixtures; a sketch that doesn't fit the code is yours to correct. A journey is
 done when:
 
-- its `command` passes now and, on the code before the feature, fails because the behavior is missing (the reviewer runs
-  both);
+- its `command` fails because the behavior is missing, then passes, and you recorded each run as it happened:
+  `solodev proof <slug> <journey> red|green --exit <its exit code> < <its output, in a temp file outside the repo>`;
 - each scenario's Given/When/Then holds, not only the test being green, and the test or assertion that proves it carries
   its `@S<n>` tag in its name or a comment beside it.
 
-Order the work as you judge best. While you work, run the journey commands; typecheck and lint run once, in the check
-before you reply. Write to the lists in [references/practices.md](references/practices.md) as you go; the reviewer
-checks your diff against the same ones.
+Write a journey's test before its code; order the rest as you judge best. While you work, run the journey commands;
+typecheck and lint run once, in the check before you reply. Write to the lists in
+[references/practices.md](references/practices.md) as you go; the reviewer checks your diff against the same ones.
 
 Every changed line traces to a scenario in your brief or to a finding you were sent. Leave unrelated code alone.
 
@@ -47,8 +47,8 @@ green.
 
 ## Before you reply
 
-Run the journey commands and the project's typecheck, lint and test, and `solodev check <slug> --for implement`. Fix
-what they name in code you touched; mention a failure in a file you didn't touch instead of fixing it.
+Run typecheck, lint and test, then each journey's command, recording its green after your last edit, and
+`solodev check <slug> --for implement`. Fix what they name in code you touched; only mention a failure elsewhere.
 
 ## Reply
 

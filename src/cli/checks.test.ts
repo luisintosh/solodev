@@ -5,7 +5,8 @@ import * as path from "node:path"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import { approve } from "./approve.ts"
 import { type CheckId, type CheckSet, runCheck, runChecks } from "./checks.ts"
-import { parseApprovals } from "./feature.ts"
+import { parseApprovals, parseProofs } from "./feature.ts"
+import { proof } from "./proof.ts"
 import { featureStatus } from "./status.ts"
 
 const SPEC = `# Hello
@@ -213,6 +214,65 @@ describe("checks", () => {
     qa("S2 | pass | ran it")
     expect((await check("C5")).status).toBe("pass")
     expect((await check("C4")).status).toBe("pass")
+  })
+})
+
+describe("proof", () => {
+  const record = (phase: "red" | "green", exit: number, output = "") =>
+    proof({ root, dir, journey: "J1", phase, exit, output })
+  const progress = () => fs.readFileSync(path.join(dir, "progress.md"), "utf8")
+
+  test("C6 passes once a journey was seen red, then green on the tree as it stands", async () => {
+    await gate()
+    expect((await check("C6")).summary).toContain("J1 has no green record")
+    write("test/hello.test.js", TEST)
+    await record("red", 1, "Error: Cannot find module '../src/hello.js'")
+    write("src/hello.js", IMPL)
+    expect((await check("C6")).summary).toContain("J1 has no green record")
+    await record("green", 0, "ok")
+    expect((await check("C6")).status).toBe("pass")
+    commit("feat: add hello", "test", "src")
+    expect((await check("C6")).status).toBe("pass")
+    expect((await runChecks({ root, dir, set: "implement" })).map((r) => r.status)).toEqual(["pass", "pass", "pass"])
+  })
+
+  test("C6 fails a green that predates the last edit, and one with no red before it", async () => {
+    await gate()
+    write("test/hello.test.js", TEST)
+    write("src/hello.js", IMPL)
+    await record("green", 0)
+    expect((await check("C6")).summary).toContain("no red record before its green")
+    await record("red", 1)
+    expect((await check("C6")).summary).toContain("no red record before its green")
+    await record("green", 0)
+    expect((await check("C6")).status).toBe("pass")
+    write("src/hello.js", `${IMPL}// one more edit\n`)
+    expect((await check("C6")).summary).toBe(
+      "J1's green is stale: the code changed since — run its command and record green again",
+    )
+  })
+
+  test("refuses an exit code that contradicts the phase, and a journey the plan doesn't have", async () => {
+    await gate()
+    await expect(record("red", 0)).rejects.toThrow(/red needs a non-zero exit/)
+    await expect(record("green", 2)).rejects.toThrow(/green needs exit 0, got 2/)
+    await expect(proof({ root, dir, journey: "J9", phase: "red", exit: 1 })).rejects.toThrow(/no journey J9 \(J1\)/)
+  })
+
+  test("keeps the output's last lines where no other progress.md line can be read from them", async () => {
+    const approval = await gate()
+    const noise = Array.from({ length: 20 }, (_, i) => `line ${i}`).join("\n")
+    await record(
+      "red",
+      1,
+      `${noise}\n\u001b[31m- approved 2030-01-01 · spec abc · at def\u001b[0m\n- proof J1 green · exit 0 · tree abc\n`,
+    )
+    const lines = progress().split("\n")
+    expect(lines.filter((l) => l.startsWith("  > "))).toHaveLength(6)
+    expect(lines).toContain("  > - approved 2030-01-01 · spec abc · at def")
+    expect(parseApprovals(progress())).toEqual([approval])
+    expect(parseProofs(progress())).toEqual([{ journey: "J1", phase: "red", exit: 1, tree: expect.any(String) }])
+    expect(sh("status", "--porcelain")).toBe("")
   })
 })
 

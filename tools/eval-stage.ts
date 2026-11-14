@@ -135,14 +135,27 @@ async function setup(stage: Stage): Promise<{ ws: string; state: string; base: s
     const r = solodev(ws, state, ["approve", stage.slug!])
     if (r.code !== 0) throw new Error(`${stage.id}: solodev approve failed: ${r.stdout}${r.stderr}`)
   }
+  // What the coder would have left in progress.md: each journey seen red, then green on the tree as it stands (C6).
+  const record = async (...phases: ("red" | "green")[]) => {
+    if (!stage.slug) return
+    const spec = await fs.readFile(path.join(repoState(ws, state), stage.slug, "spec.md"), "utf8").catch(() => "")
+    for (const [, journey] of spec.matchAll(/^\s*- id: (\S+)/gm)) {
+      for (const phase of phases) {
+        const r = solodev(ws, state, ["proof", stage.slug, journey!, phase, "--exit", phase === "red" ? "1" : "0"])
+        if (r.code !== 0) throw new Error(`${stage.id}: solodev proof failed: ${r.stdout}${r.stderr}`)
+      }
+    }
+  }
   if (await isDir(path.join(dir, "code"))) {
     await copyDir(path.join(dir, "code"), ws)
+    await record("red", "green")
     sh("git", ["add", "-A"], ws)
     sh("git", ["commit", "-q", "-m", `feat: ${stage.slug ?? stage.id}`], ws)
   }
   // A fix round on top of the code, for stages that start at a re-review.
   if (await isDir(path.join(dir, "fix"))) {
     await copyDir(path.join(dir, "fix"), ws)
+    await record("green")
     sh("git", ["add", "-A"], ws)
     sh("git", ["commit", "-q", "-m", `fix: ${stage.slug ?? stage.id} review findings`], ws)
   }

@@ -380,9 +380,21 @@
     },
     {
       "id": "coder-red-green",
-      "situation": "You are shadow-coder. Your journey test for @S1 passes at HEAD, and also passes on the code before the feature.",
-      "ask": "Is J1 done?",
-      "expect": "No: a journey has to fail on the code before the feature because the behavior is missing; the test doesn't pin @S1 yet and needs fixing."
+      "situation": "You are shadow-coder. You wrote J1's journey test before any code for the feature, ran its command, and it passed.",
+      "ask": "Is that run J1's red record, and what do you do?",
+      "expect": "No: a red has to fail because the behavior is missing, and `solodev proof` refuses a red with exit 0. The test doesn't pin its scenarios yet and needs fixing before the code is written."
+    },
+    {
+      "id": "coder-proof-stale",
+      "situation": "You are shadow-coder. J1's command passed and you recorded its green with `solodev proof`. Then lint flagged an unused import in a file you changed and you removed it.",
+      "ask": "What do you do before replying `done`?",
+      "expect": "Runs J1's command again and records its green again, since the edit after the record made it stale; then `solodev check <slug> --for implement`."
+    },
+    {
+      "id": "evidence-red-broken-import",
+      "situation": "You are a reviewer with `lens: evidence`. progress.md's `- proof J1 red` record ends with a syntax error in a test helper unrelated to the feature, and J1's green record is fine.",
+      "ask": "Is that a finding, and do you run J1 on the base to check?",
+      "expect": "A `blocker`: the red failed for a reason other than the missing behavior, so it proves nothing. You don't run anything on the base; you read the recorded runs and run the journey's command at HEAD only."
     },
     {
       "id": "coder-test-seems-wrong",

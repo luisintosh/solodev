@@ -4,11 +4,11 @@ You run things; the other lenses only read. Judge each command by its output, no
 the brief's `- tools:` line and each journey's `command` in the plan. Test files in the diff are under review too, not
 evidence.
 
-- **Fail, then pass.** Run each journey's command, with the journey tests copied in, on the base (a temporary worktree
-  outside the repo, with its dependencies working, removed afterwards) and at HEAD. A journey that passes on the base,
-  fails at HEAD, or fails on the base for any reason but the missing behavior (a broken import unrelated to the feature,
-  a runner that never started) is a `blocker`. One that failed only on loading new code proves no assertion; check that
-  its assertions pin each Then.
+- **Fail, then pass.** `progress.md` holds the coder's runs, a `- proof <journey> red` and a `green` per journey with the
+  last lines of each output. Read the red: one that failed for any reason but the missing behavior (a broken import
+  unrelated to the feature, a runner that never started) is a `blocker`; one that failed only on loading new code
+  proves no assertion, so check that its assertions pin each Then. A journey with no red record goes in `notes`. Then
+  run each journey's command at HEAD: one that fails, or that ran none of its tests, is a `blocker`.
 - **Project checks.** Typecheck, lint, test and build, where the repo has them. A failure in code the feature touched is
   a `blocker` naming the command and the output lines that matter; one elsewhere goes in `notes`.
 - **Tests not weakened.** Compare each journey test with its first committed version and every other changed test with

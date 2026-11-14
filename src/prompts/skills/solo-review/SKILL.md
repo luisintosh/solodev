@@ -21,8 +21,8 @@ says: alone, or by starting a reviewer per lens and merging their findings.
   commit the brief names, nothing else. With `lens: single`, every open row, and the evidence lens's runs again at HEAD;
   with another lens, the rows your brief gives you.
 
-The lenses: [evidence](references/lens-evidence.md) runs the journey tests on the base and at HEAD and the project's
-checks; [contract](references/lens-contract.md), [correctness](references/lens-correctness.md),
+The lenses: [evidence](references/lens-evidence.md) reads the coder's recorded runs and runs the journey tests at HEAD and
+the project's checks; [contract](references/lens-contract.md), [correctness](references/lens-correctness.md),
 [security](references/lens-security.md), [design](references/lens-design.md) and [ui](references/lens-ui.md) read the
 diff.
 

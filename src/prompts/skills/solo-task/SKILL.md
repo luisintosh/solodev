@@ -65,12 +65,12 @@ the code, tests and docs. Every brief names the folder's absolute path.
 5. **Implement.** Brief the coder once with the slug, every journey, the files you read that the change touches and the
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
-6. **Code review.** Run it as solo-review's `references/swarm.md` says (one reviewer, or one per lens), briefing each
-   fresh with the slug, the base (`git merge-base <default branch> HEAD`) and the coder's `decisions:`. A
-   `Weakened test:` finding goes straight to the user, who picks a fix round, `rebutted` or `deferred`. Any other
-   blocker or major → one fix round with the same coder, which replies per finding id, then one re-review, chosen the
-   same way, whose briefs carry the `- fix` line and the sha of the last `- review` line. Blockers and majors still open
-   go to the user: another fix round, `deferred` or `dropped`, written into `review.md`; so do spec gaps in `notes`.
+6. **Code review.** Run it as solo-review's `references/swarm.md` says, briefing each reviewer fresh with the slug, the
+   base (`git merge-base <default branch> HEAD`) and the coder's `decisions:`. A `Weakened test:` finding goes straight
+   to the user, who picks a fix round, `rebutted` or `deferred`. Any other blocker or major → one fix round with the
+   same coder, which replies per finding id, the implement check again, then one re-review, chosen the same way, whose
+   briefs carry the `- fix` line and the sha of the last `- review` line. Blockers and majors still open go to the user:
+   another fix round, `deferred` or `dropped`, written into `review.md`; so do spec gaps in `notes`.
 7. **PR.** `solodev check <slug> --for pr`, push, open a draft PR ([pr.md](references/pr.md)), log `- pr <url> · draft`.
 8. **QA.** The verifier runs only for scenarios listed as `uncovered` in the plan. When none are, the journey tests are
    the QA and no agent starts. When one needs a browser, the brief carries the last `- browser` line from `progress.md`,
@@ -104,7 +104,7 @@ fresh; start lens reviewers together, one spawn call each in the same turn.
 ## Keeping the user in the loop
 
 Before each delegation, one line naming who, on what, and why:
-`→ solo-code (Codex · gpt-6.1-sol max): J1–J2, journey tests and code for @S1–@S5`. After it, one result line with the
+`→ solo-code (Codex · gpt-6.1-sol high): J1–J2, journey tests and code for @S1–@S5`. After it, one result line with the
 numbers that matter (files changed, journeys passing, findings by severity). Start every report with a progress bar:
 `spec ✓ · gate ✓ · **implement (attempt 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate in
 a few words the first time you use them.

@@ -4,6 +4,7 @@ import {
   type Approval,
   currentApproval,
   parsePlan,
+  parseProofs,
   parseQa,
   parseReview,
   parseScenarios,
@@ -12,7 +13,7 @@ import {
   SEVERITIES,
   STATUSES,
 } from "./feature.ts"
-import { git, resolveBase } from "./git.ts"
+import { git, resolveBase, treeHash } from "./git.ts"
 
 export type CheckStatus = "pass" | "fail"
 export type CheckResult = {
@@ -24,13 +25,13 @@ export type CheckResult = {
   details: string[]
 }
 
-export const CHECK_IDS = ["C1", "C2", "C3", "C4", "C5"] as const
+export const CHECK_IDS = ["C1", "C2", "C3", "C4", "C5", "C6"] as const
 export type CheckId = (typeof CHECK_IDS)[number]
 
 export const CHECK_SETS = {
-  implement: ["C1", "C2"],
+  implement: ["C1", "C2", "C6"],
   pr: ["C1", "C2", "C3", "C4"],
-  done: [...CHECK_IDS],
+  done: ["C1", "C2", "C3", "C4", "C5"],
 } as const satisfies Record<string, readonly CheckId[]>
 
 export type CheckSet = keyof typeof CHECK_SETS
@@ -50,6 +51,7 @@ const TITLES: Record<CheckId, string> = {
   C3: "reports only",
   C4: "review settled",
   C5: "QA verdicts",
+  C6: "proof recorded",
 }
 
 const result = (id: CheckId, status: CheckStatus, summary: string, details: string[] = []): CheckResult => ({
@@ -218,12 +220,45 @@ async function c5(ctx: CheckContext): Promise<CheckResult> {
   return result("C5", "pass", `${plan.uncovered.length} uncovered scenario(s) verified`)
 }
 
+/**
+ * C6. The coder ran each journey's command and recorded it with `solodev proof`: a red before the code, then a green
+ * on the tree as it stands now. The exit codes are the coder's word; the tree hash and the order are not.
+ */
+async function c6(ctx: CheckContext): Promise<CheckResult> {
+  let plan: Plan
+  try {
+    plan = await loadPlan(ctx.dir)
+  } catch (err) {
+    return result("C6", "fail", (err as Error).message)
+  }
+  const proofs = parseProofs((await readIfExists(path.join(ctx.dir, "progress.md"))) ?? "")
+  const tree = await treeHash(ctx.root)
+  const details: string[] = []
+  for (const j of plan.journeys) {
+    const own = proofs.filter((p) => p.journey === j.id)
+    const green = own.findLastIndex((p) => p.phase === "green")
+    if (green === -1) {
+      details.push(`${j.id} has no green record — run its command, then \`solodev proof <slug> ${j.id} green\``)
+    } else if (own[green]!.tree !== tree) {
+      details.push(`${j.id}'s green is stale: the code changed since — run its command and record green again`)
+    }
+    const before = green === -1 ? own : own.slice(0, green)
+    if (!before.some((p) => p.phase === "red")) {
+      details.push(`${j.id} has no red record before its green — its test was never seen failing without the code`)
+    }
+  }
+  if (details.length) return result("C6", "fail", details[0]!, details.slice(1))
+  const n = plan.journeys.length
+  return result("C6", "pass", `${n} journey${n === 1 ? "" : "s"} seen red, then green on this tree`)
+}
+
 const RUNNERS: Record<CheckId, (ctx: CheckContext) => Promise<CheckResult>> = {
   C1: c1,
   C2: c2,
   C3: c3,
   C4: c4,
   C5: c5,
+  C6: c6,
 }
 
 export async function runCheck(id: CheckId, ctx: CheckContext): Promise<CheckResult> {

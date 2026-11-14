@@ -43,6 +43,28 @@ export function parseTools(progress: string): string | undefined {
   return [...progress.matchAll(/^- tools: (.+?)\s*$/gm)].at(-1)?.[1]
 }
 
+export const PHASES = ["red", "green"] as const
+export type Phase = (typeof PHASES)[number]
+/** One run of a journey's command, as the coder reported it; `tree` is the working tree `solodev proof` saw. */
+export type Proof = { journey: string; phase: Phase; exit: number; tree: string }
+
+const PROOF = /^- proof (\S+) (red|green) · exit (\d+) · tree ([0-9a-f]+)\s*$/gm
+
+/** The line `solodev proof` appends to progress.md; the output's last lines follow it, each behind `  > `. */
+export function proofLine(p: Proof): string {
+  return `- proof ${p.journey} ${p.phase} · exit ${p.exit} · tree ${p.tree}`
+}
+
+/** Proof lines in progress.md, oldest first. */
+export function parseProofs(progress: string): Proof[] {
+  return [...progress.matchAll(PROOF)].map((m) => ({
+    journey: m[1]!,
+    phase: m[2] as Phase,
+    exit: Number(m[3]),
+    tree: m[4]!,
+  }))
+}
+
 /**
  * The approval in force, whether spec.md still matches it, and every approval oldest first. A later one
  * re-agrees an edited spec, so code may already exist before it.

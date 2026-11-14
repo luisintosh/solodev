@@ -2,6 +2,7 @@
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
+import { text } from "node:stream/consumers"
 import { fileURLToPath } from "node:url"
 import catalog from "../catalog.yaml"
 import { approve } from "./approve.ts"
@@ -12,6 +13,7 @@ import { HELP, helpText } from "./help.ts"
 import { type AgentFiles, applyInit, formatInit, type InitOp, locate, planInit, type Scope } from "./init.ts"
 import { isTool, modelsFromCatalog, TOOLS } from "./models.ts"
 import { detectHome, probe } from "./probe.ts"
+import { proof } from "./proof.ts"
 import { stateDir } from "./state.ts"
 import { branchFeature, featureStatus, formatStatus, listFeatures, type Stage } from "./status.ts"
 
@@ -141,6 +143,17 @@ async function main(argv: string[]): Promise<number> {
       if (json) console.log(JSON.stringify({ slug, set, results }, null, 2))
       else console.log(`solodev check ${slug} --for ${set}\n${formatResults(results)}`)
       return results.some((r) => r.status === "fail") ? 1 : 0
+    }
+    case "proof": {
+      const [slugArg, journey, phase] = positional(args)
+      const slug = await requireFeature(state, slugArg)
+      if (!journey || (phase !== "red" && phase !== "green")) throw new UsageError("usage: " + HELP.proof!.usage)
+      const exit = flag(args, "--exit")
+      if (exit === undefined || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code")
+      const output = process.stdin.isTTY ? "" : await text(process.stdin)
+      const record = await proof({ root, dir: featureDir(state, slug), journey, phase, exit: Number(exit), output })
+      console.log(`recorded ${slug} ${journey} ${phase} at tree ${record.tree}`)
+      return 0
     }
     case "install":
       console.log(
