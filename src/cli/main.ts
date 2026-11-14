@@ -154,7 +154,7 @@ async function main(argv: string[]): Promise<number> {
     case "proof": {
       const [slugArg, journey, phase] = positional(args)
       const slug = await requireFeature(state, slugArg)
-      if (!journey || (phase !== "red" && phase !== "green")) throw new UsageError("usage: " + HELP.proof!.usage)
+      if (!journey || (phase !== "red" && phase !== "green")) throw new UsageError(`usage: ${HELP.proof!.usage}`)
       const exit = flag(args, "--exit")
       if (exit === undefined || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code")
       const output = process.stdin.isTTY ? "" : await text(process.stdin)
