@@ -3,7 +3,7 @@
 Show it concisely, after a progress bar:
 
 - What the feature does, in two or three lines, and its scenarios (`@S1` …), one line each.
-- Assumptions, and any open question still standing.
+- Assumptions, numbered so the user can veto one by number, and any open question still standing.
 - The approach and why; rejected alternatives, one line each.
 - The journeys: id, scenarios, test path. Scenarios left to QA (`uncovered`).
 - Spec review: what it changed and what's left, or why it was skipped. The gate check's note on size, when it gave one.
@@ -34,7 +34,7 @@ Approve this spec and its plan, and choose who writes the code:
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`
   (`<tool>/<model>/<effort> via <native|orca>`), the browser when one was settled (`- browser <tool|none>`) and the
   comment's URL (`ticket comment: <url>`), then step 5, or on a later approval the fix round step 4 names.
-- Edits → revise `spec.md` and show the card again.
+- Edits, or a vetoed assumption → revise `spec.md` and show the card again.
 - Nobody there to answer → the run waits here; nothing approves it for the user.
 
 ## Ticket comment

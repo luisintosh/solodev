@@ -13,12 +13,12 @@ Answer "can this be built as asked?" from the code, not from the request's wordi
 
 ## Interview
 
-Once you have explored, and before you draft, interview the user in rounds, starting with the blockers you found. A
-round asks at most five open decisions whose prerequisites are settled, numbered, each with your recommended answer and
-worded so "yes" accepts it; a question that depends on another one still open waits for the next round. A bare "yes"
-accepts every recommendation in the round, and the user can answer by number. Open round one with a briefing of up to
-ten lines: **The ask** (the request in plain words, who wants it, why), **Today** (what the code does there now,
-`file:symbol`), **Gaps** (conflicts, missing pieces, what can't be built as written):
+After exploring, interview the user in rounds, starting with the blockers you found. With no blocker and no decision
+that changes scope or what a user sees, skip them: every default becomes a numbered assumption, vetoed on the gate card.
+A round asks at most five open decisions, numbered, each with your recommended answer and worded so "yes" accepts it; a
+question that depends on another one still open waits for the next round. A bare "yes" accepts every recommendation in
+the round. Open round one with a briefing of up to ten lines: **The ask** (the request, who wants it, why), **Today**
+(what the code does there now, `file:symbol`), **Gaps** (conflicts, missing pieces, what can't be built as written):
 
 ```text
 Q1. <title>: <the question, with the options when there are several>

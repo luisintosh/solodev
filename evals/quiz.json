@@ -79,6 +79,12 @@
       "expect": "Runs `solodev approve <slug>`, posts the ticket comment (the agreed decisions), logs the coder choice and the comment URL in progress.md, then briefs the coder for implement."
     },
     {
+      "id": "gate-veto",
+      "situation": "The gate card listed three numbered assumptions. The user replies: \"approve, but not 2: refunds must show on this screen\".",
+      "ask": "Is the gate approved? What do you do?",
+      "expect": "Not yet: a vetoed assumption is an edit. It revises spec.md for assumption 2 and shows the gate card again; `solodev approve` runs only after the user approves the revised spec."
+    },
+    {
       "id": "gate-edit-after",
       "situation": "The gate was approved and the coder is working. The user now asks you to add a scenario for an empty input.",
       "ask": "What happens to the approval?",
@@ -431,6 +437,18 @@
       "situation": "You are writing a spec with solo-plan. Exploring the code left eight open decisions, two of which depend on others.",
       "ask": "How does your first round look?",
       "expect": "Opens with a briefing (The ask, Today, Gaps); asks at most five numbered decisions whose prerequisites are settled, each with a recommended answer, plus an assumptions list to veto by number; the dependent questions wait for a later round."
+    },
+    {
+      "id": "plan-skip-interview",
+      "situation": "You are writing a spec with solo-plan for adding a `--json` flag to an existing CLI command. Exploring the code answered everything: no blocker, and the only open choices are the flag's name and the key order, neither of which changes scope.",
+      "ask": "Do you interview the user before drafting?",
+      "expect": "No: with no blocker and no decision that changes scope or what a user would see, it skips the rounds and drafts the spec with each default as a numbered assumption, which the user can veto by number on the gate card."
+    },
+    {
+      "id": "plan-no-skip-scope",
+      "situation": "You are writing a spec with solo-plan for a CSV export. Exploring left one open decision: whether archived records are exported, which changes what the user gets.",
+      "ask": "Do you skip the interview and list it as an assumption?",
+      "expect": "No: a decision that changes scope or what a user would see is asked in an interview round, with a recommended answer; it isn't settled as a silent assumption."
     },
     {
       "id": "plan-journeys",
