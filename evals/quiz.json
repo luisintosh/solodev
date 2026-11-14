@@ -280,7 +280,13 @@
       "id": "qa-fail-with-findings",
       "situation": "Review 1 left an open major R2, and the verifier started beside it returned `S5: fail`, cause code.",
       "ask": "How many fix rounds, and what runs after?",
-      "expect": "One fix round with the same coder covering both R2 and S5 (the scenario id as its finding id). Then the implement check, one re-review by a single reviewer, and a fresh verifier rechecking every uncovered scenario beside it."
+      "expect": "One fix round with the same coder covering both R2 and S5 (the scenario id as its finding id). Then one re-review by a single reviewer, and a fresh verifier rechecking every uncovered scenario beside it."
+    },
+    {
+      "id": "fix-round-implement-check",
+      "situation": "Fix round 1 is over: the coder replied `R2 fixed` and its change is in the working tree. Nothing else has run since.",
+      "ask": "What is the first thing you run before starting the re-review?",
+      "expect": "`solodev check <slug> --for implement` again, so a stale or missing proof record is caught before the re-review starts."
     },
     {
       "id": "qa-commander-writes",
@@ -406,7 +412,7 @@
       "id": "verifier-writes-qa",
       "situation": "You play solo-verify for uncovered S5 and S6. The feature folder's review.md already has its findings table, all fixed.",
       "ask": "Where do the verdicts go, and do you edit review.md?",
-      "expect": "In its reply: a `scenario | verdict | evidence` table with one row each for S5 and S6, plus a repro line per scenario. It doesn't edit review.md or post on the PR; the commander writes the `## QA` section and posts the comment."
+      "expect": "In its reply: a `scenario | verdict | evidence` table with one row each for S5 and S6. It doesn't edit review.md or post on the PR; the commander writes the `## QA` section and posts the comment."
     },
     {
       "id": "finish-no-merge",
