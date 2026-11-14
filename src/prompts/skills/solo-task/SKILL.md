@@ -45,8 +45,8 @@ the code, tests and docs. Every brief names the folder's absolute path.
      their tool's sandbox, and stop. `shadows` false for the home tool → run init and stop: the user reruns in a new
      session.
    - On "continue": check out the feature's branch, run `solodev status`, read `progress.md` and reuse its `- tools:`
-     line. A coder from an earlier session is gone: rebuild its brief from `spec.md` and `progress.md`, plus what's
-     left, for a new one. Continue at the step it names; at `implement` with an implement check logged as passed, go to
+     line. A coder from an earlier session is gone: rebuild its brief from `spec.md` and the `- brief` and `- sketch`
+     lines, plus what's left, for a new one. Continue at the step it names; at `implement` with an implement check logged as passed, go to
      code review.
    - Fresh run: a slug that already has a folder → show its stage and ask: resume it, or start over under the next free
      slug (`<slug>-2`). Derive the slug from the request, or from a ticket's `F<n>: <name>` title. Cut `feat/<slug>`
@@ -81,8 +81,9 @@ the code, tests and docs. Every brief names the folder's absolute path.
 
 After a reviewer or verifier run, revert anything `git status` shows it changed and tell the user. Commit the coder's
 work after each passing check or fix round with a plain Conventional Commit; push from step 7 on. Log in `progress.md`
-attempts, skipped stages, the user's calls, and for a resume: `- decision implement|fix <n>: <text>` per coder
-`decisions:` entry, `- review <n> at <sha>` per review, `- fix <n>: R1 fixed · R3 rebutted: <reason>` per fix reply.
+attempts, skipped stages, the user's calls, and for a resume: the coder's brief as `- brief: files <paths> · helpers
+<names>` and a `- sketch S<n>: <text>` per scenario, `- decision implement|fix <n>: <text>` per coder `decisions:`
+entry, `- review <n> at <sha>` per review, `- fix <n>: R1 fixed · R3 rebutted: <reason>` per fix reply.
 
 ## Shadows
 

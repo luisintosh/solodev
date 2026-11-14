@@ -103,6 +103,12 @@
       "expect": "Starts it with the Agent tool, subagent_type shadow-coder, the brief in the call itself rather than a file: slug, feature folder, every journey, the files the change touches, helpers to reuse, a one-line test sketch per scenario, the `- tools:` line and the solodev path."
     },
     {
+      "id": "implement-brief-log",
+      "situation": "You just briefed the coder: it touches src/export.ts and src/routes.ts, reuses `formatRow`, and you gave a test sketch for S1 and S2.",
+      "ask": "What do you log in progress.md about that brief?",
+      "expect": "One `- brief: files src/export.ts, src/routes.ts · helpers formatRow` line and a `- sketch S<n>: <text>` line for each of S1 and S2, so a later session can rebuild the brief without exploring again."
+    },
+    {
       "id": "report-progress-bar",
       "situation": "You resumed a feature whose implement check passed, and you're about to tell the user that code review starts.",
       "ask": "Write the first two lines of that message.",
@@ -388,7 +394,7 @@
       "id": "resume-coder-gone",
       "situation": "\"Continue\" in a new session, with a fix round still to send. The coder ran in the earlier session.",
       "ask": "Who gets the fix round?",
-      "expect": "A new coder, whose brief is rebuilt from `spec.md` and `progress.md` plus what's left, since the earlier one is gone."
+      "expect": "A new coder, whose brief is rebuilt from `spec.md` and progress.md's `- brief` and `- sketch` lines plus what's left, since the earlier one is gone. It doesn't re-explore the code to rebuild the brief."
     },
     {
       "id": "fix-round-commit",
