@@ -542,7 +542,7 @@
     },
     {
       "id": "roadmap-schema-feature",
-      "situation": "Your draft decomposition starts with 'Task 1: Create the schedules table'.",
+      "situation": "Your draft decomposition starts with 'F1: Create the schedules table'.",
       "ask": "Is that a valid feature?",
       "expect": "No: no feature exists only to build the schema; the first feature that needs the entity creates its migration as part of a user-visible outcome."
     },
@@ -569,6 +569,18 @@
       "situation": "The epic and its six feature tickets are filed and you reported every URL.",
       "ask": "What do you tell the user to run next?",
       "expect": "Nothing to run: it reports the ticket URLs and stops. Who builds each ticket, and with what, is the user's call; it doesn't print a `/solo-task` line."
+    },
+    {
+      "id": "roadmap-file-jira-epic",
+      "situation": "The roadmap and work items are approved and the user says yes to filing. The tracker is Jira, through its MCP server.",
+      "ask": "How do you create the epic, and what is its title?",
+      "expect": "As a Jira Epic issue titled with the goal itself, with no `Epic:` prefix; its body is the roadmap."
+    },
+    {
+      "id": "roadmap-file-jira-dependency",
+      "situation": "You are filing features in Jira. F3's work item says `Blocked by F1`, and F1 is already filed as PROJ-41.",
+      "ask": "How do you record F3's dependency?",
+      "expect": "With Jira's own \"is blocked by\" link from F3 to PROJ-41, rather than only a `Blocked by` line in the ticket text."
     },
     {
       "id": "roadmap-filing",
@@ -609,7 +621,7 @@
       "skill": "solo-task"
     },
     {
-      "query": "pick up issue 118 (Task 2: team invites) and take it all the way to a ready PR",
+      "query": "pick up issue 118 (F2: team invites) and take it all the way to a ready PR",
       "skill": "solo-task"
     },
     {

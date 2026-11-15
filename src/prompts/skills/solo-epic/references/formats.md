@@ -47,7 +47,7 @@ erDiagram
 
 ## Features
 
-### Task 1: <outcome-oriented title>
+### F1: <outcome-oriented title>
 
 <one-line outcome>. Data: <entities it creates, changes or reads>. Work item: [items/F1.md](items/F1.md)
 
@@ -81,7 +81,7 @@ One file per feature, `<state.dir>/roadmaps/<slug>/items/F<n>.md`. It is the tic
 `/solo-task` runs against.
 
 ````markdown
-# Task <n>: <short, specific, outcome-oriented title>
+# F<n>: <short, specific, outcome-oriented title>
 
 ## User story
 

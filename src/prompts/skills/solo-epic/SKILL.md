@@ -94,15 +94,18 @@ that folder, ask the user to run `npx skills add luisintosh/solodev -s solo-task
 11. **Present the work items** with a review summary of five lines at most. ⏸ Apply edits until the user approves.
 12. **Write** `roadmap.md` and `items/F<n>.md` to `<state.dir>/roadmaps/<slug>/`.
 13. **Offer to file the tickets.** If yes, confirm the tracker tool can reach the project. No tracker, or the user
-    declines → say the drafts folder is the record, give its path, and file nothing. File the epic first, titled `Epic:
-    <goal>`, its body `roadmap.md` without its `#` heading. Then file features in wave order so referenced tickets
-    exist: the body is `items/F<n>.md` without its `# Task <n>: …` heading, with each `Blocked by F<m>` rewritten to the
-    tracker's reference (`Blocked by #<n>`, `Blocked by PROJ-12`) and the Data model link to the epic's Data model
-    section, and the title is exactly `Task <n>: <title>`, which `/solo-task` derives the slug from. After each feature
-    is filed, add it to the epic's feature list (a task list `- [ ] #<n> Task <n>: <name>` on GitHub, child tickets
-    elsewhere), so the list always matches what exists and shows which are closed; that is how `/solo-task` finds the
-    next feature. Report every ticket URL, and any feature left unfiled. The run ends there: who builds each ticket, and
-    with what, is the user's call, so name no next command.
+    declines → say the drafts folder is the record, give its path, and file nothing. File the epic first, its body
+    `roadmap.md` without its `#` heading: as the tracker's own epic (Jira's Epic issue type, a Linear project or parent
+    issue) titled with the goal, or, where an epic is just a ticket (GitHub, GitLab issues), titled `Epic: <goal>`. Then
+    file features in wave order so referenced tickets exist: the title is exactly `F<n>: <title>`, which `/solo-task`
+    derives the slug from, and the body is `items/F<n>.md` without its `# F<n>: …` heading, its Data model link pointing
+    at the epic's Data model section. For each `Blocked by F<m>`, use the tracker's own dependency link where it has one
+    (Jira's "is blocked by", Linear's blocked-by relation), else rewrite the line to the tracker's reference (`Blocked
+    by #<n>`, `Blocked by PROJ-12`). After each feature is filed, link it to the epic the tracker's own way (Jira's
+    parent epic, an issue in a Linear project, a task list `- [ ] #<n> F<n>: <name>` in a GitHub epic's body), so the
+    epic always lists what exists and shows which are closed; that is how `/solo-task` finds the next feature. Report
+    every ticket URL, and any feature left unfiled. The run ends there: who builds each ticket, and with what, is the
+    user's call, so name no next command.
 14. **Revising a filed epic:** read which of its feature tickets are closed and show, per success criterion, whether
     what's shipped covers it. Then show the before and after in chat, the data model included when it changes. ⏸ Once
     the user approves, update the drafts, then the epic and every open feature ticket it affects.

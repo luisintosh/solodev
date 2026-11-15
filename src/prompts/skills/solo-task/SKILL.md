@@ -51,7 +51,7 @@ the code, tests and docs. Every brief names the folder's absolute path.
      lines, plus what's left, for a new one. Continue at the step it names; at `implement` with an implement check logged as passed, go to
      code review.
    - Fresh run: a slug that already has a folder → show its stage and ask: resume it, or start over under the next free
-     slug (`<slug>-2`). Derive the slug from the request, or from a ticket's `Task <n>: <name>` title. Cut `feat/<slug>`
+     slug (`<slug>-2`). Derive the slug from the request, or from a ticket's `F<n>: <name>` title. Cut `feat/<slug>`
      from the default branch (adopt it if you're already on it) and create the folder's `progress.md`, starting with a
      `## Request` section that holds the request verbatim (the ticket's title and body for a ticket run). Then log the
      toolbox as one line for the whole run, `n/a` where the repo has none:
