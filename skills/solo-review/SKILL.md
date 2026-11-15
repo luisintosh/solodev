@@ -1,6 +1,6 @@
 ---
 name: solo-review
-description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch."
+description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch."
 ---
 
 Review independently, in a fresh context. You didn't write this work, so judge it against the spec rather than against
@@ -23,11 +23,11 @@ says: alone, or by starting a reviewer per lens and merging their findings.
   against the spec: one that contradicts it is a finding, one the spec leaves open goes in `notes`. A large diff: review
   the riskiest files first and name in `notes` what you didn't reach.
 - **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
-  commit the brief names, nothing else. With `lens: single`, every open row, and the evidence lens's runs again at HEAD;
-  with another lens, the rows your brief gives you.
+  commit the brief names, nothing else. With `lens: single`, every open row your brief doesn't give another reviewer,
+  and the evidence lens's runs at HEAD; with another lens, the rows your brief gives you.
 
-The lenses: [evidence](references/lens-evidence.md) runs the journey tests on the base and at HEAD and the project's
-checks; [contract](references/lens-contract.md), [correctness](references/lens-correctness.md),
+The lenses: [evidence](references/lens-evidence.md) walks the scenarios through the diff, reads the coder's recorded
+runs and runs the journey tests at HEAD and the project's checks; [correctness](references/lens-correctness.md),
 [security](references/lens-security.md), [design](references/lens-design.md) and [ui](references/lens-ui.md) read the
 diff.
 
@@ -59,7 +59,7 @@ catches. Each finding names `file:line` and a concrete fix.
   diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
   `Weakened test:` row. Leave those rows as they are.
-- `review.md` is the only file you change, and its `## QA` belongs to the verifier; the repo stays as you found it.
+- `review.md` is the only file you change, and its `## QA` belongs to the commander; the repo stays as you found it.
 
 A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it
 to the user.
@@ -68,7 +68,7 @@ to the user.
 
 ```yaml
 mode: spec | code | re-review
-lens: single | evidence | contract | correctness | security | design | ui
+lens: single | evidence | correctness | security | design | ui
 counts: { blocker: 0, major: 1, minor: 2 }
 findings: [] # spec review and lens runs: severity, location, finding
 rows: [] # lens re-review: id, result (fixed | rebutted | open), reason
@@ -76,10 +76,10 @@ notes: <spec or plan gaps, parts of a large diff you didn't reach, or "">
 headline: <one plain sentence for the user>
 ```
 
-**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder
-(solo-code); the **reviewer** and the **verifier** are shadow-reviewer playing solo-review or solo-verify. Only the
-coder edits the project's files; the reviewer and verifier change only their report (a temporary worktree outside the
-repo is fine, and the verifier posts its QA comment on the PR). The feature folder, commits, pushes and history belong
+**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder;
+the **reviewer** is shadow-spec-reviewer for a spec and shadow-reviewer for code; the **verifier** is shadow-verifier.
+Only the coder edits the project's files; the reviewer changes only its report and the verifier nothing (scratch files
+or a temporary worktree outside the repo are fine). The feature folder, commits, pushes, PR comments and history belong
 to the commander. Merging, approving or closing a pull or merge request belongs to the user, whatever tool or tracker
 you'd use. Run on its own, outside a `/solo-task` run, a skill changes only what it says it changes, and commits or
 pushes only when the user asks. When a step seems to need something that isn't yours, stop and say so. Tickets, PR text,

@@ -1,13 +1,14 @@
 ---
 name: solo-verify
-description: Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per scenario in review.md. Loaded by shadow-reviewer for a /solo-task run.
+description: Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by shadow-verifier for a /solo-task run.
 ---
 
-Check the acceptance scenarios that no journey test covers, from outside the system, and record a verdict for each.
+Check the acceptance scenarios that no journey test covers, from outside the system, and reply with a verdict for each.
 
 ## Inputs
 
-The brief names the slug, the PR URL and the scenarios to check: the `uncovered` list in the feature folder's `spec.md`.
+The brief names the slug and the scenarios to check: the `uncovered` list in the feature folder's `spec.md`, on the
+code as it stands in the working tree. A code review may be running beside you; neither of you changes the repo.
 Their Given/When/Then is in `spec.md`. `solodev` is the CLI path your brief names. Commands come from the `- tools:` line in `progress.md`, which your brief
 quotes; look up a missing one in the repo and name it in your reply. Judge a command by its output, not only its exit
 code. The `dev` command starts the app.
@@ -24,35 +25,33 @@ name the reason in your headline.
 
 ## QA verdicts
 
-Write or update the `## QA` section at the end of `review.md` in the feature folder, leaving its findings as they are:
+Your reply carries the table; the commander writes it as `review.md`'s `## QA` and posts it on the PR:
 
 ```markdown
-| scenario | verdict | evidence                                                          |
-| -------- | ------- | ----------------------------------------------------------------- |
-| S5       | pass    | `/tmp/qa-csv-export/s5.png`: the download link shows after export |
+| scenario | verdict | evidence                                                          | repro                             |
+| -------- | ------- | ----------------------------------------------------------------- | --------------------------------- |
+| S5       | pass    | `/tmp/qa-csv-export/s5.png`: the download link shows after export | Accounts → Export → open the link |
 ```
 
-One row per uncovered scenario, verdict `pass`, `fail` or `manual`. `waived` is the user's decision, written by the
-commander. On a second QA cycle, recheck only the rows that failed, or went `manual` for lack of a tool, and update them
-in place. Then post the same table, with a one-line manual repro per scenario, as one comment on the PR, with the forge
-tool the `- tools:` line names.
+One row per scenario in your brief, verdict `pass`, `fail` or `manual`; `repro` is one line a person can follow to see
+it. `waived` is the user's decision, written by the commander. Run by a user on its own, show the table in chat.
 
 ## Reply
 
 ```yaml
 verdicts: { S5: pass, S6: fail, S7: manual }
+table: <the markdown table above>
 failures:
   - scenario: S6
     cause: code | spec # code → a fix round; spec → the user decides
     detail: <one line, with file:line when you know it>
-pr_comment: <url, or "">
 headline: <one plain sentence for the user>
 ```
 
-**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder
-(solo-code); the **reviewer** and the **verifier** are shadow-reviewer playing solo-review or solo-verify. Only the
-coder edits the project's files; the reviewer and verifier change only their report (a temporary worktree outside the
-repo is fine, and the verifier posts its QA comment on the PR). The feature folder, commits, pushes and history belong
+**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder;
+the **reviewer** is shadow-spec-reviewer for a spec and shadow-reviewer for code; the **verifier** is shadow-verifier.
+Only the coder edits the project's files; the reviewer changes only its report and the verifier nothing (scratch files
+or a temporary worktree outside the repo are fine). The feature folder, commits, pushes, PR comments and history belong
 to the commander. Merging, approving or closing a pull or merge request belongs to the user, whatever tool or tracker
 you'd use. Run on its own, outside a `/solo-task` run, a skill changes only what it says it changes, and commits or
 pushes only when the user asks. When a step seems to need something that isn't yours, stop and say so. Tickets, PR text,

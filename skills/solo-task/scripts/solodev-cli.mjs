@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path9) {
-      const ctrl = callVisitor(key, node, visitor, path9);
+    function visit_(key, node, visitor, path11) {
+      const ctrl = callVisitor(key, node, visitor, path11);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path9, ctrl);
-        return visit_(key, ctrl, visitor, path9);
+        replaceNode(key, path11, ctrl);
+        return visit_(key, ctrl, visitor, path11);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path9 = Object.freeze(path9.concat(node));
+          path11 = Object.freeze(path11.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path9);
+            const ci = visit_(i, node.items[i], visitor, path11);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path9 = Object.freeze(path9.concat(node));
-          const ck = visit_("key", node.key, visitor, path9);
+          path11 = Object.freeze(path11.concat(node));
+          const ck = visit_("key", node.key, visitor, path11);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path9);
+          const cv = visit_("value", node.value, visitor, path11);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path9) {
-      const ctrl = await callVisitor(key, node, visitor, path9);
+    async function visitAsync_(key, node, visitor, path11) {
+      const ctrl = await callVisitor(key, node, visitor, path11);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path9, ctrl);
-        return visitAsync_(key, ctrl, visitor, path9);
+        replaceNode(key, path11, ctrl);
+        return visitAsync_(key, ctrl, visitor, path11);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path9 = Object.freeze(path9.concat(node));
+          path11 = Object.freeze(path11.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path9);
+            const ci = await visitAsync_(i, node.items[i], visitor, path11);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path9 = Object.freeze(path9.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path9);
+          path11 = Object.freeze(path11.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path11);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path9);
+          const cv = await visitAsync_("value", node.value, visitor, path11);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path9) {
+    function callVisitor(key, node, visitor, path11) {
       if (typeof visitor === "function")
-        return visitor(key, node, path9);
+        return visitor(key, node, path11);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path9);
+        return visitor.Map?.(key, node, path11);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path9);
+        return visitor.Seq?.(key, node, path11);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path9);
+        return visitor.Pair?.(key, node, path11);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path9);
+        return visitor.Scalar?.(key, node, path11);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path9);
+        return visitor.Alias?.(key, node, path11);
       return void 0;
     }
-    function replaceNode(key, path9, node) {
-      const parent = path9[path9.length - 1];
+    function replaceNode(key, path11, node) {
+      const parent = path11[path11.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -844,10 +844,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path9, value) {
+    function collectionFromPath(schema, path11, value) {
       let v = value;
-      for (let i = path9.length - 1; i >= 0; --i) {
-        const k = path9[i];
+      for (let i = path11.length - 1; i >= 0; --i) {
+        const k = path11[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -866,7 +866,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path9) => path9 == null || typeof path9 === "object" && !!path9[Symbol.iterator]().next().done;
+    var isEmptyPath = (path11) => path11 == null || typeof path11 === "object" && !!path11[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -896,11 +896,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path9, value) {
-        if (isEmptyPath(path9))
+      addIn(path11, value) {
+        if (isEmptyPath(path11))
           this.add(value);
         else {
-          const [key, ...rest] = path9;
+          const [key, ...rest] = path11;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -914,8 +914,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path9) {
-        const [key, ...rest] = path9;
+      deleteIn(path11) {
+        const [key, ...rest] = path11;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -929,8 +929,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path9, keepScalar) {
-        const [key, ...rest] = path9;
+      getIn(path11, keepScalar) {
+        const [key, ...rest] = path11;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -948,8 +948,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path9) {
-        const [key, ...rest] = path9;
+      hasIn(path11) {
+        const [key, ...rest] = path11;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -959,8 +959,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path9, value) {
-        const [key, ...rest] = path9;
+      setIn(path11, value) {
+        const [key, ...rest] = path11;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -1004,14 +1004,14 @@ var require_foldFlowLines = __commonJS({
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
     var FOLD_QUOTED = "quoted";
-    function foldFlowLines(text, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+    function foldFlowLines(text2, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
       if (!lineWidth || lineWidth < 0)
-        return text;
+        return text2;
       if (lineWidth < minContentWidth)
         minContentWidth = 0;
       const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
-      if (text.length <= endStep)
-        return text;
+      if (text2.length <= endStep)
+        return text2;
       const folds = [];
       const escapedFolds = {};
       let end = lineWidth - indent.length;
@@ -1028,14 +1028,14 @@ var require_foldFlowLines = __commonJS({
       let escStart = -1;
       let escEnd = -1;
       if (mode === FOLD_BLOCK) {
-        i = consumeMoreIndentedLines(text, i, indent.length);
+        i = consumeMoreIndentedLines(text2, i, indent.length);
         if (i !== -1)
           end = i + endStep;
       }
-      for (let ch; ch = text[i += 1]; ) {
+      for (let ch; ch = text2[i += 1]; ) {
         if (mode === FOLD_QUOTED && ch === "\\") {
           escStart = i;
-          switch (text[i + 1]) {
+          switch (text2[i + 1]) {
             case "x":
               i += 3;
               break;
@@ -1052,12 +1052,12 @@ var require_foldFlowLines = __commonJS({
         }
         if (ch === "\n") {
           if (mode === FOLD_BLOCK)
-            i = consumeMoreIndentedLines(text, i, indent.length);
+            i = consumeMoreIndentedLines(text2, i, indent.length);
           end = i + indent.length + endStep;
           split = void 0;
         } else {
           if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
-            const next = text[i + 1];
+            const next = text2[i + 1];
             if (next && next !== " " && next !== "\n" && next !== "	")
               split = i;
           }
@@ -1069,12 +1069,12 @@ var require_foldFlowLines = __commonJS({
             } else if (mode === FOLD_QUOTED) {
               while (prev === " " || prev === "	") {
                 prev = ch;
-                ch = text[i += 1];
+                ch = text2[i += 1];
                 overflow = true;
               }
               const j = i > escEnd + 1 ? i - 2 : escStart - 1;
               if (escapedFolds[j])
-                return text;
+                return text2;
               folds.push(j);
               escapedFolds[j] = true;
               end = j + endStep;
@@ -1089,39 +1089,39 @@ var require_foldFlowLines = __commonJS({
       if (overflow && onOverflow)
         onOverflow();
       if (folds.length === 0)
-        return text;
+        return text2;
       if (onFold)
         onFold();
-      let res = text.slice(0, folds[0]);
+      let res = text2.slice(0, folds[0]);
       for (let i2 = 0; i2 < folds.length; ++i2) {
         const fold = folds[i2];
-        const end2 = folds[i2 + 1] || text.length;
+        const end2 = folds[i2 + 1] || text2.length;
         if (fold === 0)
           res = `
-${indent}${text.slice(0, end2)}`;
+${indent}${text2.slice(0, end2)}`;
         else {
           if (mode === FOLD_QUOTED && escapedFolds[fold])
-            res += `${text[fold]}\\`;
+            res += `${text2[fold]}\\`;
           res += `
-${indent}${text.slice(fold + 1, end2)}`;
+${indent}${text2.slice(fold + 1, end2)}`;
         }
       }
       return res;
     }
-    function consumeMoreIndentedLines(text, i, indent) {
+    function consumeMoreIndentedLines(text2, i, indent) {
       let end = i;
       let start = i + 1;
-      let ch = text[start];
+      let ch = text2[start];
       while (ch === " " || ch === "	") {
         if (i < start + indent) {
-          ch = text[++i];
+          ch = text2[++i];
         } else {
           do {
-            ch = text[++i];
+            ch = text2[++i];
           } while (ch && ch !== "\n");
           end = i;
           start = i + 1;
-          ch = text[start];
+          ch = text2[start];
         }
       }
       return end;
@@ -3475,9 +3475,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path9, value) {
+      addIn(path11, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path9, value);
+          this.contents.addIn(path11, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3552,14 +3552,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path9) {
-        if (Collection.isEmptyPath(path9)) {
+      deleteIn(path11) {
+        if (Collection.isEmptyPath(path11)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path9) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path11) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3574,10 +3574,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path9, keepScalar) {
-        if (Collection.isEmptyPath(path9))
+      getIn(path11, keepScalar) {
+        if (Collection.isEmptyPath(path11))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path9, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path11, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3588,10 +3588,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path9) {
-        if (Collection.isEmptyPath(path9))
+      hasIn(path11) {
+        if (Collection.isEmptyPath(path11))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path9) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path11) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3608,13 +3608,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path9, value) {
-        if (Collection.isEmptyPath(path9)) {
+      setIn(path11, value) {
+        if (Collection.isEmptyPath(path11)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path9), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path11), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path9, value);
+          this.contents.setIn(path11, value);
         }
       }
       /**
@@ -5575,9 +5575,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path9) => {
+    visit.itemAtPath = (cst, path11) => {
       let item = cst;
-      for (const [field, index] of path9) {
+      for (const [field, index] of path11) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5586,23 +5586,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path9) => {
-      const parent = visit.itemAtPath(cst, path9.slice(0, -1));
-      const field = path9[path9.length - 1][0];
+    visit.parentCollection = (cst, path11) => {
+      const parent = visit.itemAtPath(cst, path11.slice(0, -1));
+      const field = path11[path11.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path9, item, visitor) {
-      let ctrl = visitor(item, path9);
+    function _visit(path11, item, visitor) {
+      let ctrl = visitor(item, path11);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path9.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path11.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5613,10 +5613,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path9);
+            ctrl = ctrl(item, path11);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path9) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path11) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6918,14 +6918,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs5 = this.flowScalar(this.type);
+              const fs7 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs5, sep: [] });
+                map.items.push({ start, key: fs7, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs5);
+                this.stack.push(fs7);
               } else {
-                Object.assign(it, { key: fs5, sep: [] });
+                Object.assign(it, { key: fs7, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7053,13 +7053,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs5 = this.flowScalar(this.type);
+              const fs7 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs5, sep: [] });
+                fc.items.push({ start: [], key: fs7, sep: [] });
               else if (it.sep)
-                this.stack.push(fs5);
+                this.stack.push(fs7);
               else
-                Object.assign(it, { key: fs5, sep: [] });
+                Object.assign(it, { key: fs7, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -7368,20 +7368,21 @@ var require_dist = __commonJS({
 });
 
 // src/cli/main.ts
-import * as fs4 from "node:fs/promises";
-import * as os from "node:os";
-import * as path8 from "node:path";
+import * as fs6 from "node:fs/promises";
+import * as os2 from "node:os";
+import * as path10 from "node:path";
+import { text } from "node:stream/consumers";
 import { fileURLToPath } from "node:url";
 
 // src/catalog.yaml
-var catalog_default = { hosts: { claude: { profiles: { think: { id: "claude-opus-5-5", effort: "medium" }, implement: { id: "claude-sonnet-5-5", effort: "high" } } }, codex: { profiles: { think: { id: "gpt-6-astra", effort: "max" }, implement: { id: "gpt-6.1-sol", effort: "max" } } }, cursor: { profiles: { think: { id: "gemini-4-argon", effort: "high" }, implement: { id: "grok-4.7", effort: "high" } } } }, shadows: { "shadow-coder": { profile: "implement", skills: ["solo-code"], description: "Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } }, "shadow-reviewer": { profile: "think", skills: ["solo-review", "solo-verify"], description: "Fresh-context reviewer: reviews a spec or a diff (solo-review) or checks scenarios no test covers (solo-verify), following the role skill its brief names. Report-only; writes only review.md." } }, skills: { "solo-task": { budget: 138, description: "Carries one feature from request to a reviewed, tested, unmerged pull request: spec and plan, a human gate, one coder writing failing tests then code, a fresh-context review, QA. Use for new features that touch multiple files, need architectural decisions, integrate with existing code, or have unclear requirements; or to resume one. Not for one-line fixes, trivial or well-defined simple changes (suggest /plan), or roadmaps (/solo-epic)." }, "solo-plan": { budget: 113, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solo-task, or on its own to spec a feature without running it." }, "solo-code": { budget: 80, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solo-task run." }, "solo-review": { budget: 90, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, contract, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch." }, "solo-verify": { budget: 54, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and records a verdict per scenario in review.md. Loaded by shadow-reviewer for a /solo-task run." }, "solo-epic": { budget: 150, description: "Product strategy: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through /solo-task." }, "gen-docs": { budget: 50, user_only: true, description: "Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /solo-task runs don't rediscover it. Optional; run by the user as /gen-docs." } } };
+var catalog_default = { hosts: { claude: { profiles: { think: { id: "claude-opus-5-5", effort: "medium" }, implement: { id: "claude-sonnet-5-5", effort: "high" } } }, codex: { profiles: { think: { id: "gpt-6-astra", effort: "medium" }, implement: { id: "gpt-6.1-sol", effort: "high" } } }, cursor: { profiles: { think: { id: "gemini-4-argon", effort: "high" }, implement: { id: "grok-4.7", effort: "high" } } } }, shadows: { "shadow-coder": { profile: "implement", skills: ["solo-code"], description: "Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } }, "shadow-spec-reviewer": { profile: "think", effort: { claude: "high", codex: "high" }, skills: ["solo-review"], description: "Fresh-context spec reviewer: reviews a feature's spec and plan against the request before the gate (solo-review). Report-only; replies with its findings and writes no file." }, "shadow-reviewer": { profile: "think", skills: ["solo-review"], description: "Fresh-context code reviewer: reviews a feature diff against its scenarios, alone or on one lens, and re-reviews a fix round (solo-review). Report-only; writes only review.md." }, "shadow-verifier": { profile: "implement", effort: { claude: "medium", codex: "medium" }, skills: ["solo-verify"], description: "Fresh-context verifier: checks the scenarios no test covers from outside the system (solo-verify). Report-only; replies with its verdicts and changes no file." } }, skills: { "solo-task": { budget: 142, argument_hint: "<request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | init [<tool>]", description: "Takes one feature from a request or ticket to a reviewed, tested pull request you merge: a spec you approve, one coder writing failing tests then code, a fresh-context review and QA, and a walkthrough of how it works and how to try it. Usage: /solo-task <request, or ticket URL or id> [--writer claude|codex|cursor]; /solo-task continue; /solo-task explain [<slug>]; /solo-task init [claude|codex|cursor]. Use for features that touch several files, need design decisions or have unclear requirements, or to resume one. Not for one-line fixes or simple, well-defined changes (suggest /plan), or roadmaps (/solo-epic)." }, "solo-plan": { budget: 113, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solo-task, or on its own to spec a feature without running it." }, "solo-code": { budget: 80, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solo-task run." }, "solo-review": { budget: 90, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch." }, "solo-verify": { budget: 54, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by shadow-verifier for a /solo-task run." }, "solo-epic": { budget: 150, argument_hint: "<idea> | <epic ticket or URL>", description: "Plans an epic for a product owner or manager: turns an idea into a measurable goal, the chosen approach, a data model and a roadmap of features in waves, then files it in your tracker (GitHub, GitLab, Jira, Linear) as an epic with one ready-to-assign ticket per feature, or keeps drafts outside the repo without one. Usage: /solo-epic <idea>; /solo-epic <epic ticket or URL> to revise it. Plans only: developers build each ticket with whatever workflow they use." }, "gen-docs": { budget: 50, user_only: true, description: "Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /solo-task runs don't rediscover it. Optional; run by the user as /gen-docs." } } };
 
 // src/cli/approve.ts
-import * as fs2 from "node:fs/promises";
-import * as path3 from "node:path";
+import * as fs3 from "node:fs/promises";
+import * as path4 from "node:path";
 
 // src/cli/checks.ts
-import * as path2 from "node:path";
+import * as path3 from "node:path";
 
 // src/cli/exec.ts
 import { spawn } from "node:child_process";
@@ -7444,6 +7445,18 @@ function parsePrEvents(progress) {
 }
 function parseTools(progress) {
   return [...progress.matchAll(/^- tools: (.+?)\s*$/gm)].at(-1)?.[1];
+}
+var PROOF = /^- proof (\S+) (red|green) · exit (\d+) · tree ([0-9a-f]+)\s*$/gm;
+function proofLine(p) {
+  return `- proof ${p.journey} ${p.phase} \xB7 exit ${p.exit} \xB7 tree ${p.tree}`;
+}
+function parseProofs(progress) {
+  return [...progress.matchAll(PROOF)].map((m) => ({
+    journey: m[1],
+    phase: m[2],
+    exit: Number(m[3]),
+    tree: m[4]
+  }));
 }
 async function currentApproval(dir) {
   const [spec, progress] = await Promise.all(["spec.md", "progress.md"].map((f) => readIfExists(path.join(dir, f))));
@@ -7535,6 +7548,9 @@ function parseReview(md) {
     summary: r.finding ?? ""
   }));
 }
+function failedQa(md) {
+  return [...parseQa(md)].filter(([, v]) => v.verdict === "fail").map(([s]) => s);
+}
 function parseQa(md) {
   const out = /* @__PURE__ */ new Map();
   for (const r of tableRows(md, ["scenario", "verdict"])) {
@@ -7544,6 +7560,9 @@ function parseQa(md) {
 }
 
 // src/cli/git.ts
+import * as fs2 from "node:fs/promises";
+import * as os from "node:os";
+import * as path2 from "node:path";
 async function git(root, args, input) {
   const r = await run("git", args, { cwd: root, input });
   if (r.code !== 0) throw new Error(`git ${args.join(" ")} failed: ${(r.stderr || r.stdout).trim()}`);
@@ -7561,24 +7580,54 @@ async function resolveBase(root, env = process.env) {
   }
   return void 0;
 }
+async function treeHash(root) {
+  const gitPath = async (name) => (await git(root, ["rev-parse", "--path-format=absolute", "--git-path", name])).trim();
+  const tmp = await fs2.mkdtemp(path2.join(os.tmpdir(), "solodev-tree-"));
+  const index = path2.join(tmp, "index");
+  const objects = path2.join(tmp, "objects");
+  const opts = {
+    cwd: root,
+    env: {
+      GIT_INDEX_FILE: index,
+      GIT_OBJECT_DIRECTORY: objects,
+      GIT_ALTERNATE_OBJECT_DIRECTORIES: await gitPath("objects")
+    }
+  };
+  try {
+    await fs2.mkdir(objects);
+    const seeded = await fs2.copyFile(await gitPath("index"), index).then(
+      () => true,
+      () => false
+    );
+    if (!seeded) await run("git", ["read-tree", "HEAD"], opts);
+    const add = await run("git", ["add", "-A"], opts);
+    if (add.code !== 0) throw new Error(`git add failed: ${add.stderr.trim()}`);
+    const tree = await run("git", ["write-tree"], opts);
+    if (tree.code !== 0) throw new Error(`git write-tree failed: ${tree.stderr.trim()}`);
+    return tree.stdout.trim().slice(0, 12);
+  } finally {
+    await fs2.rm(tmp, { recursive: true, force: true });
+  }
+}
 async function currentBranch(root) {
   const r = await run("git", ["branch", "--show-current"], { cwd: root });
   return r.code === 0 ? r.stdout.trim() : "";
 }
 
 // src/cli/checks.ts
-var CHECK_IDS = ["C1", "C2", "C3", "C4", "C5"];
 var CHECK_SETS = {
-  implement: ["C1", "C2"],
-  pr: ["C1", "C2", "C3", "C4"],
-  done: [...CHECK_IDS]
+  gate: ["C1"],
+  implement: ["C1", "C2", "C6"],
+  pr: ["C1", "C2", "C3", "C4", "C6"],
+  done: ["C1", "C2", "C3", "C4", "C5", "C6"]
 };
 var TITLES = {
   C1: "scenario coverage",
   C2: "gate held",
   C3: "reports only",
   C4: "review settled",
-  C5: "QA verdicts"
+  C5: "QA verdicts",
+  C6: "proof recorded"
 };
 var result = (id, status, summary, details = []) => ({
   id,
@@ -7588,14 +7637,14 @@ var result = (id, status, summary, details = []) => ({
   details
 });
 async function loadPlan(dir) {
-  const raw = await readIfExists(path2.join(dir, "spec.md"));
+  const raw = await readIfExists(path3.join(dir, "spec.md"));
   if (raw === void 0) throw new Error(`spec.md not found in ${dir}`);
   return parsePlan(raw);
 }
 var baseOf = (ctx) => resolveBase(ctx.root, { ...process.env, ...ctx.env });
 var NO_BASE = "can't find the base branch \u2014 set SOLODEV_BASE";
 async function coverage(root, dir, requireTests) {
-  const spec = await readIfExists(path2.join(dir, "spec.md"));
+  const spec = await readIfExists(path3.join(dir, "spec.md"));
   if (spec === void 0) return result("C1", "fail", `spec.md not found in ${dir}`);
   const scenarios = parseScenarios(spec);
   if (!scenarios.length) return result("C1", "fail", "spec.md has no @S<n> scenarios");
@@ -7613,7 +7662,7 @@ async function coverage(root, dir, requireTests) {
   if (unknown.length) details.push(`the plan names ${unknown.join(", ")}, which spec.md doesn't define`);
   for (const j of plan.journeys) {
     if (!requireTests) continue;
-    const test = await readIfExists(path2.join(root, j.test));
+    const test = await readIfExists(path3.join(root, j.test));
     if (test === void 0) {
       details.push(`${j.id}: test file ${j.test} does not exist`);
       continue;
@@ -7628,13 +7677,16 @@ async function coverage(root, dir, requireTests) {
   if (details.length) return result("C1", "fail", details[0], details.slice(1));
   const tests = plan.journeys.length;
   const uncovered = plan.uncovered.length ? `, ${plan.uncovered.length} left to QA` : "";
+  const large = !requireTests && (scenarios.length > MAX_SCENARIOS || tests > MAX_JOURNEYS) ? ` \u2014 large for one feature (over ${MAX_SCENARIOS} scenarios or ${MAX_JOURNEYS} journeys): consider splitting it with /solo-epic` : "";
   return result(
     "C1",
     "pass",
-    `${scenarios.length} scenarios, ${tests} journey test${tests === 1 ? "" : "s"}${uncovered}`
+    `${scenarios.length} scenarios, ${tests} journey test${tests === 1 ? "" : "s"}${uncovered}${large}`
   );
 }
-var c1 = (ctx) => coverage(ctx.root, ctx.dir, true);
+var MAX_SCENARIOS = 12;
+var MAX_JOURNEYS = 3;
+var c1 = (ctx) => coverage(ctx.root, ctx.dir, ctx.set !== "gate");
 async function c2(ctx) {
   const { approval, approvals, matches } = await currentApproval(ctx.dir);
   if (!approval) return result("C2", "fail", "not approved \u2014 run solodev approve at the spec gate");
@@ -7674,7 +7726,7 @@ async function c3(ctx) {
   return result("C3", "pass", "no uncommitted changes in the project");
 }
 async function c4(ctx) {
-  const raw = await readIfExists(path2.join(ctx.dir, "review.md"));
+  const raw = await readIfExists(path3.join(ctx.dir, "review.md"));
   if (raw === void 0) return result("C4", "fail", "no review.md \u2014 run solo-review");
   const findings = parseReview(raw);
   const bad = findings.filter(
@@ -7697,6 +7749,10 @@ async function c4(ctx) {
       open.map((f) => `${f.id} ${f.severity} ${f.location} ${f.summary}`)
     );
   }
+  const failed = failedQa(raw);
+  if (failed.length) {
+    return result("C4", "fail", `QA failed: ${failed.join(", ")} \u2014 a fix round, or the user's decision`);
+  }
   return result(
     "C4",
     "pass",
@@ -7712,7 +7768,7 @@ async function c5(ctx) {
     return result("C5", "fail", err.message);
   }
   if (!plan.uncovered.length) return result("C5", "pass", "every scenario has a journey test");
-  const verdicts = parseQa(await readIfExists(path2.join(ctx.dir, "review.md")) ?? "");
+  const verdicts = parseQa(await readIfExists(path3.join(ctx.dir, "review.md")) ?? "");
   if (!verdicts.size) {
     return result("C5", "fail", `no QA verdicts in review.md for ${plan.uncovered.join(", ")} \u2014 run solo-verify`);
   }
@@ -7726,12 +7782,44 @@ async function c5(ctx) {
   if (details.length) return result("C5", "fail", details[0], details.slice(1));
   return result("C5", "pass", `${plan.uncovered.length} uncovered scenario(s) verified`);
 }
+async function c6(ctx) {
+  let plan;
+  try {
+    plan = await loadPlan(ctx.dir);
+  } catch (err) {
+    return result("C6", "fail", err.message);
+  }
+  const proofs = parseProofs(await readIfExists(path3.join(ctx.dir, "progress.md")) ?? "");
+  const tree = await treeHash(ctx.root);
+  const details = [];
+  for (const j of plan.journeys) {
+    const own = proofs.filter((p) => p.journey === j.id);
+    const green = own.findLastIndex((p) => p.phase === "green");
+    if (green === -1) {
+      details.push(`${j.id} has no green record \u2014 run its command, then \`solodev proof <slug> ${j.id} green\``);
+    } else if (own[green].tree !== tree) {
+      details.push(`${j.id}'s green is stale: the code changed since \u2014 run its command and record green again`);
+    }
+    const reds = (green === -1 ? own : own.slice(0, green)).filter((p) => p.phase === "red");
+    if (!reds.length) {
+      details.push(`${j.id} has no red record before its green \u2014 its test was never seen failing without the code`);
+    } else if (green !== -1 && reds.every((p) => p.tree === own[green].tree)) {
+      details.push(
+        `${j.id}'s red was recorded on the same tree as its green \u2014 a red counts only from before the code: set the code aside, run the test, record red, restore it, record green`
+      );
+    }
+  }
+  if (details.length) return result("C6", "fail", details[0], details.slice(1));
+  const n = plan.journeys.length;
+  return result("C6", "pass", `${n} journey${n === 1 ? "" : "s"} seen red, then green on this tree`);
+}
 var RUNNERS = {
   C1: c1,
   C2: c2,
   C3: c3,
   C4: c4,
-  C5: c5
+  C5: c5,
+  C6: c6
 };
 async function runCheck(id, ctx) {
   return RUNNERS[id](ctx);
@@ -7763,13 +7851,13 @@ async function approve(opts) {
   if (staged.length) throw new Error(`can't approve: staged files: ${staged.join(", ")}`);
   const approval = {
     date: opts.date ?? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
-    spec: specHash(await fs2.readFile(path3.join(opts.dir, "spec.md"), "utf8")),
+    spec: specHash(await fs3.readFile(path4.join(opts.dir, "spec.md"), "utf8")),
     at: (await git(opts.root, ["rev-parse", "--short=12", "HEAD"])).trim()
   };
-  const progressFile = path3.join(opts.dir, "progress.md");
+  const progressFile = path4.join(opts.dir, "progress.md");
   const progress = await readIfExists(progressFile) ?? "";
   const sep3 = progress === "" || progress.endsWith("\n") ? "" : "\n";
-  await fs2.writeFile(progressFile, `${progress}${sep3}${approvalLine(approval)}
+  await fs3.writeFile(progressFile, `${progress}${sep3}${approvalLine(approval)}
 `);
   return approval;
 }
@@ -7778,12 +7866,12 @@ async function approve(opts) {
 var HELP = {
   probe: {
     usage: "solodev probe",
-    summary: "What's available: coding tools, their models, Orca, and this repo's folder of features.",
+    summary: "What's available: coding tools, their models, and this repo's folder of features.",
     detail: [
       "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models and",
-      "their Orca launch fields), Orca (runtime ready, orchestration skill installed), `state`: this repo's folder of",
-      "features (outside the repo) and whether this session can write there, personal defaults from",
-      "~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for the gate card, another tool first."
+      "their launch fields), `state`: this repo's folder of features (outside the repo) and whether this session can",
+      "write there, personal defaults from ~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for",
+      "the gate card, another tool first."
     ],
     example: "solodev probe"
   },
@@ -7809,19 +7897,34 @@ var HELP = {
     example: "solodev approve csv-export"
   },
   check: {
-    usage: "solodev check <slug> [--for implement|pr|done] [--json]",
-    summary: "Run the checks that must pass before implement \u2192 review, PR, or PR ready.",
+    usage: "solodev check <slug> [--for gate|implement|pr|done] [--json]",
+    summary: "Run the checks that must pass before the gate card, implement \u2192 review, PR, or PR ready.",
     detail: [
       "Prints one line per check and exits 1 if any fails, naming what to fix. It reads only git and the feature",
-      "folder and never runs the project's tools. C1 coverage: every scenario is claimed, and each journey test",
-      "tags the scenarios it claims with `@S<n>` \xB7 C2 gate held \xB7 C3 reports only \xB7 C4 review settled \xB7 C5 QA",
-      "verdicts. implement runs C1\u2013C2, pr adds C3\u2013C4, done adds C5. Without --for: the set for the stage."
+      "folder and never runs the project's tools. C1 coverage: every scenario is claimed, and each journey test tags",
+      "the scenarios it claims with `@S<n>` \xB7 C2 gate held \xB7 C3 reports only \xB7 C4 review settled (no open blocker or",
+      "major, no failed QA verdict) \xB7 C5 QA verdicts \xB7 C6 proof recorded: each journey has a red, then a green on the",
+      "tree as it stands. implement runs C1, C2 and C6; pr runs C1\u2013C4 and C6; done adds C5. gate runs C1 on the plan",
+      "alone, before any test exists, and notes a feature large enough to split. Without --for: the set for the",
+      "stage."
     ],
     example: "solodev check csv-export --for implement"
   },
+  proof: {
+    usage: "solodev proof <slug> <journey> red|green --exit <code> [< output]",
+    summary: "Record one run of a journey's command, which you ran yourself, in progress.md.",
+    detail: [
+      "Runs nothing. Appends `- proof <journey> red|green \xB7 exit <code> \xB7 tree <hash>` with the hash of the working",
+      "tree as it stands (tracked and untracked files) and the last lines of the output given on stdin. red is the",
+      "journey test failing before the code exists, so it needs a non-zero exit; green needs 0. Any change to the",
+      "tree after a green makes it stale for C6: run the command and record it again. Keep the output file outside",
+      "the repo: a file written inside it changes the tree. A red counts only on another tree than the green."
+    ],
+    example: 'out="$(mktemp)"; npm test -- export > "$out" 2>&1; solodev proof csv-export J1 green --exit $? < "$out"'
+  },
   init: {
     usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",
-    summary: "Write the two shadow agents (shadow-coder, shadow-reviewer) for one coding tool.",
+    summary: "Write the shadow agents (coder, spec reviewer, reviewer, verifier) for one coding tool.",
     detail: [
       "Run once per coding tool after `npx skills add luisintosh/solodev`. Without a tool: the one running this",
       "session. Scope follows where the skill is installed (under $HOME: global; in a repo: that repo); --global or",
@@ -7859,10 +7962,10 @@ function helpText(command) {
 
 // src/cli/init.ts
 import { createHash as createHash2 } from "node:crypto";
-import * as path4 from "node:path";
+import * as path5 from "node:path";
 var MARK = /\n(?:<!-- solodev-hash: ([0-9a-f]{16}) -->|# solodev-hash: ([0-9a-f]{16}))\n?$/;
-function sha256(text) {
-  return createHash2("sha256").update(text).digest("hex");
+function sha256(text2) {
+  return createHash2("sha256").update(text2).digest("hex");
 }
 function withHash(file, content) {
   const hash = sha256(content).slice(0, 16);
@@ -7879,28 +7982,28 @@ function intact(content) {
 }
 function agentsDir(host, scope, root, home, env) {
   if (host === "codex") {
-    return scope === "global" ? path4.join(env.CODEX_HOME || path4.join(home, ".codex"), "agents") : path4.join(root, ".codex", "agents");
+    return scope === "global" ? path5.join(env.CODEX_HOME || path5.join(home, ".codex"), "agents") : path5.join(root, ".codex", "agents");
   }
-  return path4.join(scope === "global" ? home : root, host === "claude" ? ".claude" : ".cursor", "agents");
+  return path5.join(scope === "global" ? home : root, host === "claude" ? ".claude" : ".cursor", "agents");
 }
 function locate(cliPath, home, env) {
-  const scripts = path4.dirname(cliPath);
-  const skill = path4.dirname(scripts);
-  const skills = path4.dirname(skill);
-  if (path4.basename(scripts) !== "scripts" || path4.basename(skill) !== "solo-task") return void 0;
-  if (path4.basename(skills) !== "skills") return void 0;
-  const config = path4.dirname(skills);
-  const base = path4.dirname(config);
-  if (env.CODEX_HOME !== void 0 && path4.resolve(env.CODEX_HOME) === config) return { scope: "global", base: home };
-  if (!path4.basename(config).startsWith(".")) return void 0;
+  const scripts = path5.dirname(cliPath);
+  const skill = path5.dirname(scripts);
+  const skills = path5.dirname(skill);
+  if (path5.basename(scripts) !== "scripts" || path5.basename(skill) !== "solo-task") return void 0;
+  if (path5.basename(skills) !== "skills") return void 0;
+  const config = path5.dirname(skills);
+  const base = path5.dirname(config);
+  if (env.CODEX_HOME !== void 0 && path5.resolve(env.CODEX_HOME) === config) return { scope: "global", base: home };
+  if (!path5.basename(config).startsWith(".")) return void 0;
   return base === home ? { scope: "global", base: home } : { scope: "project", base };
 }
 async function planInit(input) {
   const dir = agentsDir(input.host, input.scope, input.root, input.home, input.env);
-  const dirInside = await input.inside(path4.join(dir, "shadow"));
+  const dirInside = await input.inside(path5.join(dir, "shadow"));
   const ops = [];
   for (const [file, built] of Object.entries(input.agents[input.host]).sort()) {
-    const dest = path4.join(dir, file);
+    const dest = path5.join(dir, file);
     if (!dirInside) {
       ops.push({ kind: "outside", path: dest });
       continue;
@@ -7926,10 +8029,10 @@ var VERB = {
   outside: "! outside  "
 };
 function formatInit(input, ops, dryRun) {
-  const under = (dir, p) => p.startsWith(`${dir}${path4.sep}`);
+  const under = (dir, p) => p.startsWith(`${dir}${path5.sep}`);
   const show = (p) => {
-    if (input.scope === "project" && under(input.root, p)) return path4.relative(input.root, p);
-    if (under(input.home, p)) return `~/${path4.relative(input.home, p)}`;
+    if (input.scope === "project" && under(input.root, p)) return path5.relative(input.root, p);
+    if (under(input.home, p)) return `~/${path5.relative(input.home, p)}`;
     return p;
   };
   const lines = [`solodev init ${input.host} (${input.scope}: ${input.scope === "global" ? "~" : input.root})`];
@@ -7952,7 +8055,14 @@ function modelsFromCatalog(catalog) {
     const think = profiles.think;
     const implement = profiles.implement;
     if (!think?.id || !implement?.id) throw new Error(`catalog: hosts.${tool} needs think and implement profiles`);
-    out[tool] = { think, implement };
+    const shadows = {};
+    for (const [name, shadow] of Object.entries(catalog.shadows ?? {})) {
+      const ref = profiles[shadow.profile];
+      if (!ref?.id) throw new Error(`catalog: shadows.${name} names profile ${shadow.profile}, which ${tool} lacks`);
+      const effort = shadow.effort?.[tool];
+      shadows[name] = effort ? { ...ref, effort } : ref;
+    }
+    out[tool] = { think, implement, shadows };
   }
   return out;
 }
@@ -7965,7 +8075,7 @@ function writerId(tool, ref) {
 
 // src/cli/probe.ts
 var import_yaml2 = __toESM(require_dist(), 1);
-import * as path5 from "node:path";
+import * as path6 from "node:path";
 var BINARIES = { claude: "claude", codex: "codex", cursor: "agent" };
 var CODER_SKILL = "solo-code";
 var SKILL_DIRS = {
@@ -7973,18 +8083,18 @@ var SKILL_DIRS = {
   codex: [".agents/skills", ".codex/skills"],
   cursor: [".agents/skills", ".cursor/skills", ".claude/skills"]
 };
-var SHADOWS = ["shadow-coder", "shadow-reviewer"];
+var SHADOWS = ["shadow-coder", "shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"];
 function launch(tool, ref) {
   return ref.effort ? { agent: tool, model: ref.id, effort: ref.effort } : { agent: tool, model: ref.id };
 }
 function parseDefaults(raw, warnings) {
-  const out = { writer: "ask", dispatch: "auto" };
+  const out = { writer: "ask" };
   if (raw === void 0) return out;
   let doc;
   try {
     doc = (0, import_yaml2.parse)(raw) ?? {};
   } catch {
-    warnings.push("~/.agents/solodev/solodev-conf.yaml is not valid YAML; using writer: ask, dispatch: auto");
+    warnings.push("~/.agents/solodev/solodev-conf.yaml is not valid YAML; using writer: ask");
     return out;
   }
   if (doc.writer !== void 0) {
@@ -7995,16 +8105,11 @@ function parseDefaults(raw, warnings) {
       );
   }
   if (doc.dispatch !== void 0) {
-    if (doc.dispatch === "auto" || doc.dispatch === "orca") out.dispatch = doc.dispatch;
-    else warnings.push(`~/.agents/solodev/solodev-conf.yaml: dispatch must be auto or orca (got ${doc.dispatch})`);
+    warnings.push(
+      "~/.agents/solodev/solodev-conf.yaml: dispatch is no longer used; shadows run natively, and a coder on another tool through whatever can run it"
+    );
   }
   return out;
-}
-function resolveOrcaCli(env, platform) {
-  if (env.ORCA_CLI_COMMAND) return env.ORCA_CLI_COMMAND;
-  if (env.ORCA_DEV_REPO_ROOT) return "orca-dev";
-  if (platform === "linux" && !env.ORCA_TERMINAL_HANDLE) return "orca-ide";
-  return "orca";
 }
 function detectHome(env) {
   const forced = env.SOLODEV_HOME;
@@ -8031,24 +8136,6 @@ async function loggedIn(deps, tool) {
   if (r.code !== 0) return r.code === null ? false : null;
   return /logged in/i.test(r.stdout) && !/not logged in/i.test(r.stdout);
 }
-async function probeOrca(deps) {
-  const cli = resolveOrcaCli(deps.env, deps.platform);
-  const status = await deps.exec(cli, ["status", "--json"]);
-  if (status.code === null) return { cli, ready: false, reason: `${cli} not found` };
-  let state = "unknown";
-  try {
-    const parsed = JSON.parse(status.stdout);
-    state = parsed.ok ? parsed.result?.runtime?.state ?? "unknown" : "unknown";
-  } catch {
-    return { cli, ready: false, reason: `${cli} status --json returned no JSON` };
-  }
-  if (state !== "ready") return { cli, ready: false, reason: `runtime ${state}` };
-  const skills = await deps.exec(cli, ["skills", "installed"]);
-  if (!/^orchestration\b/m.test(skills.stdout)) {
-    return { cli, ready: false, reason: "the orchestration skill isn't installed (orca skills install)" };
-  }
-  return { cli, ready: true, reason: "ok" };
-}
 async function hasShadows(deps, tool) {
   const ext = tool === "codex" ? "toml" : "md";
   for (const [scope, root] of [
@@ -8056,7 +8143,7 @@ async function hasShadows(deps, tool) {
     ["global", deps.home]
   ]) {
     const dir = agentsDir(tool, scope, root, deps.home, deps.env);
-    const found = await Promise.all(SHADOWS.map((name) => deps.exists(path5.join(dir, `${name}.${ext}`))));
+    const found = await Promise.all(SHADOWS.map((name) => deps.exists(path6.join(dir, `${name}.${ext}`))));
     if (found.every(Boolean)) return true;
   }
   return false;
@@ -8064,7 +8151,7 @@ async function hasShadows(deps, tool) {
 async function hasSkill(deps, tool) {
   for (const base of [deps.root, deps.home]) {
     for (const dir of SKILL_DIRS[tool]) {
-      if (await deps.exists(path5.join(base, dir, CODER_SKILL, "SKILL.md"))) return true;
+      if (await deps.exists(path6.join(base, dir, CODER_SKILL, "SKILL.md"))) return true;
     }
   }
   return false;
@@ -8086,45 +8173,45 @@ async function probe(deps, models) {
           shadows: await hasShadows(deps, tool),
           think: writerId(tool, models[tool].think),
           implement: writerId(tool, models[tool].implement),
-          launch: { think: launch(tool, models[tool].think), implement: launch(tool, models[tool].implement) }
+          launch: {
+            think: launch(tool, models[tool].think),
+            implement: launch(tool, models[tool].implement),
+            shadows: Object.fromEntries(
+              Object.entries(models[tool].shadows).map(([name, ref]) => [name, launch(tool, ref)])
+            )
+          }
         }
       ];
     })
   );
   const tools = Object.fromEntries(probed);
-  const orca = await probeOrca(deps);
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor");
   else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /solo-task init`);
   const writable = await deps.writable(deps.state);
   if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /solo-task`);
   const defaults = parseDefaults(
-    await deps.read(path5.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
+    await deps.read(path6.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
     warnings
   );
-  if (defaults.dispatch === "orca" && !orca.ready) {
-    warnings.push(`dispatch: orca, but Orca isn't ready (${orca.reason}); shadows run natively`);
-  }
   const writers = [];
-  const offer = (tool, via) => writers.push({
+  const offer = (tool) => writers.push({
     tool,
-    via,
     model: tools[tool].implement,
     launch: tools[tool].launch.implement,
     recommended: writers.length === 0
   });
   for (const tool of TOOLS) {
     const t = tools[tool];
-    if (tool === home || !orca.ready || !t.installed || t.loggedIn === false || !t.skills) continue;
-    offer(tool, "orca");
+    if (tool === home || !t.installed || t.loggedIn === false) continue;
+    offer(tool);
   }
-  if (home) offer(home, defaults.dispatch === "orca" && orca.ready ? "orca" : "native");
+  if (home) offer(home);
   if (defaults.writer !== "ask" && !writers.some((w) => w.tool === defaults.writer)) {
     warnings.push(`writer: ${defaults.writer} is set, but that tool can't write here; ask at the gate instead`);
   }
   return {
     home,
     tools,
-    orca,
     state: { dir: deps.state, writable },
     defaults,
     writers,
@@ -8132,10 +8219,40 @@ async function probe(deps, models) {
   };
 }
 
+// src/cli/proof.ts
+import * as fs4 from "node:fs/promises";
+import * as path7 from "node:path";
+var TAIL_LINES = 6;
+var TAIL_WIDTH = 200;
+var ANSI = /\u001b\[[0-9;?]*[ -/]*[@-~]/g;
+var CONTROL = /[\u0000-\u0008\u000b-\u001f\u007f]/g;
+function tail(output) {
+  return output.replace(ANSI, "").split(/\r\n|[\r\n\u2028\u2029]/).map((l) => l.replace(CONTROL, "")).map((l) => l.trimEnd()).filter(Boolean).slice(-TAIL_LINES).map((l) => `  > ${l.slice(0, TAIL_WIDTH)}`);
+}
+async function proof(opts) {
+  const spec = await readIfExists(path7.join(opts.dir, "spec.md"));
+  if (spec === void 0) throw new Error(`spec.md not found in ${opts.dir}`);
+  const ids = parsePlan(spec).journeys.map((j) => j.id);
+  if (!ids.includes(opts.journey)) throw new Error(`the plan has no journey ${opts.journey} (${ids.join(", ")})`);
+  if (opts.phase === "red" && opts.exit === 0) {
+    throw new Error("red needs a non-zero exit: the test passed without the code, so it proves nothing yet");
+  }
+  if (opts.phase === "green" && opts.exit !== 0) {
+    throw new Error(`green needs exit 0, got ${opts.exit}: the journey still fails`);
+  }
+  const record = { journey: opts.journey, phase: opts.phase, exit: opts.exit, tree: await treeHash(opts.root) };
+  const file = path7.join(opts.dir, "progress.md");
+  const progress = await readIfExists(file) ?? "";
+  const sep3 = progress === "" || progress.endsWith("\n") ? "" : "\n";
+  await fs4.appendFile(file, `${sep3}${[proofLine(record), ...tail(opts.output ?? "")].join("\n")}
+`);
+  return record;
+}
+
 // src/cli/state.ts
-import * as path6 from "node:path";
+import * as path8 from "node:path";
 function stateRoot(env, home) {
-  return env.SOLODEV_STATE ? path6.resolve(env.SOLODEV_STATE) : path6.join(home, ".agents", "solodev");
+  return env.SOLODEV_STATE ? path8.resolve(env.SOLODEV_STATE) : path8.join(home, ".agents", "solodev");
 }
 var SEGMENT = /^[A-Za-z0-9._-]+$/;
 function keyFromRemote(url) {
@@ -8157,7 +8274,7 @@ function keyFromRemote(url) {
 async function checkoutName(repoRoot2) {
   const r = await run("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd: repoRoot2 });
   const common = r.code === 0 ? r.stdout.trim() : "";
-  const name = path6.basename(common && path6.basename(common) === ".git" ? path6.dirname(common) : repoRoot2);
+  const name = path8.basename(common && path8.basename(common) === ".git" ? path8.dirname(common) : repoRoot2);
   return SEGMENT.test(name) && name !== "." && name !== ".." ? name : "repo";
 }
 async function repoKey(repoRoot2) {
@@ -8165,25 +8282,25 @@ async function repoKey(repoRoot2) {
   return origin.code === 0 && keyFromRemote(origin.stdout) || await checkoutName(repoRoot2);
 }
 async function stateDir(repoRoot2, env, home) {
-  return path6.join(stateRoot(env, home), await repoKey(repoRoot2));
+  return path8.join(stateRoot(env, home), await repoKey(repoRoot2));
 }
 
 // src/cli/status.ts
-import * as fs3 from "node:fs/promises";
-import * as path7 from "node:path";
+import * as fs5 from "node:fs/promises";
+import * as path9 from "node:path";
 var NEXT = {
   spec: () => "write spec.md with its plan (solo-plan), asking the user what the code can't answer",
-  gate: (s) => `show the gate card; on approval run \`solodev approve ${s}\``,
+  gate: (s) => `\`solodev check ${s} --for gate\`, then show the gate card; on approval run \`solodev approve ${s}\``,
   implement: (s) => `solo-code writes the journey tests and the code; then \`solodev check ${s} --for implement\`; once progress.md logs it passed, code review`,
-  review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
+  review: () => "settle the open blocker/major findings and failed QA verdicts in review.md: a fix round, or the user's decision",
   pr: (s) => `\`solodev check ${s} --for pr\`, then push, open the draft PR and log \`- pr <url> \xB7 draft\` in progress.md`,
-  qa: (s) => `solo-verify for uncovered scenarios (if any); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> \xB7 ready\``,
+  qa: (s) => `post the QA comment and settle any manual verdict (if the plan has uncovered scenarios); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> \xB7 ready\``,
   done: () => "the user reviews and merges the PR"
 };
 async function featureStatus(state, slug) {
   const dir = featureDir(state, slug);
   const notes = [];
-  const progress = await readIfExists(path7.join(dir, "progress.md")) ?? "";
+  const progress = await readIfExists(path9.join(dir, "progress.md")) ?? "";
   const tools = parseTools(progress);
   const done = (stage, extra = {}) => ({
     slug,
@@ -8193,7 +8310,7 @@ async function featureStatus(state, slug) {
     notes,
     ...extra
   });
-  const spec = await readIfExists(path7.join(dir, "spec.md"));
+  const spec = await readIfExists(path9.join(dir, "spec.md"));
   if (spec === void 0 || !/^journeys:/m.test(spec)) return done("spec");
   const { approval, matches } = await currentApproval(dir);
   if (!approval) return done("gate");
@@ -8202,15 +8319,15 @@ async function featureStatus(state, slug) {
     return done("gate");
   }
   const approved = `${approval.date} at ${approval.at.slice(0, 7)}`;
-  const review = await readIfExists(path7.join(dir, "review.md"));
+  const review = await readIfExists(path9.join(dir, "review.md"));
   if (review === void 0) return done("implement", { approved });
   const open = parseReview(review).filter(
     (f) => f.status === "open" && (f.severity === "blocker" || f.severity === "major")
   );
-  if (open.length) {
-    notes.push(`open: ${open.map((f) => f.id).join(", ")}`);
-    return done("review", { approved });
-  }
+  const failed = failedQa(review);
+  if (open.length) notes.push(`open: ${open.map((f) => f.id).join(", ")}`);
+  if (failed.length) notes.push(`QA failed: ${failed.join(", ")}`);
+  if (open.length || failed.length) return done("review", { approved });
   const pr = parsePrEvents(progress).at(-1);
   if (!pr) return done("pr", { approved });
   if (pr.state === "ready") return done("done", { approved, pr });
@@ -8232,14 +8349,14 @@ async function listFeatures(state) {
   const base = state;
   let entries;
   try {
-    entries = await fs3.readdir(base);
+    entries = await fs5.readdir(base);
   } catch {
     return [];
   }
   const dirs = [];
   for (const e of entries) {
     if (e === ROADMAPS_DIR || e === REVIEWS_DIR) continue;
-    const st = await fs3.stat(path7.join(base, e)).catch(() => void 0);
+    const st = await fs5.stat(path9.join(base, e)).catch(() => void 0);
     if (st?.isDirectory()) dirs.push({ slug: e, mtime: st.mtimeMs });
   }
   return dirs.sort((a, b) => b.mtime - a.mtime).map((d) => d.slug);
@@ -8283,7 +8400,7 @@ function positional(args) {
   return out;
 }
 async function repoRoot() {
-  if (process.env.SOLODEV_ROOT) return path8.resolve(process.env.SOLODEV_ROOT);
+  if (process.env.SOLODEV_ROOT) return path10.resolve(process.env.SOLODEV_ROOT);
   const r = await run("git", ["rev-parse", "--show-toplevel"]);
   if (r.code === 0 && r.stdout.trim()) return r.stdout.trim();
   return process.cwd();
@@ -8294,7 +8411,14 @@ async function requireFeature(state, slug) {
   if (!await exists(featureDir(state, slug))) throw new UsageError(`${featureDir(state, slug)} does not exist`);
   return slug;
 }
-var SET_FOR_STAGE = { review: "pr", pr: "pr", qa: "done", done: "done" };
+var SET_FOR_STAGE = {
+  spec: "gate",
+  gate: "gate",
+  review: "pr",
+  pr: "pr",
+  qa: "done",
+  done: "done"
+};
 async function main(argv) {
   const [command, ...args] = argv;
   if (!command || command === "help" || command === "--help" || command === "-h") {
@@ -8308,7 +8432,7 @@ async function main(argv) {
   }
   if (command === "init") return init(args);
   const root = await repoRoot();
-  const state = await stateDir(root, process.env, os.homedir());
+  const state = await stateDir(root, process.env, os2.homedir());
   const models = modelsFromCatalog(catalog_default);
   const json = args.includes("--json");
   switch (command) {
@@ -8316,23 +8440,22 @@ async function main(argv) {
       const result2 = await probe(
         {
           env: process.env,
-          platform: process.platform,
           root,
           state,
-          home: os.homedir(),
+          home: os2.homedir(),
           exec: async (cmd, a) => {
             const r = await run(cmd, a, { cwd: root, timeoutMs: 15e3 });
             return { code: r.code, stdout: r.stdout };
           },
           which: async (bin) => (await run("sh", ["-c", `command -v ${bin}`])).code === 0,
           exists,
-          read: (file) => fs4.readFile(file, "utf8").catch(() => void 0),
+          read: (file) => fs6.readFile(file, "utf8").catch(() => void 0),
           writable: async (dir) => {
             try {
-              await fs4.mkdir(dir, { recursive: true });
-              const probeFile = path8.join(dir, `.probe-${process.pid}`);
-              await fs4.writeFile(probeFile, "");
-              await fs4.rm(probeFile);
+              await fs6.mkdir(dir, { recursive: true });
+              const probeFile = path10.join(dir, `.probe-${process.pid}`);
+              await fs6.writeFile(probeFile, "");
+              await fs6.rm(probeFile);
               return true;
             } catch {
               return false;
@@ -8370,7 +8493,7 @@ async function main(argv) {
     case "check": {
       const slug = await requireFeature(state, positional(args)[0]);
       const forFlag = flag(args, "--for");
-      if (forFlag && !(forFlag in CHECK_SETS)) throw new UsageError("--for must be implement, pr or done");
+      if (forFlag && !(forFlag in CHECK_SETS)) throw new UsageError("--for must be gate, implement, pr or done");
       let set = forFlag;
       if (!set) {
         const stage = (await featureStatus(state, slug)).stage;
@@ -8381,6 +8504,17 @@ async function main(argv) {
       else console.log(`solodev check ${slug} --for ${set}
 ${formatResults(results)}`);
       return results.some((r) => r.status === "fail") ? 1 : 0;
+    }
+    case "proof": {
+      const [slugArg, journey, phase] = positional(args);
+      const slug = await requireFeature(state, slugArg);
+      if (!journey || phase !== "red" && phase !== "green") throw new UsageError(`usage: ${HELP.proof.usage}`);
+      const exit = flag(args, "--exit");
+      if (exit === void 0 || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code");
+      const output = process.stdin.isTTY ? "" : await text(process.stdin);
+      const record = await proof({ root, dir: featureDir(state, slug), journey, phase, exit: Number(exit), output });
+      console.log(`recorded ${slug} ${journey} ${phase} at tree ${record.tree}`);
+      return 0;
     }
     case "install":
       console.log(
@@ -8393,10 +8527,10 @@ ${formatResults(results)}`);
 async function readShadows(dir) {
   const agents = {};
   for (const host of TOOLS) {
-    const files = await fs4.readdir(path8.join(dir, host)).catch(() => []);
-    if (!files.length) throw new Error(`no shadows in ${path8.join(dir, host)}; reinstall solodev`);
+    const files = await fs6.readdir(path10.join(dir, host)).catch(() => []);
+    if (!files.length) throw new Error(`no shadows in ${path10.join(dir, host)}; reinstall solodev`);
     agents[host] = {};
-    for (const file of files.sort()) agents[host][file] = await fs4.readFile(path8.join(dir, host, file), "utf8");
+    for (const file of files.sort()) agents[host][file] = await fs6.readFile(path10.join(dir, host, file), "utf8");
   }
   return agents;
 }
@@ -8406,9 +8540,9 @@ async function init(args) {
   const host = named ?? detectHome(process.env);
   if (!host) throw new UsageError("couldn't tell which coding tool runs this session; name it: solodev init claude");
   if (args.includes("--global") && args.includes("--project")) throw new UsageError("pick --global or --project");
-  const home = os.homedir();
-  const realHome = await fs4.realpath(home).catch(() => home);
-  const cliPath = await fs4.realpath(fileURLToPath(import.meta.url));
+  const home = os2.homedir();
+  const realHome = await fs6.realpath(home).catch(() => home);
+  const cliPath = await fs6.realpath(fileURLToPath(import.meta.url));
   const located = locate(cliPath, realHome, process.env);
   const scope = args.includes("--global") ? "global" : args.includes("--project") ? "project" : located?.scope ?? "project";
   const root = scope === "global" ? home : located?.scope === "project" ? located.base : await repoRoot();
@@ -8419,18 +8553,18 @@ async function init(args) {
     root,
     home,
     env: process.env,
-    agents: await readShadows(path8.join(path8.dirname(cliPath), "..", "shadows")),
+    agents: await readShadows(path10.join(path10.dirname(cliPath), "..", "shadows")),
     force: args.includes("--force"),
-    read: (file) => fs4.readFile(file, "utf8").catch(() => void 0),
+    read: (file) => fs6.readFile(file, "utf8").catch(() => void 0),
     inside: scope === "global" ? async () => true : await insideOf(root)
   };
   const ops = await planInit(input);
   if (!dryRun) {
     await applyInit(ops, async (file, content) => {
-      await fs4.mkdir(path8.dirname(file), { recursive: true });
-      const tmp = path8.join(path8.dirname(file), `.${path8.basename(file)}.${process.pid}.tmp`);
-      await fs4.writeFile(tmp, content, { flag: "wx" });
-      await fs4.rename(tmp, file);
+      await fs6.mkdir(path10.dirname(file), { recursive: true });
+      const tmp = path10.join(path10.dirname(file), `.${path10.basename(file)}.${process.pid}.tmp`);
+      await fs6.writeFile(tmp, content, { flag: "wx" });
+      await fs6.rename(tmp, file);
     });
   }
   const edited = ops.filter((op) => op.kind === "edited");
@@ -8445,23 +8579,23 @@ ${await diff(op.path, op.content)}`);
   return failed ? 1 : 0;
 }
 async function insideOf(root) {
-  const real = await fs4.realpath(root);
+  const real = await fs6.realpath(root);
   return async (file) => {
-    let dir = path8.dirname(file);
+    let dir = path10.dirname(file);
     for (; ; ) {
-      const resolved = await fs4.realpath(dir).catch(() => void 0);
-      if (resolved !== void 0) return resolved === real || resolved.startsWith(`${real}${path8.sep}`);
-      const up = path8.dirname(dir);
+      const resolved = await fs6.realpath(dir).catch(() => void 0);
+      if (resolved !== void 0) return resolved === real || resolved.startsWith(`${real}${path10.sep}`);
+      const up = path10.dirname(dir);
       if (up === dir) return false;
       dir = up;
     }
   };
 }
 async function diff(file, content) {
-  const tmp = path8.join(await fs4.mkdtemp(path8.join(os.tmpdir(), "solodev-init-")), path8.basename(file));
-  await fs4.writeFile(tmp, content);
+  const tmp = path10.join(await fs6.mkdtemp(path10.join(os2.tmpdir(), "solodev-init-")), path10.basename(file));
+  await fs6.writeFile(tmp, content);
   const r = await run("git", ["diff", "--no-index", "--no-color", "--", file, tmp]);
-  await fs4.rm(path8.dirname(tmp), { recursive: true, force: true });
+  await fs6.rm(path10.dirname(tmp), { recursive: true, force: true });
   return r.stdout.trim() || `${file} differs from what init writes`;
 }
 try {

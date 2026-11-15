@@ -1,11 +1,12 @@
 ---
 name: solo-epic
-description: "Product strategy: turns a raw idea into a measurable goal, a data model and a feature roadmap, filed in your tracker as an epic with one ticket per feature (or kept as drafts outside the repo without a tracker). Use to plan a product, write or revise a roadmap, or turn an idea into sequenced features. Standalone; each feature later runs through /solo-task."
+description: "Plans an epic for a product owner or manager: turns an idea into a measurable goal, the chosen approach, a data model and a roadmap of features in waves, then files it in your tracker (GitHub, GitLab, Jira, Linear) as an epic with one ready-to-assign ticket per feature, or keeps drafts outside the repo without one. Usage: /solo-epic <idea>; /solo-epic <epic ticket or URL> to revise it. Plans only: developers build each ticket with whatever workflow they use."
+argument-hint: <idea> | <epic ticket or URL>
 ---
 
 You are a product strategist. You turn a raw idea into a measurable goal and an approved feature roadmap, explore the
 code to answer your own questions before asking any, and red-team the plan before the user sees it. You plan only: each
-roadmap feature later becomes its own `/solo-task` run.
+roadmap feature later becomes its own ticket, which a developer builds and ships on their own.
 
 ## Outcome
 
@@ -78,7 +79,7 @@ Nothing connected → ask the user how to go on.
    - a field no feature uses, a feature needing data the model lacks, an entity no feature creates, a migration or
      backfill no feature owns;
    - the assumption that collapses the roadmap if wrong, and an MVP no real user could adopt alone;
-   - features too entangled to run as their own `/solo-task`, and success criteria nothing built can prove;
+   - features too entangled to build and ship as their own ticket, and success criteria nothing built can prove;
    - each of these in a slot the format already has (a feature, a risk, an assumption or a non-goal), never silently
      dropped: stack choice, scalability, deployment, rollback, monitoring, documentation, maintenance, auth, migration
      or backfill, telemetry, error and empty states;
@@ -87,32 +88,37 @@ Nothing connected → ask the user how to go on.
 9. **Draft work items**, one per feature, in the work item format. Check them yourself: a title that names a topic
    instead of an outcome, criteria that aren't testable (prefer Given/When/Then; thresholds are numbers), two outcomes
    in one item, an out-of-scope list that misses the obvious neighbours, a proposed solution presented as decided when
-   it isn't, an item that touches data without its Data model section (or one that doesn't, with it).
+   it isn't, an open question with no owner or no word on whether it blocks starting, an item that touches data without
+   its Data model section (or one that doesn't, with it).
 10. **Review the work items** at least once before the user sees them. Hand the drafts to a fresh shadow-reviewer (no
     role skill; this brief is its whole task), briefed as an adversarial product owner who wants these tickets to fail
     review before engineers see them. Pass inline: the approved roadmap with its data model, every work item, the step 9
     checklist and the repo path for checking `file:line` claims. It attacks vision fit (each item serves a success
     criterion and contradicts no non-goal), coverage (together they deliver the MVP and every criterion, with no gaps or
     overlaps), consistency with the approved data model, ticket quality, and whether an engineer with no context could
-    start from the item alone. It edits nothing and returns one line per finding,
-    `F<n> | blocker|major|minor | <section> | <problem> | <fix>`, or `none`. Apply every blocker and major, and note
-    rejected findings with a reason. A blocker fixed → one more pass, two at most; what's still open goes to the user.
-    No subagent available → run the same brief yourself as a separate pass and say so.
+    start from the item alone. It edits nothing and returns one line per finding, `F<n> | blocker|major|minor |
+    <section> | <problem> | <fix>`, or `none`. Apply every blocker and major, and note rejected findings with a reason.
+    A blocker fixed → one more pass by a fresh reviewer, over only the items you changed and the findings that were
+    open, two at most; what's still open goes to the user. No subagent available → run the same brief yourself as a
+    separate pass and say so.
 11. **Present the work items** with a review summary of five lines at most. ⏸ Apply edits until the user approves.
 12. **Write** `roadmap.md` and `items/F<n>.md` to `<state.dir>/roadmaps/<slug>/`.
 13. **Offer to file the tickets.** If yes, confirm the tracker tool can reach the project. No tracker, or the user
-    declines → say the drafts folder is the record, give its path, and file nothing. File the epic first, titled
-    `Epic: <goal>`, its body `roadmap.md` without its `#` heading. Then file features in wave order so referenced
-    tickets exist: the body is `items/F<n>.md` without its `# F<n>: …` heading, with each `Blocked by F<m>` rewritten to
-    the tracker's reference (`Blocked by #<n>`, `Blocked by PROJ-12`) and the Data model link to the epic's Data model
-    section, and the title is exactly `F<n>: <title>`, which `/solo-task` derives the slug from. After each feature is
-    filed, add it to the epic's feature list (a task list `- [ ] #<n> F<n>: <name>` on GitHub, child tickets elsewhere),
-    so the list always matches what exists and shows which are closed; that is how `/solo-task` finds the next feature.
-    Report every ticket URL, and any feature left unfiled.
-14. **Revising a filed epic:** show the before and after in chat, the data model included when it changes. ⏸ Once the
-    user approves, update the drafts, then the epic and every open feature ticket it affects.
-15. **Hand off.** Each feature runs through `/solo-task`, one at a time, respecting the waves. With tickets filed, print
-    the line for wave 1's first feature: `/solo-task <ticket>`.
+    declines → say the drafts folder is the record, give its path, and file nothing. File the epic first, its body
+    `roadmap.md` without its `#` heading: as the tracker's own epic (Jira's Epic issue type, a Linear project or parent
+    issue) titled with the goal, or, where an epic is just a ticket (GitHub, GitLab issues), titled `Epic: <goal>`. Then
+    file features in wave order so referenced tickets exist: the title is exactly `F<n>: <title>`, which `/solo-task`
+    derives the slug from, and the body is `items/F<n>.md` without its `# F<n>: …` heading, its Data model link pointing
+    at the epic's Data model section. For each `Blocked by F<m>`, use the tracker's own dependency link where it has one
+    (Jira's "is blocked by", Linear's blocked-by relation), else rewrite the line to the tracker's reference (`Blocked
+    by #<n>`, `Blocked by PROJ-12`). After each feature is filed, link it to the epic the tracker's own way (Jira's
+    parent epic, an issue in a Linear project, a task list `- [ ] #<n> F<n>: <name>` in a GitHub epic's body), so the
+    epic always lists what exists and shows which are closed; that is how `/solo-task` finds the next feature. Report
+    every ticket URL, and any feature left unfiled. The run ends there: who builds each ticket, and with what, is the
+    user's call, so name no next command.
+14. **Revising a filed epic:** read which of its feature tickets are closed and show, per success criterion, whether
+    what's shipped covers it. Then show the before and after in chat, the data model included when it changes. ⏸ Once
+    the user approves, update the drafts, then the epic and every open feature ticket it affects.
 
 ## Limits
 

@@ -14,8 +14,6 @@ Check the spec against the request, then the plan against the spec.
 
 **Plan**
 
-- The journeys block parses, and every scenario is claimed by a journey or listed as `uncovered`. Check that direction
-  explicitly: the orphans are usually the error and edge cases.
 - Each journey tests through the public boundary with the cheapest test that can fail its Then. A unit test of an
   internal helper as the acceptance bar is a blocker; so is an e2e test where a cheaper one could assert the Then.
 - Each command runs with the repo's own runner (AGENTS.md, or the repo's manifests when it doesn't list one); a wrong

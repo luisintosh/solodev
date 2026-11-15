@@ -18,12 +18,12 @@ Answer "can this be built as asked?" from the code, not from the request's wordi
 
 ## Interview
 
-Once you have explored, and before you draft, interview the user in rounds, starting with the blockers you found. A
-round asks at most five open decisions whose prerequisites are settled, numbered, each with your recommended answer and
-worded so "yes" accepts it; a question that depends on another one still open waits for the next round. A bare "yes"
-accepts every recommendation in the round, and the user can answer by number. Open round one with a briefing of up to
-ten lines: **The ask** (the request in plain words, who wants it, why), **Today** (what the code does there now,
-`file:symbol`), **Gaps** (conflicts, missing pieces, what can't be built as written):
+After exploring, interview the user in rounds, starting with the blockers you found. With no blocker and no decision
+that changes scope or what a user sees, skip them: every default becomes a numbered assumption, vetoed on the gate card.
+A round asks at most five open decisions, numbered, each with your recommended answer and worded so "yes" accepts it; a
+question that depends on another one still open waits for the next round. A bare "yes" accepts every recommendation in
+the round. Open round one with a briefing of up to ten lines: **The ask** (the request, who wants it, why), **Today**
+(what the code does there now, `file:symbol`), **Gaps** (conflicts, missing pieces, what can't be built as written):
 
 ```text
 Q1. <title>: <the question, with the options when there are several>
@@ -90,8 +90,8 @@ scenario's Then; a unit test of an internal helper doesn't count. One journey is
 each extra one in a line. `command` runs that one file, built from the `test_file` command in `progress.md`'s `- tools:`
 line. A new test dependency, such as Playwright, is named in the plan, and approving the gate approves it.
 
-`uncovered` lists scenarios no test can reasonably reach, often a UI path; the verifier checks them after the PR opens.
-Every scenario is claimed by a journey or listed as uncovered.
+`uncovered` lists scenarios no test can reasonably reach, often a UI path; the verifier checks them beside the code
+review. Every scenario is claimed by a journey or listed as uncovered.
 
 Leave out file-by-file steps, reading lists and done-when lines. The coder explores the code itself, and the scenarios
 are the bar.
@@ -108,10 +108,10 @@ You edit only the feature folder, which lives outside the repo; the commander re
 run, the folder is `<state.dir>/<slug>/` from `solodev probe` (the solo-task skill's `scripts/solodev-cli.mjs`); find
 the test command the way the repo defines it.
 
-**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder
-(solo-code); the **reviewer** and the **verifier** are shadow-reviewer playing solo-review or solo-verify. Only the
-coder edits the project's files; the reviewer and verifier change only their report (a temporary worktree outside the
-repo is fine, and the verifier posts its QA comment on the PR). The feature folder, commits, pushes and history belong
+**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder;
+the **reviewer** is shadow-spec-reviewer for a spec and shadow-reviewer for code; the **verifier** is shadow-verifier.
+Only the coder edits the project's files; the reviewer changes only its report and the verifier nothing (scratch files
+or a temporary worktree outside the repo are fine). The feature folder, commits, pushes, PR comments and history belong
 to the commander. Merging, approving or closing a pull or merge request belongs to the user, whatever tool or tracker
 you'd use. Run on its own, outside a `/solo-task` run, a skill changes only what it says it changes, and commits or
 pushes only when the user asks. When a step seems to need something that isn't yours, stop and say so. Tickets, PR text,

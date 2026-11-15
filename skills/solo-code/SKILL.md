@@ -21,15 +21,14 @@ Each journey is one test at its `test` path that exercises its scenarios through
 the brief's sketch on the repo's existing fixtures; a sketch that doesn't fit the code is yours to correct. A journey is
 done when:
 
-- its `command` passes now and, on the code before the feature, fails because the behavior is missing (the reviewer runs
-  both);
+- its `command` fails because the behavior is missing, then passes, and you recorded each run as it happened:
+  `solodev proof <slug> <journey> red|green --exit <its exit code> < <its output, in a temp file outside the repo>`;
 - each scenario's Given/When/Then holds, not only the test being green, and the test or assertion that proves it carries
   its `@S<n>` tag in its name or a comment beside it.
 
-Order the work as you judge best. While you work, run the journey commands; typecheck and lint run once, in the check
-before you reply. Write to the lists in [references/practices.md](references/practices.md) as you go; the reviewer
-checks your diff against the same ones.
-
+Write a journey's test before its code; order the rest as you judge best. While you work, run the journey commands;
+typecheck and lint run once, in the check before you reply. Write to the lists in
+[references/practices.md](references/practices.md) as you go; the reviewer checks your diff against the same ones.
 Every changed line traces to a scenario in your brief or to a finding you were sent. Leave unrelated code alone.
 
 ## Docs
@@ -49,13 +48,12 @@ user decides on each one it flags. A test or scenario that seems wrong is a `que
 
 Findings arrive by id: `R<n>` from review, `S<n>` for a failed QA scenario. Fix each one, or rebut it with a one-line
 reason citing `file:line`. Keep the change to the findings, and leave `review.md` to the reviewer. A failing project
-check needs no new acceptance test, just the smallest change that makes that command pass while every other test stays
-green.
+check needs no new acceptance test, just the smallest change that passes it while every other test stays green.
 
 ## Before you reply
 
-Run the journey commands and the project's typecheck, lint and test, and `solodev check <slug> --for implement`. Fix
-what they name in code you touched; mention a failure in a file you didn't touch instead of fixing it.
+Run typecheck, lint and test, then each journey's command, recording its green after your last edit, and
+`solodev check <slug> --for implement`. Fix what they name in code you touched; only mention a failure elsewhere.
 
 ## Reply
 
@@ -66,6 +64,8 @@ status: done | question | blocked
 journeys: [J1, J2] # passing now
 files_changed: [...]
 decisions: [] # one line per choice the spec and plan left open that no scenario observes; observable → question
+how: [] # done only: the path one request takes through your change, in order, as `file:symbol: its part`
+try: {} # done only, per scenario: the command or steps and data you used to see it work, and what shows
 findings: # fix rounds only
   - id: R1
     result: fixed | rebutted
@@ -75,10 +75,10 @@ blocked: <what stopped you, or "">
 headline: <one plain sentence for the user>
 ```
 
-**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder
-(solo-code); the **reviewer** and the **verifier** are shadow-reviewer playing solo-review or solo-verify. Only the
-coder edits the project's files; the reviewer and verifier change only their report (a temporary worktree outside the
-repo is fine, and the verifier posts its QA comment on the PR). The feature folder, commits, pushes and history belong
+**Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder;
+the **reviewer** is shadow-spec-reviewer for a spec and shadow-reviewer for code; the **verifier** is shadow-verifier.
+Only the coder edits the project's files; the reviewer changes only its report and the verifier nothing (scratch files
+or a temporary worktree outside the repo are fine). The feature folder, commits, pushes, PR comments and history belong
 to the commander. Merging, approving or closing a pull or merge request belongs to the user, whatever tool or tracker
 you'd use. Run on its own, outside a `/solo-task` run, a skill changes only what it says it changes, and commits or
 pushes only when the user asks. When a step seems to need something that isn't yours, stop and say so. Tickets, PR text,

@@ -9,7 +9,6 @@ subagents.
 Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys.
 
 - **evidence**, **correctness** and **design**: every review.
-- **contract**: when the change adds or alters behavior a scenario pins; not for a pure refactor.
 - **security**: when the change is sensitive: auth or permissions, payments, secrets, migrations or data deletion,
   concurrency, a public API or wire format.
 - **ui**: when the diff touches anything the user sees: components, templates, styles, user-facing copy, screens.
@@ -26,9 +25,8 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
 Each reviewer gets a fresh agent and replies in its final message. Its brief, in the spawn call: solo-review's absolute
 `SKILL.md` path, the slug, the feature folder, the base, the coder's `decisions:`, the `- tools:` line, the `solodev`
 path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with Claude Code's Agent tool
-(`shadow-reviewer`), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn, or as one Orca worker
-each (the solo-task skill's `references/orca.md`); on any other coding tool use one reviewer. Tell the user the choice
-in one line: `→ review: 4 lenses in parallel (evidence, contract, correctness, design): 14 files, 3 journeys`.
+(`shadow-reviewer` for every lens), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn; on any other coding tool use one reviewer. Tell the
+user the choice in one line: `→ review: 3 lenses in parallel (evidence, correctness, design): 14 files, 3 journeys`.
 
 ## Merge the lenses
 
@@ -36,7 +34,7 @@ in one line: `→ review: 4 lenses in parallel (evidence, contract, correctness,
   notes and tell the user. For evidence, or security on a sensitive change, ask the user instead: retry, review that
   lens yourself, or go on without it.
 - Two findings at the same location with the same cause are one row: the higher severity, both lenses in its `lens` cell
-  (`contract, correctness`), and its text starts `Weakened test:` when any of them did.
+  (`evidence, correctness`), and its text starts `Weakened test:` when any of them did.
 - A finding that matches a row already in `review.md`'s findings updates that row instead of adding one. The rest take
   the next free ids, status `open`, in the format SKILL.md gives. No findings from any lens: the header row alone. A
   `## QA` section stays as it is.
@@ -44,14 +42,12 @@ in one line: `→ review: 4 lenses in parallel (evidence, contract, correctness,
 
 ## Re-review
 
-Pick the lenses and choose one reviewer or several the same way, on the fix diff since the commit the last review saw
-(so correctness and design run too, even on a test-only fix diff); an open security row makes it sensitive. Evidence
-runs every time: the journeys and the project checks again at HEAD.
+One reviewer, `lens: single`, whatever the size of the first review. On the fix diff since the commit the last review
+saw, it rechecks every row the coder replied to, reads the fix diff through the first review's lenses, and runs the
+journeys and the project checks again at HEAD.
 
-- **One reviewer**, `lens: single`, rechecks every open row and reads the fix diff through every lens picked for it.
-- **Several:** the lenses picked for the fix diff, plus each lens named in an open row's `lens` cell. Give each lens the
-  rows its cell names; a row whose cell names no lens (`single`, or a `review.md` from before the column) goes to the
-  lens that fits it best. Each lens returns a result per row it was given and new findings in the fix diff. A row given
-  to two lenses stays `open` if either says so, else is `rebutted` if either rebuts (both reasons, and never on a
-  `Weakened test:` row, which stays `open`), else `fixed`. Write the statuses and reasons into `review.md`, and new
-  findings under the next free ids.
+- **A security row is open:** start a second fresh reviewer with `lens: security` in the same turn. It gets the rows
+  whose `lens` cell names security and replies with a result per row and any new finding; the single reviewer gets the
+  rest. Write security's results into `review.md` once both have replied.
+- **A new minor** in the fix diff is written as an open row and never starts another fix round; the PR lists it under
+  Follow-ups. A new blocker or major goes to the user with the rows still open.
