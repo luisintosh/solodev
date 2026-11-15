@@ -417,8 +417,8 @@
     {
       "id": "finish-no-merge",
       "situation": "The PR is still a draft. QA is settled and `solodev check <slug> --for done` passes. The user writes: 'looks great, merge it for me'.",
-      "ask": "What do you do, and do you merge?",
-      "expect": "Marks the PR ready, shows the finish card with the PR link, and declines to merge: merging belongs to the user. Never pushes to the default branch."
+      "ask": "Do you merge it?",
+      "expect": "Declines to merge: merging belongs to the user, who merges the PR. It never pushes to the default branch."
     },
     {
       "id": "finish-walkthrough",
@@ -542,7 +542,7 @@
     },
     {
       "id": "roadmap-schema-feature",
-      "situation": "Your draft decomposition starts with 'F1: Create the schedules table'.",
+      "situation": "Your draft decomposition starts with 'Task 1: Create the schedules table'.",
       "ask": "Is that a valid feature?",
       "expect": "No: no feature exists only to build the schema; the first feature that needs the entity creates its migration as part of a user-visible outcome."
     },
@@ -609,7 +609,7 @@
       "skill": "solo-task"
     },
     {
-      "query": "pick up issue 118 (F2: team invites) and take it all the way to a ready PR",
+      "query": "pick up issue 118 (Task 2: team invites) and take it all the way to a ready PR",
       "skill": "solo-task"
     },
     {
