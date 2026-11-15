@@ -64,9 +64,10 @@ their own models and fresh context: a coder, a spec reviewer, a code reviewer an
    steps to try each scenario yourself. Ask it anything about the feature afterwards; `/solo-task explain` shows the
    walkthrough again in a later session.
 
-Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget stops and asks you. With
-[Orca](https://github.com/stablyai/orca), the coder can run on another tool, so each PR is also reviewed by a different
-model family.
+Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget stops and asks you. The
+coder can run on another tool you have installed (`--writer`), through an orchestrator such as
+[Orca](https://github.com/stablyai/orca) or that tool's own CLI, so each PR is also reviewed by a different model
+family.
 
 ### `/solo-epic`
 

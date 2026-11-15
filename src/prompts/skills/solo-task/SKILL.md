@@ -10,7 +10,7 @@ change directly. Continue if the user still wants the full run.
 `solodev` is `scripts/solodev-cli.mjs` in this skill's folder; the other solodev skills sit in folders next to it. Its
 checks read only git and the feature folder; `solodev help <command>` explains each command.
 
-- `solodev probe`: coding tools and their models, Orca, the coder options, and `state`: the feature folders' home.
+- `solodev probe`: coding tools and their models, the coder options, and `state`: the feature folders' home.
 - `solodev status [<slug>]`: where a feature stands and the next step.
 - `solodev approve <slug>`: records the gate as a line in `progress.md`.
 - `solodev check <slug> --for gate|implement|pr|done`: the checks that gate each step; exits 1 naming what to fix.
@@ -100,7 +100,7 @@ fresh; start lens reviewers together, one spawn call each in the same turn.
   Continue the coder with SendMessage.
 - **Codex:** `spawn_agent` with the shadow's name, continued with `send_input`. **Cursor:** the Task tool with the
   shadow's name, resumed by agent id. On both, the brief gives the role skill's absolute `SKILL.md` path.
-- **Another coding tool, or `dispatch: orca`:** read [references/orca.md](references/orca.md).
+- **A coder on another coding tool:** read [references/dispatch.md](references/dispatch.md).
 
 ## Keeping the user in the loop
 
@@ -115,7 +115,7 @@ or start over); conflicting tools or commands at the start; no tool for the forg
 the spec; the gate; findings left after the re-review; a weakened-test finding; a spec gap from review or QA; a shadow's
 `question` or `blocked` reply; a browser tool that's missing, gone or out of the verifier's reach; two QA cycles spent;
 a `manual` QA verdict; stuck after two attempts (retry fresh, a second opinion from another tool, or take over); a
-failed Orca worker other than a lens (run it natively, or wait); a required lens that failed twice; the ready PR.
+coder on another tool that fails (write on the home tool, or wait); a required lens that failed twice; the ready PR.
 Between those, keep going.
 
 ## Budgets

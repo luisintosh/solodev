@@ -163,10 +163,16 @@
       "expect": "Merges the other lenses without it, names it in the notes and tells the user."
     },
     {
-      "id": "orca-reply",
-      "situation": "`dispatch: orca`. You're starting the coder as an Orca worker for implement.",
-      "ask": "How does the brief reach it, and where does its reply land?",
-      "expect": "The brief goes inline as the worker's `--spec`; the worker writes its full reply to `coder-<n>.md` in a temp folder outside the repo and the feature folder (created first) and passes it as `--report-path` to `worker_done`, since worker_done carries only a short summary."
+      "id": "dispatch-carrier",
+      "situation": "Home tool is Claude Code and the user approved Codex as the writer. This session has no skill or plugin that runs Codex agents; the `codex` CLI is installed.",
+      "ask": "How do you start the coder?",
+      "expect": "Runs the Codex CLI itself headless, in the background, in the current worktree, with the model and effort from the writer's `launch` in `solodev probe`."
+    },
+    {
+      "id": "dispatch-reply",
+      "situation": "The coder runs on another tool than the home tool. You're sending it the first fix round.",
+      "ask": "Where does its reply land?",
+      "expect": "In a new file for this round, in a temp folder outside the repo and the feature folder, named at the end of the brief."
     },
     {
       "id": "review-security-lens-fails",

@@ -86,7 +86,6 @@ async function main(argv: string[]): Promise<number> {
       const result = await probe(
         {
           env: process.env,
-          platform: process.platform,
           root,
           state,
           home: os.homedir(),

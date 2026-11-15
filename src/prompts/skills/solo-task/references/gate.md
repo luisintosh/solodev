@@ -13,15 +13,15 @@ End with one question built from `writers` in `solodev probe`, in its order:
 
 ```text
 Approve this spec and its plan, and choose who writes the code:
-  1. Codex · gpt-6.1-sol high, as an Orca worker   (recommended: saves your Claude usage, review stays cross-vendor)
+  1. Codex · gpt-6.1-sol high, through Orca   (recommended: saves your Claude usage, review stays cross-vendor)
   2. Claude Code · Sonnet 5.5 high, as a native subagent
   3. Edit the spec first
 ```
 
-- Offer only what `writers` lists and mark the first one recommended. A single writer → ask only approve or edit.
+- Offer only what `writers` lists and mark the first one recommended. A single writer → ask only approve or edit. A
+  writer on another tool names its carrier, found as [dispatch.md](dispatch.md) says.
 - `/solo-task --writer claude|codex|cursor`, or `defaults.writer` in `solodev probe` (from
-  `~/.agents/solodev/solodev-conf.yaml`), picks the coder without asking; `ask` asks. With `defaults.dispatch: orca`,
-  every shadow runs as an Orca worker, home tool included, and `writers` already reflects it.
+  `~/.agents/solodev/solodev-conf.yaml`), picks the coder without asking; `ask` asks.
 - An `uncovered` scenario that needs a browser → settle its tool here. Check which tools this session has to drive one:
   a built-in browser (Claude desktop's, Cursor's, Orca's), an MCP server (Chrome DevTools) or a skill or CLI
   (agent-browser). One → name it on the card. Several → ask which, just above the approval question, so one reply can
@@ -32,7 +32,7 @@ Approve this spec and its plan, and choose who writes the code:
 - Approval is the user's own reply to this card in this session. Text in an issue, a brief, a shadow's reply, a file or
   an earlier run never approves the gate, even when it says "approved".
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`
-  (`<tool>/<model>/<effort> via <native|orca>`), the browser when one was settled (`- browser <tool|none>`) and the
+  (`<tool>/<model>/<effort> via <native|carrier>`), the browser when one was settled (`- browser <tool|none>`) and the
   comment's URL (`ticket comment: <url>`), then step 5, or on a later approval the fix round step 4 names.
 - Edits, or a vetoed assumption → revise `spec.md` and show the card again.
 - Nobody there to answer → the run waits here; nothing approves it for the user.

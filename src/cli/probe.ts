@@ -5,7 +5,6 @@ import { isTool, type ModelRef, type Models, TOOLS, type Tool, writerId } from "
 
 export type ProbeDeps = {
   env: Record<string, string | undefined>
-  platform: string
   root: string
   /** The repo's folder of features, outside the repo (state.ts). */
   state: string
@@ -19,7 +18,7 @@ export type ProbeDeps = {
   read: (filePath: string) => Promise<string | undefined>
 }
 
-/** What `orca orchestration worker-start --agent <agent> --model <model> --effort <effort>` takes. */
+/** What a coder on this tool starts with, whatever carries it. */
 export type Launch = { agent: Tool; model: string; effort?: string }
 
 export type ToolProbe = {
@@ -37,15 +36,14 @@ export type ToolProbe = {
   launch: { think: Launch; implement: Launch; shadows: Record<string, Launch> }
 }
 
-export type WriterOption = { tool: Tool; via: "native" | "orca"; model: string; launch: Launch; recommended: boolean }
+export type WriterOption = { tool: Tool; model: string; launch: Launch; recommended: boolean }
 
 /** Personal defaults from `~/.agents/solodev/solodev-conf.yaml`; usage limits belong to a person, not a repo. */
-export type Defaults = { writer: Tool | "ask"; dispatch: "auto" | "orca" }
+export type Defaults = { writer: Tool | "ask" }
 
 export type Probe = {
   home: Tool | null
   tools: Record<Tool, ToolProbe>
-  orca: { cli: string; ready: boolean; reason: string }
   /** Where feature folders go (`<dir>/<slug>/`). */
   state: { dir: string; writable: boolean }
   defaults: Defaults
@@ -69,13 +67,13 @@ function launch(tool: Tool, ref: ModelRef): Launch {
 }
 
 export function parseDefaults(raw: string | undefined, warnings: string[]): Defaults {
-  const out: Defaults = { writer: "ask", dispatch: "auto" }
+  const out: Defaults = { writer: "ask" }
   if (raw === undefined) return out
   let doc: { writer?: unknown; dispatch?: unknown }
   try {
     doc = (parseYaml(raw) ?? {}) as typeof doc
   } catch {
-    warnings.push("~/.agents/solodev/solodev-conf.yaml is not valid YAML; using writer: ask, dispatch: auto")
+    warnings.push("~/.agents/solodev/solodev-conf.yaml is not valid YAML; using writer: ask")
     return out
   }
   if (doc.writer !== undefined) {
@@ -86,19 +84,11 @@ export function parseDefaults(raw: string | undefined, warnings: string[]): Defa
       )
   }
   if (doc.dispatch !== undefined) {
-    if (doc.dispatch === "auto" || doc.dispatch === "orca") out.dispatch = doc.dispatch
-    else warnings.push(`~/.agents/solodev/solodev-conf.yaml: dispatch must be auto or orca (got ${doc.dispatch})`)
+    warnings.push(
+      "~/.agents/solodev/solodev-conf.yaml: dispatch is no longer used; shadows run natively, and a coder on another tool through whatever can run it",
+    )
   }
   return out
-}
-
-/** Same resolution order as Orca's orchestration skill. */
-export function resolveOrcaCli(env: ProbeDeps["env"], platform: string): string {
-  if (env.ORCA_CLI_COMMAND) return env.ORCA_CLI_COMMAND
-  if (env.ORCA_DEV_REPO_ROOT) return "orca-dev"
-  // Bare `orca` on Linux outside Orca is usually the GNOME screen reader.
-  if (platform === "linux" && !env.ORCA_TERMINAL_HANDLE) return "orca-ide"
-  return "orca"
 }
 
 /** The coding tool this process runs inside, from the environment each one sets. SOLODEV_HOME overrides. */
@@ -127,25 +117,6 @@ async function loggedIn(deps: ProbeDeps, tool: Tool): Promise<boolean | null> {
   const r = await deps.exec("agent", ["status"])
   if (r.code !== 0) return r.code === null ? false : null
   return /logged in/i.test(r.stdout) && !/not logged in/i.test(r.stdout)
-}
-
-async function probeOrca(deps: ProbeDeps): Promise<Probe["orca"]> {
-  const cli = resolveOrcaCli(deps.env, deps.platform)
-  const status = await deps.exec(cli, ["status", "--json"])
-  if (status.code === null) return { cli, ready: false, reason: `${cli} not found` }
-  let state = "unknown"
-  try {
-    const parsed = JSON.parse(status.stdout) as { ok?: boolean; result?: { runtime?: { state?: string } } }
-    state = parsed.ok ? (parsed.result?.runtime?.state ?? "unknown") : "unknown"
-  } catch {
-    return { cli, ready: false, reason: `${cli} status --json returned no JSON` }
-  }
-  if (state !== "ready") return { cli, ready: false, reason: `runtime ${state}` }
-  const skills = await deps.exec(cli, ["skills", "installed"])
-  if (!/^orchestration\b/m.test(skills.stdout)) {
-    return { cli, ready: false, reason: "the orchestration skill isn't installed (orca skills install)" }
-  }
-  return { cli, ready: true, reason: "ok" }
 }
 
 async function hasShadows(deps: ProbeDeps, tool: Tool): Promise<boolean> {
@@ -199,7 +170,6 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     }),
   )
   const tools = Object.fromEntries(probed) as Record<Tool, ToolProbe>
-  const orca = await probeOrca(deps)
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
   else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /solo-task init`)
 
@@ -210,26 +180,22 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
     await deps.read(path.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
     warnings,
   )
-  if (defaults.dispatch === "orca" && !orca.ready) {
-    warnings.push(`dispatch: orca, but Orca isn't ready (${orca.reason}); shadows run natively`)
-  }
 
   // Another tool first: it saves the home tool's usage and gives every PR a review from another model family.
   const writers: WriterOption[] = []
-  const offer = (tool: Tool, via: WriterOption["via"]) =>
+  const offer = (tool: Tool) =>
     writers.push({
       tool,
-      via,
       model: tools[tool].implement,
       launch: tools[tool].launch.implement,
       recommended: writers.length === 0,
     })
   for (const tool of TOOLS) {
     const t = tools[tool]
-    if (tool === home || !orca.ready || !t.installed || t.loggedIn === false || !t.skills) continue
-    offer(tool, "orca")
+    if (tool === home || !t.installed || t.loggedIn === false) continue
+    offer(tool)
   }
-  if (home) offer(home, defaults.dispatch === "orca" && orca.ready ? "orca" : "native")
+  if (home) offer(home)
   if (defaults.writer !== "ask" && !writers.some((w) => w.tool === defaults.writer)) {
     warnings.push(`writer: ${defaults.writer} is set, but that tool can't write here; ask at the gate instead`)
   }
@@ -237,7 +203,6 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   return {
     home,
     tools,
-    orca,
     state: { dir: deps.state, writable },
     defaults,
     writers,

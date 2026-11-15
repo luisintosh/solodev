@@ -4,12 +4,12 @@ export type CommandHelp = { usage: string; summary: string; detail: string[]; ex
 export const HELP: Record<string, CommandHelp> = {
   probe: {
     usage: "solodev probe",
-    summary: "What's available: coding tools, their models, Orca, and this repo's folder of features.",
+    summary: "What's available: coding tools, their models, and this repo's folder of features.",
     detail: [
       "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models and",
-      "their Orca launch fields), Orca (runtime ready, orchestration skill installed), `state`: this repo's folder of",
-      "features (outside the repo) and whether this session can write there, personal defaults from",
-      "~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for the gate card, another tool first.",
+      "their launch fields), `state`: this repo's folder of features (outside the repo) and whether this session can",
+      "write there, personal defaults from ~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for",
+      "the gate card, another tool first.",
     ],
     example: "solodev probe",
   },
