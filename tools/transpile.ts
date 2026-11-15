@@ -40,6 +40,8 @@ export type Skill = {
   description: string
   /** Invoked by the user only; hosts don't load it on their own. */
   user_only?: boolean
+  /** Claude Code's argument-hint: the usage shown when the user types the skill's slash command. */
+  argument_hint?: string
 }
 
 export type Catalog = {
@@ -107,6 +109,7 @@ async function emitSkills(catalog: Catalog) {
   for (const [name, skill] of Object.entries(catalog.skills)) {
     const body = await renderPrompt(`skills/${name}/SKILL.md`)
     const fm: Record<string, unknown> = { name, description: skill.description }
+    if (skill.argument_hint) fm["argument-hint"] = skill.argument_hint
     if (skill.user_only) fm["disable-model-invocation"] = true
     await writeFile(path.join(skills, name, "SKILL.md"), frontmatter(fm) + body)
     for (const ref of await skillReferences(name)) {

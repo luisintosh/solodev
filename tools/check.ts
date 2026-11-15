@@ -231,6 +231,9 @@ if (catalog) {
     if (Boolean(fm["disable-model-invocation"]) !== Boolean(skill.user_only)) {
       fail(`dist drift: skill ${name} disable-model-invocation — run pnpm run build`)
     }
+    if (fm["argument-hint"] !== skill.argument_hint) {
+      fail(`dist drift: skill ${name} argument-hint — run pnpm run build`)
+    }
     if (fm.model !== undefined || fm.effort !== undefined) fail(`${rel}/SKILL.md: skills carry no model or effort`)
     if (raw.includes("{{")) fail(`${rel}/SKILL.md: unresolved {{…}} placeholder`)
     for (const ref of await skillReferences(name)) {

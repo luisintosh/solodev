@@ -70,6 +70,7 @@ shadows:
 skills:
   solo-task:
     budget: 142
+    argument_hint: "<request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | init [<tool>]"
     description: >-
       Takes one feature from a request or ticket to a reviewed, tested pull request you merge: a spec you approve, one
       coder writing failing tests then code, a fresh-context review and QA, and a walkthrough of how it works and how to
@@ -100,6 +101,7 @@ skills:
       scenario. Loaded by shadow-verifier for a /solo-task run.
   solo-epic:
     budget: 150
+    argument_hint: "<idea> | <epic ticket or URL>"
     description: >-
       Plans an epic for a product owner or manager: turns an idea into a measurable goal, the chosen approach, a data
       model and a roadmap of features in waves, then files it in your tracker (GitHub, GitLab, Jira, Linear) as an epic
