@@ -185,6 +185,11 @@ export function parseReview(md: string): Finding[] {
 
 export type Verdict = { verdict: string; evidence: string }
 
+/** The scenarios review.md's `## QA` marks `fail`: they hold the run at review, like an open blocker. */
+export function failedQa(md: string): string[] {
+  return [...parseQa(md)].filter(([, v]) => v.verdict === "fail").map(([s]) => s)
+}
+
 /** review.md's `## QA`: a table `| scenario | verdict | evidence |`, verdict pass, fail, manual or waived. */
 export function parseQa(md: string): Map<string, Verdict> {
   const out = new Map<string, Verdict>()

@@ -3,6 +3,7 @@ import { run } from "./exec.ts"
 import {
   type Approval,
   currentApproval,
+  failedQa,
   parsePlan,
   parseProofs,
   parseQa,
@@ -195,6 +196,10 @@ async function c4(ctx: CheckContext): Promise<CheckResult> {
       `${open.length} open blocker/major`,
       open.map((f) => `${f.id} ${f.severity} ${f.location} ${f.summary}`),
     )
+  }
+  const failed = failedQa(raw)
+  if (failed.length) {
+    return result("C4", "fail", `QA failed: ${failed.join(", ")} — a fix round, or the user's decision`)
   }
   return result(
     "C4",

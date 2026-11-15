@@ -226,6 +226,7 @@ describe("checks", () => {
       feat("review.md", `${findings}\n## QA\n\n| scenario | verdict | evidence |\n|---|---|---|\n| ${row} |\n`)
     qa("S2 | fail | greets wrong")
     expect((await check("C5")).status).toBe("fail")
+    expect((await check("C4")).summary).toBe("QA failed: S2 — a fix round, or the user's decision")
     qa("S2 | manual | needs a real inbox")
     expect((await check("C5")).summary).toContain("S2 needs a person")
     qa("S2 | waived | user: covered by staging")
@@ -350,6 +351,21 @@ describe("status", () => {
       "review.md",
       "| id | severity | location | status | finding |\n|-|-|-|-|-|\n| R1 | blocker | a:1 | fixed | x |\n",
     )
+    expect(await stage()).toBe("pr")
+    const qa = (verdict: string) =>
+      fs.appendFileSync(
+        path.join(dir, "review.md"),
+        `\n## QA\n\n| scenario | verdict | evidence |\n|-|-|-|\n| S2 | ${verdict} | x |\n`,
+      )
+    qa("fail")
+    const failed = await featureStatus(state, "hello")
+    expect(failed.stage).toBe("review")
+    expect(failed.notes).toEqual(["QA failed: S2"])
+    feat(
+      "review.md",
+      "| id | severity | location | status | finding |\n|-|-|-|-|-|\n| R1 | blocker | a:1 | fixed | x |\n",
+    )
+    qa("pass")
     expect(await stage()).toBe("pr")
     log("- pr https://example.com/mr/1 · draft")
     expect(await stage()).toBe("qa")

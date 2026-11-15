@@ -3,6 +3,7 @@ import * as path from "node:path"
 import {
   currentApproval,
   exists,
+  failedQa,
   featureDir,
   type PrEvent,
   parsePlan,
@@ -35,7 +36,8 @@ const NEXT: Record<Stage, (slug: string) => string> = {
   gate: (s) => `\`solodev check ${s} --for gate\`, then show the gate card; on approval run \`solodev approve ${s}\``,
   implement: (s) =>
     `solo-code writes the journey tests and the code; then \`solodev check ${s} --for implement\`; once progress.md logs it passed, code review`,
-  review: () => "settle the open blocker/major findings in review.md: a fix round, or the user's decision",
+  review: () =>
+    "settle the open blocker/major findings and failed QA verdicts in review.md: a fix round, or the user's decision",
   pr: (s) =>
     `\`solodev check ${s} --for pr\`, then push, open the draft PR and log \`- pr <url> · draft\` in progress.md`,
   qa: (s) =>
@@ -73,10 +75,10 @@ export async function featureStatus(state: string, slug: string): Promise<Featur
   const open = parseReview(review).filter(
     (f) => f.status === "open" && (f.severity === "blocker" || f.severity === "major"),
   )
-  if (open.length) {
-    notes.push(`open: ${open.map((f) => f.id).join(", ")}`)
-    return done("review", { approved })
-  }
+  const failed = failedQa(review)
+  if (open.length) notes.push(`open: ${open.map((f) => f.id).join(", ")}`)
+  if (failed.length) notes.push(`QA failed: ${failed.join(", ")}`)
+  if (open.length || failed.length) return done("review", { approved })
 
   const pr = parsePrEvents(progress).at(-1)
   if (!pr) return done("pr", { approved })
