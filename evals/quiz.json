@@ -435,8 +435,8 @@
     {
       "id": "explain-old-run",
       "situation": "The user types `/solo-task explain csv-export` in a fresh session. That feature's progress.md has no `## Walkthrough` section; its branch is merged.",
-      "ask": "What do you do, and does a run start?",
-      "expect": "No run and no shadow starts. It builds a walkthrough from the feature's diff against the default branch and the feature folder, says what it couldn't source, prints it, then answers questions."
+      "ask": "Where does the walkthrough come from?",
+      "expect": "No run and no shadow starts. The branch diff is empty once merged, so it builds the walkthrough from the PR's diff (the last `- pr` line in progress.md), else the merge or squash commit, says what it couldn't source, prints it, then answers questions."
     },
     {
       "id": "walkthrough-missing-step",
