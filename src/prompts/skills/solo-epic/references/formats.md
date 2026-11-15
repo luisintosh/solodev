@@ -127,7 +127,7 @@ flowchart LR
 Blocked by F<m>
 
 - Risk: ...
-- Open question: ...
+- Open question: <the question> · <who answers it> · blocks starting: yes|no
 ````
 
 For an `existing` entity, the roadmap's table lists only the fields being added or changed. Write "None: no persisted

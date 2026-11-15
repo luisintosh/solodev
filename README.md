@@ -73,8 +73,8 @@ model family.
 Turns a raw idea into a measurable goal, the chosen approach, an agreed data model and a feature roadmap sequenced in
 waves. It explores the code to answer its own questions before asking you, and red-teams the plan before you see it.
 With your yes, it files the roadmap in your tracker as an epic with one ticket per feature; without a tracker, the
-drafts stay in `~/.agents/solodev/<owner>/<repo>/roadmaps/<slug>/`. It only plans: each feature then runs through
-`/solo-task <ticket>`.
+drafts stay in `~/.agents/solodev/<owner>/<repo>/roadmaps/<slug>/`. It only plans: whoever picks up a ticket builds it
+their own way, `/solo-task <ticket>` being one.
 
 ### `/gen-docs`
 

@@ -547,6 +547,30 @@
       "expect": "No: no feature exists only to build the schema; the first feature that needs the entity creates its migration as part of a user-visible outcome."
     },
     {
+      "id": "roadmap-open-question",
+      "situation": "You are drafting work item F3 with solo-epic. It has one open question: whether exports include archived invoices.",
+      "ask": "How do you write that open question in the item?",
+      "expect": "With who answers it and whether it blocks starting: the question, its owner, and `blocks starting: yes|no`. One with no owner or no word on blocking fails the self-check."
+    },
+    {
+      "id": "roadmap-second-review",
+      "situation": "The fresh reviewer returned one blocker on F2 and a minor on F5 across six work items. You fixed F2's blocker and left the rest unchanged.",
+      "ask": "What does the next review pass cover?",
+      "expect": "One more pass by a fresh reviewer, over only the item that changed (F2) and the findings that were open, not all six items again."
+    },
+    {
+      "id": "roadmap-revise-progress",
+      "situation": "The user asks /solo-epic to revise a filed epic. Three of its six feature tickets are closed.",
+      "ask": "What do you show before the before-and-after of the change?",
+      "expect": "Per success criterion, whether what has shipped (the closed feature tickets) covers it."
+    },
+    {
+      "id": "roadmap-after-filing",
+      "situation": "The epic and its six feature tickets are filed and you reported every URL.",
+      "ask": "What do you tell the user to run next?",
+      "expect": "Nothing to run: it reports the ticket URLs and stops. Who builds each ticket, and with what, is the user's call; it doesn't print a `/solo-task` line."
+    },
+    {
       "id": "roadmap-filing",
       "situation": "The roadmap and work items are approved and written to the drafts folder. No tracker is connected.",
       "ask": "What do you do about tickets?",

@@ -78,32 +78,34 @@ that folder, ask the user to run `npx skills add luisintosh/solodev -s solo-task
 9. **Draft work items**, one per feature, in the work item format. Check them yourself: a title that names a topic
    instead of an outcome, criteria that aren't testable (prefer Given/When/Then; thresholds are numbers), two outcomes
    in one item, an out-of-scope list that misses the obvious neighbours, a proposed solution presented as decided when
-   it isn't, an item that touches data without its Data model section (or one that doesn't, with it).
+   it isn't, an open question with no owner or no word on whether it blocks starting, an item that touches data without
+   its Data model section (or one that doesn't, with it).
 10. **Review the work items** at least once before the user sees them. Hand the drafts to a fresh shadow-reviewer (no
     role skill; this brief is its whole task), briefed as an adversarial product owner who wants these tickets to fail
     review before engineers see them. Pass inline: the approved roadmap with its data model, every work item, the step 9
     checklist and the repo path for checking `file:line` claims. It attacks vision fit (each item serves a success
     criterion and contradicts no non-goal), coverage (together they deliver the MVP and every criterion, with no gaps or
     overlaps), consistency with the approved data model, ticket quality, and whether an engineer with no context could
-    start from the item alone. It edits nothing and returns one line per finding,
-    `F<n> | blocker|major|minor | <section> | <problem> | <fix>`, or `none`. Apply every blocker and major, and note
-    rejected findings with a reason. A blocker fixed → one more pass, two at most; what's still open goes to the user.
-    No subagent available → run the same brief yourself as a separate pass and say so.
+    start from the item alone. It edits nothing and returns one line per finding, `F<n> | blocker|major|minor |
+    <section> | <problem> | <fix>`, or `none`. Apply every blocker and major, and note rejected findings with a reason.
+    A blocker fixed → one more pass by a fresh reviewer, over only the items you changed and the findings that were
+    open, two at most; what's still open goes to the user. No subagent available → run the same brief yourself as a
+    separate pass and say so.
 11. **Present the work items** with a review summary of five lines at most. ⏸ Apply edits until the user approves.
 12. **Write** `roadmap.md` and `items/F<n>.md` to `<state.dir>/roadmaps/<slug>/`.
 13. **Offer to file the tickets.** If yes, confirm the tracker tool can reach the project. No tracker, or the user
-    declines → say the drafts folder is the record, give its path, and file nothing. File the epic first, titled
-    `Epic: <goal>`, its body `roadmap.md` without its `#` heading. Then file features in wave order so referenced
-    tickets exist: the body is `items/F<n>.md` without its `# F<n>: …` heading, with each `Blocked by F<m>` rewritten to
-    the tracker's reference (`Blocked by #<n>`, `Blocked by PROJ-12`) and the Data model link to the epic's Data model
+    declines → say the drafts folder is the record, give its path, and file nothing. File the epic first, titled `Epic:
+    <goal>`, its body `roadmap.md` without its `#` heading. Then file features in wave order so referenced tickets
+    exist: the body is `items/F<n>.md` without its `# F<n>: …` heading, with each `Blocked by F<m>` rewritten to the
+    tracker's reference (`Blocked by #<n>`, `Blocked by PROJ-12`) and the Data model link to the epic's Data model
     section, and the title is exactly `F<n>: <title>`, which `/solo-task` derives the slug from. After each feature is
     filed, add it to the epic's feature list (a task list `- [ ] #<n> F<n>: <name>` on GitHub, child tickets elsewhere),
     so the list always matches what exists and shows which are closed; that is how `/solo-task` finds the next feature.
-    Report every ticket URL, and any feature left unfiled.
-14. **Revising a filed epic:** show the before and after in chat, the data model included when it changes. ⏸ Once the
-    user approves, update the drafts, then the epic and every open feature ticket it affects.
-15. **Hand off.** Each feature runs through `/solo-task`, one at a time, respecting the waves. With tickets filed, print
-    the line for wave 1's first feature: `/solo-task <ticket>`.
+    Report every ticket URL, and any feature left unfiled. The run ends there: who builds each ticket, and with what, is
+    the user's call, so name no next command.
+14. **Revising a filed epic:** read which of its feature tickets are closed and show, per success criterion, whether
+    what's shipped covers it. Then show the before and after in chat, the data model included when it changes. ⏸ Once
+    the user approves, update the drafts, then the epic and every open feature ticket it affects.
 
 ## Limits
 
