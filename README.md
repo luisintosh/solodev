@@ -54,18 +54,22 @@ their own models and fresh context: a coder, a spec reviewer, a code reviewer an
 1. **Spec.** Requirements, acceptance scenarios tagged `@S1`, `@S2`…, and a plan of at most three **journeys**: one test
    file each, proving a group of scenarios.
 2. **Gate.** You approve the spec. No code exists before that, and `solodev check` fails a branch that has some.
-3. **Implement.** The coder writes the journey tests, then the code and the docs beside it.
+3. **Implement.** The coder writes the journey tests and the code together, sees each test fail with the code set aside,
+   then brings the docs beside it up to date.
 4. **Review.** A reviewer reads each journey test's recorded failing run, runs it on the new code (it must pass), and
    reads the diff through **lenses**: evidence, correctness, security, design, UI. A large or sensitive change (auth,
    payments, migrations, a public API) gets one reviewer per lens, in parallel. A verifier checks any scenario no test
-   covers at the same time. Blockers, majors and QA failures go back to the coder once.
+   covers at the same time. Blockers, majors and QA failures go back to the coder, with the open minors riding along,
+   and a single re-review checks only the fixes.
 5. **PR.** A draft PR with the QA results as a comment, then the PR is marked ready. You merge.
 6. **Walkthrough.** The run ends by showing how the feature works, file by file in the order a request flows, and the
    steps to try each scenario yourself. Ask it anything about the feature afterwards; `/solo-task explain` shows the
    walkthrough again in a later session.
+7. **Outside review.** `/solo-task feedback` takes your reviewers' PR comments, or a review you paste, one round at a
+   time: you pick what gets fixed and see every reply that isn't a fix before it's posted under your name.
 
-Every step has a budget (two implement attempts, one fix round, one re-review); a spent budget stops and asks you. The
-coder can run on another tool you have installed (`--writer`), through an orchestrator such as
+Every step has a budget (two implement attempts, up to three fix rounds, each with a re-review); a spent budget stops
+and asks you. The coder can run on another tool you have installed (`--writer`), through an orchestrator such as
 [Orca](https://github.com/stablyai/orca) or that tool's own CLI, so each PR is also reviewed by a different model
 family.
 
@@ -126,8 +130,8 @@ flowchart LR
   catalog.
 - **Rules that code can check are code.** "No code before approval" and "every scenario is claimed" are CLI checks over
   git, with unit tests; prompts keep only what needs judgment.
-- **Prompts are tested like software.** A quiz of 77 decision scenarios and 40 routing queries runs after every prompt
-  change (latest run: 77/77 scenarios, 40/40 routing); it caught, for example, that tools load subagents only at
+- **Prompts are tested like software.** A quiz of 123 decision scenarios and 42 routing queries runs after every prompt
+  change (latest run: 123/123 scenarios, 42/42 routing); it caught, for example, that tools load subagents only at
   startup, so a run that installs them mid-session now stops for a restart. Stage evals run the real workflow headless,
   with real subagents, graded by scripts on what reached git.
 - **Lean.** Each skill has a line budget enforced in CI, detail loads only when a step needs it, and a feature's stage

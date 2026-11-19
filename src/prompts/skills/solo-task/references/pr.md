@@ -58,9 +58,9 @@ Spec approved 2026-10-14 · [agreed decisions](https://github.com/acme/app/issue
    `None.` goes under `## Setup required`, placed just before `## Follow-ups`, naming where it came from. Nothing → no
    section.
 2. Replace `Filled at finish.` under `## Follow-ups` with each `deferred` finding and open `minor` (including
-   `Tech debt:` ones) and each `waived` QA scenario, one line each with its id and why it was left. Write `None.` when
-   there are none. This is where the merger sees what's left. Link the QA comment from the `QA` rows of the scenarios
-   table.
+   `Tech debt:` and `Pre-existing:` ones) and each `waived` QA scenario, one plain line each: what's left and why, with
+   no finding or scenario id, since the PR's readers never saw `review.md`. Write `None.` when there are none. This is
+   where the merger sees what's left. Link the QA comment from the `QA` rows of the scenarios table.
 3. Replace sections in place when editing the body; never add a second one. Mark the PR ready for review.
 4. The finish card: the walkthrough ([walkthrough.md](walkthrough.md)) first, saved in `progress.md`. Below it the PR
    link, the QA comment link if any, scenarios passing, review rounds and attempts used, the setup lines, and the

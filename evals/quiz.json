@@ -202,31 +202,31 @@
       "id": "review-fix-round",
       "situation": "review.md has an open blocker R1 and an open major R3 (neither a weakened test). It's the first fix round.",
       "ask": "What do you do, and what does the re-review brief carry?",
-      "expect": "One fix round with the same coder (continued with SendMessage, not a new one), which replies per finding id; then one re-review by a single reviewer (`lens: single`), whose brief carries the coder's replies and the commit the last review saw."
+      "expect": "A fix round with the same coder (continued with SendMessage, not a new one), which replies per finding id; then a re-review by a single reviewer (`lens: single`), whose brief carries the coder's replies and the commit the last review saw."
     },
     {
       "id": "resume-after-fix-round",
-      "situation": "The user says \"continue\" in a fresh session. `solodev status` says review, open: R1, R3. progress.md ends with `- review 1 at 3f2a9c1` and `- fix 1: R1 fixed · R3 rebutted: the null check is upstream in parse()`, and the coder's fix is committed.",
-      "ask": "Do you run a fix round, and what does the next brief carry?",
-      "expect": "No new fix round: fix 1 is spent. It starts the re-review, one `lens: single` reviewer, whose brief carries the `- fix 1` line (R1 fixed, R3 rebutted with its reason) and 3f2a9c1 as the commit the last review saw."
+      "situation": "The user says \"continue\" in a fresh session. `solodev status` says review, open: R1, R3. progress.md ends with `- review 1 at 3f2a9c1`, `- fix 1: R1 fixed · R3 rebutted: the null check is upstream in parse()` and the implement check that passed after it, and the coder's fix is committed.",
+      "ask": "What runs next, and what does its brief carry?",
+      "expect": "Not another fix round: fix 1's re-review comes first. One `lens: single` reviewer, whose brief carries the `- fix 1` line (R1 fixed, R3 rebutted with its reason) and 3f2a9c1 as the commit the last review saw."
     },
     {
       "id": "review-still-open",
-      "situation": "After the fix round and the re-review, major R3 is still open.",
+      "situation": "After fix round 1 and its re-review, major R3 is still open. Round 1 was the first round R3 went through.",
       "ask": "What do you do?",
-      "expect": "Takes it to the user: another fix round, deferred or dropped, written into review.md. No second fix round on your own."
+      "expect": "Runs fix round 2 for R3 with the same coder, then another re-review: up to three rounds run while a blocker or major is open. It goes to the user only if R3 is still open after round 2."
     },
     {
       "id": "rereview-security-row",
       "situation": "Re-review. review.md has open row R1 with lens `security`. The fix diff touches only src/users.test.js.",
       "ask": "How many reviewers run, and what does each get?",
-      "expect": "Two, started in the same turn: a `lens: security` reviewer rechecks R1, and a `lens: single` reviewer takes the rest of the re-review, including the journeys and project checks again at HEAD."
+      "expect": "Two, started in the same turn: a `lens: security` reviewer rechecks R1, and a `lens: single` reviewer takes the rest, running the journey commands at HEAD and judging the coder's `checks:` instead of rerunning the project checks."
     },
     {
       "id": "rereview-new-minor",
       "situation": "The re-review marked R1 and R3 fixed and found one new minor, R7, in the fix diff. No blocker or major is open.",
       "ask": "What happens to R7, and what do you do next?",
-      "expect": "R7 stays an open minor row in review.md and is listed under Follow-ups in the PR. No second fix round: on to the PR step."
+      "expect": "R7 stays an open minor row in review.md: a minor never starts a fix round on its own. With no blocker or major open, on to the PR step, where R7 goes under Follow-ups."
     },
     {
       "id": "rereview-large-fix",
@@ -239,6 +239,54 @@
       "situation": "Re-review. Row R1 (lens `security`) and row R5 (lens `correctness`, an unhandled empty input) are open, so two reviewers run.",
       "ask": "Which reviewer gets R5?",
       "expect": "The `lens: single` reviewer; the security reviewer gets only the rows whose lens cell names security."
+    },
+    {
+      "id": "review-round-carries-minors",
+      "situation": "Review 1 left open: major R2, minor R4, minor R5 whose text starts `Pre-existing:`, and minor R6 whose text starts `Tech debt:`. None is a weakened test.",
+      "ask": "What does fix round 1 carry?",
+      "expect": "R2 and R4: a round opened by a major also carries the open minors, but not `Pre-existing:` or `Tech debt:` rows, which stay for the PR's Follow-ups."
+    },
+    {
+      "id": "review-minors-only",
+      "situation": "Review 1 found three minors, R1 to R3, and nothing else; QA passed.",
+      "ask": "Do you start a fix round?",
+      "expect": "No: minors never open a round. They stay open in review.md for Follow-ups, and the run goes on to the PR step."
+    },
+    {
+      "id": "review-budget-spent",
+      "situation": "Fix round 3 and its re-review are done. Major R9, which round 2's re-review found, is still open.",
+      "ask": "What do you do?",
+      "expect": "Takes R9 to the user, since the three rounds are spent: another fix round, deferred or dropped, written into review.md."
+    },
+    {
+      "id": "review-row-two-rounds",
+      "situation": "Major R2 went through fix rounds 1 and 2, and the second re-review still marks it open. Nothing else is open, and one round of the budget is left.",
+      "ask": "Do you run round 3 for R2?",
+      "expect": "No: a row still open after two rounds goes to the user, even with a round left."
+    },
+    {
+      "id": "review-after-reopened-gate",
+      "situation": "The draft PR is open. The user added a scenario to the spec, approved it again, and the coder implemented the change as a fix round, now committed.",
+      "ask": "How is that change reviewed?",
+      "expect": "As a first review, not a delta re-review: on the diff since the last review, with lenses picked by its size, and the fix-round budget starting over."
+    },
+    {
+      "id": "reviewer-pre-existing",
+      "situation": "You are shadow-reviewer with `lens: correctness`. In src/users.js, which the diff edits, a function the diff neither changes nor newly calls has an off-by-one that predates the feature.",
+      "ask": "How do you report it?",
+      "expect": "As a `minor` whose text starts `Pre-existing:`, not a blocker or major: only what the change introduces or makes reachable counts."
+    },
+    {
+      "id": "reviewer-major-no-input",
+      "situation": "You are shadow-reviewer with `lens: single`. You suspect parseDate returns the wrong day but can't name an input that makes it. Separately, a changed branch in src/export.js has no test that runs it.",
+      "ask": "What severity is each?",
+      "expect": "The suspected wrong day is a `minor` at most, since it names no input that breaks it; the changed branch no test runs is a `major`."
+    },
+    {
+      "id": "reviewer-rereview-checks",
+      "situation": "You are shadow-reviewer on a single re-review. The brief carries the coder's `checks:` (typecheck, lint and test, each exit 0, with their output) and a fix diff touching two source files.",
+      "ask": "What do you run?",
+      "expect": "Only the journey commands at HEAD: it judges the coder's `checks:` from their output instead of rerunning typecheck, lint and test, and reads no lens file."
     },
     {
       "id": "reviewer-lens-no-subagents",
@@ -286,7 +334,13 @@
       "id": "qa-fail-with-findings",
       "situation": "Review 1 left an open major R2, and the verifier started beside it returned `S5: fail`, cause code.",
       "ask": "How many fix rounds, and what runs after?",
-      "expect": "One fix round with the same coder covering both R2 and S5 (the scenario id as its finding id). Then one re-review by a single reviewer, and a fresh verifier rechecking every uncovered scenario beside it."
+      "expect": "One fix round with the same coder covering both R2 and S5 (the scenario id as its finding id). Then a re-review by a single reviewer, with a fresh verifier beside it."
+    },
+    {
+      "id": "qa-recheck-scope",
+      "situation": "Fix round 1 fixed R2 and the failed scenario S5. The plan's uncovered scenarios are S5, S7 and S8; S7 and S8 passed, and the fix diff also changes the code behind S7.",
+      "ask": "Which scenarios does the verifier recheck beside the re-review?",
+      "expect": "S5 and S7: the ones that failed and the ones the fix diff could change. S8 isn't rechecked."
     },
     {
       "id": "fix-round-implement-check",
@@ -451,6 +505,84 @@
       "expect": "It reads the diff to work out the steps where it can, and says plainly that S3's steps weren't sourced from a real run; it never presents a guess as a tested step."
     },
     {
+      "id": "feedback-not-a-round",
+      "situation": "The user runs `/solo-task feedback form on the contact page`.",
+      "ask": "Is this a feedback round?",
+      "expect": "No: `feedback` followed by something other than a slug, a PR URL, a file or a quoted review is a feature request, so it starts a run for a contact-page feedback form."
+    },
+    {
+      "id": "feedback-no-folder",
+      "situation": "The user runs `/solo-task feedback https://github.com/acme/app/pull/90`. That PR's branch has no feature folder.",
+      "ask": "What do you do?",
+      "expect": "Says that feedback works only on /solo-task features, and stops."
+    },
+    {
+      "id": "feedback-diverged",
+      "situation": "`/solo-task feedback` on csv-export. After the fetch, the PR branch has diverged from your local one: it was rebased on the forge.",
+      "ask": "What do you do?",
+      "expect": "Asks the user instead of fast-forwarding, merging or resetting."
+    },
+    {
+      "id": "feedback-suggestion-committed",
+      "situation": "A feedback round. Since the last round, the reviewer committed one of their suggestion blocks from the forge's UI.",
+      "ask": "What happens to that comment's row?",
+      "expect": "After fetching and fast-forwarding the branch, its row is marked fixed; it isn't sent to the coder."
+    },
+    {
+      "id": "feedback-own-replies",
+      "situation": "Second feedback round. The last round posted three replies from the user's account, logged as `- reply <url>`.",
+      "ask": "Are those replies taken in as comments to triage?",
+      "expect": "No: the round skips what the run posted, the logged replies and the QA comment."
+    },
+    {
+      "id": "feedback-pushback",
+      "situation": "Second feedback round. On R12's thread (rebutted last round) the reviewer wrote 'thanks, makes sense'; on R14's thread (fixed) they wrote 'this still fails for an empty list'.",
+      "ask": "Which rows reopen?",
+      "expect": "Only R14: a reply reopens its row when it disputes the fix or asks for more; thanks change nothing."
+    },
+    {
+      "id": "feedback-spec-gap",
+      "situation": "A feedback round. A teammate comments 'this export should also include archived accounts'; no scenario covers archived accounts.",
+      "ask": "What do you do with it?",
+      "expect": "Treats it as a spec gap and takes it to the user instead of sending it to the coder; accepting it means editing the spec, which reopens the gate."
+    },
+    {
+      "id": "feedback-pause",
+      "situation": "`/solo-task feedback` on csv-export took in four PR comments as rows.",
+      "ask": "What happens before the coder gets anything?",
+      "expect": "The triage card: a proposed action per comment and the exact text of every reply that isn't a fix, then the user's `go` or edits. Nothing goes to the coder and nothing is posted before that."
+    },
+    {
+      "id": "feedback-bot-minor",
+      "situation": "A feedback round. A bot's comment points out a confirmed minor naming issue, and a teammate's comment points out another confirmed minor.",
+      "ask": "What does the triage card propose for each?",
+      "expect": "Fix the teammate's minor and drop the bot's: from a bot, only confirmed blockers and majors are proposed for a fix."
+    },
+    {
+      "id": "feedback-unconfirmed",
+      "situation": "A feedback round. A bot comment claims `user` can be null at src/notify.ts:12, but the code shows its caller already checks it.",
+      "ask": "What does the triage card propose?",
+      "expect": "A rebuttal, with its exact reply text on the card, since the claim couldn't be confirmed; on `go` the row is written `rebutted`."
+    },
+    {
+      "id": "feedback-coder-rebuts",
+      "situation": "A feedback round. The card said to fix R16, but the coder's reply rebuts it.",
+      "ask": "Do you post the rebuttal in R16's thread?",
+      "expect": "No: asks the user first, since the card said fix; nothing about R16 is posted until they decide."
+    },
+    {
+      "id": "feedback-minors-only",
+      "situation": "A feedback round. The user approved fixes for two minors only; the coder fixed both and the implement check passed.",
+      "ask": "Do you start a re-review?",
+      "expect": "No: a feedback round's re-review runs only when the round held a blocker or major. It commits and closes the round: the check, the push, the replies."
+    },
+    {
+      "id": "feedback-reply-no-ids",
+      "situation": "Closing a feedback round. R15, from a teammate's thread, was fixed in commit a1b2c3d by returning the write error instead of swallowing it.",
+      "ask": "What reply do you post in that thread?",
+      "expect": "A plain reply for someone who has only the PR: what changed and where, linking the commit and the code at the pushed commit. No `R15` or other finding or scenario id, and no run words such as review.md, fix round or coder."
+    },
+    {
       "id": "coder-how-try",
       "situation": "You are shadow-coder. All journeys pass, the implement check passes, and you are writing your `done` reply.",
       "ask": "Beyond status, journeys, files and decisions, what does the reply carry for the user's walkthrough?",
@@ -458,9 +590,9 @@
     },
     {
       "id": "coder-red-green",
-      "situation": "You are shadow-coder. You wrote J1's journey test before any code for the feature, ran its command, and it passed.",
+      "situation": "You are shadow-coder. You wrote J1's journey test and its code together. With the code set aside, J1's command passes.",
       "ask": "Is that run J1's red record, and what do you do?",
-      "expect": "No: a red has to fail because the behavior is missing, and `solodev proof` refuses a red with exit 0. The test doesn't pin its scenarios yet and needs fixing before the code is written."
+      "expect": "No: a red has to fail because the behavior is missing, and `solodev proof` refuses a red with exit 0. The test doesn't pin its scenarios yet: fix it, then record the red with the code set aside again before the green."
     },
     {
       "id": "coder-proof-stale",
@@ -491,6 +623,12 @@
       "situation": "You are shadow-coder before replying. Lint fails in src/legacy.js, a file you didn't touch.",
       "ask": "What do you do?",
       "expect": "Mentions the failure in the reply instead of fixing it."
+    },
+    {
+      "id": "coder-caused-failure-elsewhere",
+      "situation": "You are shadow-coder before replying. `test` fails in test/billing.test.js, a file you didn't touch, because your change renamed an export that billing still imports.",
+      "ask": "What do you do?",
+      "expect": "Fixes it: a failure its change causes is its own to fix, whatever file it shows in. Its `checks:` then report the passing run."
     },
     {
       "id": "coder-no-commit",
@@ -636,6 +774,10 @@
     },
     {
       "query": "resume — where were we on the password reset feature?",
+      "skill": "solo-task"
+    },
+    {
+      "query": "a teammate left review comments on the csv-export PR, address them",
       "skill": "solo-task"
     },
     {

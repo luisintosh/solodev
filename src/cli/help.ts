@@ -54,9 +54,10 @@ export const HELP: Record<string, CommandHelp> = {
     detail: [
       "Runs nothing. Appends `- proof <journey> red|green · exit <code> · tree <hash>` with the hash of the working",
       "tree as it stands (tracked and untracked files) and the last lines of the output given on stdin. red is the",
-      "journey test failing before the code exists, so it needs a non-zero exit; green needs 0. Any change to the",
-      "tree after a green makes it stale for C6: run the command and record it again. Keep the output file outside",
-      "the repo: a file written inside it changes the tree. A red counts only on another tree than the green.",
+      "journey test failing without the code (set aside, or not written yet), so it needs a non-zero exit; green",
+      "needs 0. Any change to the tree after a green makes it stale for C6: run the command and record it again.",
+      "Keep the output file outside the repo: a file written inside it changes the tree. A red counts only on",
+      "another tree than the green.",
     ],
     example: 'out="$(mktemp)"; npm test -- export > "$out" 2>&1; solodev proof csv-export J1 green --exit $? < "$out"',
   },
