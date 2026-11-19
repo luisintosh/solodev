@@ -40,14 +40,20 @@ user the choice in one line: `→ review: 3 lenses in parallel (evidence, correc
   `## QA` section stays as it is.
 - Count by severity after merging, and join the notes; a spec or plan gap among them goes to the user.
 
-## Re-review
+## Fix rounds and re-review
 
-One reviewer, `lens: single`, whatever the size of the first review. On the fix diff since the commit the last review
-saw, it rechecks every row the coder replied to, reads the fix diff through the first review's lenses, and runs the
-journeys and the project checks again at HEAD.
+In a `/solo-task` run the coder answers the findings in fix rounds, each followed by a re-review; run on your own, stop
+at the findings.
 
-- **A security row is open:** start a second fresh reviewer with `lens: security` in the same turn. It gets the rows
-  whose `lens` cell names security and replies with a result per row and any new finding; the single reviewer gets the
-  rest. Write security's results into `review.md` once both have replied.
-- **A new minor** in the fix diff is written as an open row and never starts another fix round; the PR lists it under
-  Follow-ups. A new blocker or major goes to the user with the rows still open.
+- **A round opens** on an open blocker or major, other than a `Weakened test:` row (the user's), or a QA failure in
+  code. A minor, new or old, never starts another fix round on its own.
+- **A round carries** every open blocker, major and failed QA scenario, plus the open minors except those whose text
+  starts `Pre-existing:` or `Tech debt:`. Those, and any minor still open at the end, go to the PR's Follow-ups.
+- **The re-review** is one reviewer, `lens: single`, whatever the size of the first review, on the fix diff since the
+  commit the last review saw. A security row is open: start a second fresh reviewer with `lens: security` in the same
+  turn. It gets the rows whose `lens` cell names security and replies with a result per row and any new finding; the
+  single reviewer gets the rest. Write security's results into `review.md` once both have replied.
+- **Budget:** up to three rounds, each with its re-review, while a blocker, major or QA failure is open. A row still
+  open after two rounds goes to the user, and so does whatever is open after the third re-review.
+- **A change after a reopened gate** is reviewed as a first review, on the diff since the last review, its lenses
+  picked as above, with the budget starting over.

@@ -20,8 +20,6 @@ plan. Test files in the diff are under review too, not evidence.
   starts `Weakened test:` and names the `git diff` to show; the user decides it.
 - **Config documented.** Undocumented config, as below, is a `major`.
 
-On re-review, run the journeys and the project checks again at HEAD.
-
 ## Contract
 
 - **Scenarios hold:** each changed path does what its scenario's Given/When/Then says, not only its test going green.

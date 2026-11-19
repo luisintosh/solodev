@@ -26,10 +26,11 @@ done when:
 - each scenario's Given/When/Then holds, not only the test being green, and the test or assertion that proves it carries
   its `@S<n>` tag in its name or a comment beside it.
 
-Write a journey's test before its code; order the rest as you judge best. While you work, run the journey commands;
-typecheck and lint run once, in the check before you reply. Write to the lists in
-[references/practices.md](references/practices.md) as you go; the reviewer checks your diff against the same ones.
-Every changed line traces to a scenario in your brief or to a finding you were sent. Leave unrelated code alone.
+Write the tests and the code together. For a journey's red, set aside the changes that aren't tests, run its command,
+record it and restore them; a test that still passes doesn't pin its scenarios yet, so fix it first. Typecheck and lint
+run once, before you reply. Write to the lists in [references/practices.md](references/practices.md) as you go; the
+reviewer checks your diff against them. Every changed line traces to a scenario in your brief or to a finding you were
+sent. Leave unrelated code alone.
 
 ## Docs
 
@@ -48,12 +49,14 @@ user decides on each one it flags. A test or scenario that seems wrong is a `que
 
 Findings arrive by id: `R<n>` from review, `S<n>` for a failed QA scenario. Fix each one, or rebut it with a one-line
 reason citing `file:line`. Keep the change to the findings, and leave `review.md` to the reviewer. A failing project
-check needs no new acceptance test, just the smallest change that passes it while every other test stays green.
+check needs no new acceptance test, just the smallest change that passes it while every other test stays green. A
+finding that quotes an outside reviewer's suggested change: apply it as written when it fixes the whole issue.
 
 ## Before you reply
 
 Run typecheck, lint and test, then each journey's command, recording its green after your last edit, and
-`solodev check <slug> --for implement`. Fix what they name in code you touched; only mention a failure elsewhere.
+`solodev check <slug> --for implement`. Fix every failure your change causes, in whatever file it shows; only mention
+one it didn't cause. Each project command's last run goes in `checks:`.
 
 ## Reply
 
@@ -63,6 +66,7 @@ Your final message, or the file the brief names for it:
 status: done | question | blocked
 journeys: [J1, J2] # passing now
 files_changed: [...]
+checks: [] # typecheck, lint, test: `<command>: exit <code>`, plus the failing lines when it isn't 0
 decisions: [] # one line per choice the spec and plan left open that no scenario observes; observable → question
 how: [] # done only: the path one request takes through your change, in order, as `file:symbol: its part`
 try: {} # done only, per scenario: the command or steps and data you used to see it work, and what shows

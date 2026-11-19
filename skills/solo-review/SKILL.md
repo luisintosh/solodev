@@ -22,9 +22,12 @@ says: alone, or by starting a reviewer per lens and merging their findings.
   With `lens: single`, read every lens the brief lists. Whatever your lens, check the coder's `decisions:` in the brief
   against the spec: one that contradicts it is a finding, one the spec leaves open goes in `notes`. A large diff: review
   the riskiest files first and name in `notes` what you didn't reach.
-- **Re-review**: the findings in `review.md`, the coder's per-finding replies in the brief, and the fix diff since the
-  commit the brief names, nothing else. With `lens: single`, every open row your brief doesn't give another reviewer,
-  and the evidence lens's runs at HEAD; with another lens, the rows your brief gives you.
+- **Re-review**: the fix diff since the commit the brief names, the coder's per-finding replies and `checks:` in the
+  brief, and the rows they answer, nothing else; read no lens file. Answer two things: whether each fix holds (what its
+  finding says breaks no longer does), and whether the fix diff adds a blocker or major, a weakened test included. A
+  new minor in it is a row too. With `lens: single`, take every row your brief doesn't give another reviewer, run the
+  journey commands at HEAD and judge the coder's `checks:` from their output; with `lens: security`, the rows your
+  brief gives you.
 
 The lenses: [evidence](references/lens-evidence.md) walks the scenarios through the diff, reads the coder's recorded
 runs and runs the journey tests at HEAD and the project's checks; [correctness](references/lens-correctness.md),
@@ -34,11 +37,15 @@ diff.
 ## Findings
 
 Report an issue only when you're confident it's real and will be hit in practice. Drop nitpicks and anything a linter
-catches. Each finding names `file:line` and a concrete fix.
+catches. Each finding names `file:line` and a concrete fix; one that says the code gives a wrong result also names the
+input that makes it, and without one it's `minor`.
 
 - `blocker`: a scenario is violated, or the change risks data loss, a security hole or a broken build.
-- `major`: wrong under a realistic input, or a changed code path no test asserts.
-- `minor`: anything else worth saying. If you can't name the input that breaks it, it isn't major.
+- `major`: wrong under a realistic input, a changed code path no test asserts, or what your lens calls major.
+- `minor`: anything else worth saying.
+
+Only what the change introduces or makes reachable counts. A bug that was there before it is a `minor` whose text
+starts `Pre-existing:`.
 
 ## review.md
 
