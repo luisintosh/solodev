@@ -22,11 +22,11 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
   module, an edit that cuts across layers) or a sensitive one, whatever its size. When unsure, go parallel: a lens that
   finds nothing costs less than a missed blocker.
 
-Each reviewer gets a fresh agent and replies in its final message. Its brief, in the spawn call: solo-review's absolute
-`SKILL.md` path, the slug, the feature folder, the base, the coder's `decisions:`, the `- tools:` line, the `solodev`
-path, `lens: <name>` and, on re-review, the rows it rechecks. Start them in parallel with Claude Code's Agent tool
-(`shadow-reviewer` for every lens), Codex's `spawn_agent` or Cursor's Task tool, one call each in the same turn; on any other coding tool use one reviewer. Tell the
-user the choice in one line: `→ review: 3 lenses in parallel (evidence, correctness, design): 14 files, 3 journeys`.
+Each brief, in its spawn call: solo-review's absolute `SKILL.md` path, the slug, the feature folder, the base, the
+coder's `decisions:`, the `- tools:` line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks.
+Spawn each with one call: Claude Code's Agent tool (`shadow-reviewer` for every lens), Codex's `spawn_agent` or Cursor's
+Task tool; on any other coding tool use one reviewer. Tell the user the choice in one line:
+`→ review: 3 lenses in parallel (evidence, correctness, design): 14 files, 3 journeys`.
 
 ## Merge the lenses
 
@@ -45,8 +45,9 @@ user the choice in one line: `→ review: 3 lenses in parallel (evidence, correc
 In a `/solo-task` run the coder answers the findings in fix rounds, each followed by a re-review; run on your own, stop
 at the findings.
 
-- **A round opens** on an open blocker or major, other than a `Weakened test:` row (the user's), or a QA failure in
-  code. A minor, new or old, never starts another fix round on its own.
+- **A round opens** on an open blocker or major, or a QA failure in code. A `Weakened test:` row goes straight to the
+  user instead, who picks a fix round, `rebutted` or `deferred`. A minor, new or old, never starts another fix round on
+  its own.
 - **A round carries** every open blocker, major and failed QA scenario, plus the open minors except those whose text
   starts `Pre-existing:` or `Tech debt:`. Those, and any minor still open at the end, go to the PR's Follow-ups.
 - **The re-review** is one reviewer, `lens: single`, whatever the size of the first review, on the fix diff since the
@@ -54,6 +55,7 @@ at the findings.
   turn. It gets the rows whose `lens` cell names security and replies with a result per row and any new finding; the
   single reviewer gets the rest. Write security's results into `review.md` once both have replied.
 - **Budget:** up to three rounds, each with its re-review, while a blocker, major or QA failure is open. A row still
-  open after two rounds goes to the user, and so does whatever is open after the third re-review.
+  open after two rounds goes to the user, and so does whatever is open after the third re-review: another fix round,
+  `deferred` or `dropped`, written into `review.md`.
 - **A change after a reopened gate** is reviewed as a first review, on the diff since the last review, its lenses
   picked as above, with the budget starting over.

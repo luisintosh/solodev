@@ -18,11 +18,10 @@ says: alone, or by starting a reviewer per lens and merging their findings.
   against the spec: one that contradicts it is a finding, one the spec leaves open goes in `notes`. A large diff: review
   the riskiest files first and name in `notes` what you didn't reach.
 - **Re-review**: the fix diff since the commit the brief names, the coder's per-finding replies and `checks:` in the
-  brief, and the rows they answer, nothing else; read no lens file. Answer two things: whether each fix holds (what its
-  finding says breaks no longer does), and whether the fix diff adds a blocker or major, a weakened test included. A
-  new minor in it is a row too. With `lens: single`, take every row your brief doesn't give another reviewer, run the
-  journey commands at HEAD and judge the coder's `checks:` from their output; with `lens: security`, the rows your
-  brief gives you.
+  brief, and the rows your brief gives you, nothing else; read no lens file. Answer two things: whether each fix holds
+  (what its finding says breaks no longer does), and whether the fix diff adds a blocker or major, a weakened test
+  included. A new minor in it is a row too. With `lens: single`, also run the journey commands at HEAD and judge the
+  coder's `checks:` from their output.
 
 The lenses: [evidence](references/lens-evidence.md) walks the scenarios through the diff, reads the coder's recorded
 runs and runs the journey tests at HEAD and the project's checks; [correctness](references/lens-correctness.md),
@@ -55,16 +54,12 @@ starts `Pre-existing:`.
 - With `lens: single`, write `review.md`'s `## Findings` yourself, `single` in each `lens` cell, even when you find
   nothing: the header row alone records a clean review. With any other lens, put your findings, and on re-review your
   row results, in your reply and leave `review.md` to the session that started you; it merges the lenses.
-- A new finding takes the next free id and status `open`.
 - On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
   reason to its text. A `Weakened test:` finding is the user's to settle; mark it only `fixed`. New problems in the fix
   diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
   `Weakened test:` row. Leave those rows as they are.
 - `review.md` is the only file you change, and its `## QA` belongs to the commander; the repo stays as you found it.
-
-A spec or plan gap you find during code review goes in your reply's `notes`, not in `review.md`; the commander takes it
-to the user.
 
 ## Reply
 
@@ -74,7 +69,7 @@ lens: single | evidence | correctness | security | design | ui
 counts: { blocker: 0, major: 1, minor: 2 }
 findings: [] # spec review and lens runs: severity, location, finding
 rows: [] # lens re-review: id, result (fixed | rebutted | open), reason
-notes: <spec or plan gaps, parts of a large diff you didn't reach, or "">
+notes: <spec or plan gaps (never rows in review.md), parts of a large diff you didn't reach, or "">
 headline: <one plain sentence for the user>
 ```
 

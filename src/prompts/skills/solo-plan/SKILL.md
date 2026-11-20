@@ -86,7 +86,8 @@ each extra one in a line. `command` runs that one file, built from the `test_fil
 line. A new test dependency, such as Playwright, is named in the plan, and approving the gate approves it.
 
 `uncovered` lists scenarios no test can reasonably reach, often a UI path; the verifier checks them beside the code
-review. Every scenario is claimed by a journey or listed as uncovered.
+review. The journeys block parses and claims every scenario, by a journey or as uncovered (`solodev approve` refuses
+otherwise).
 
 Leave out file-by-file steps, reading lists and done-when lines. The coder explores the code itself, and the scenarios
 are the bar.
@@ -94,9 +95,6 @@ are the bar.
 ## Before the gate
 
 - Every requirement has a scenario, and every scenario traces to a requirement.
-- Claims about how the system behaves today come from reading the code.
-- The journeys block parses and covers every scenario: `solodev approve` refuses otherwise.
-- A spec review's findings: apply the ones you agree with and bring the rest to the gate.
 - `spec.md` describes the current state. No history ("updated per review") in it.
 
 You edit only the feature folder, which lives outside the repo; the commander records the gate. Outside a `/solo-task`

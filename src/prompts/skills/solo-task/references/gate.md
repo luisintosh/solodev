@@ -65,5 +65,5 @@ and for people, drop empty sections, and post nothing when all four are empty.
 - Which bank fields show in the list? Product owner, asked in Slack.
 ```
 
-- Post it with the tracker tool the `- tools:` line names. No ticket → skip it; the feature folder is the record.
+- No ticket → skip it; the feature folder is the record.
 - A later approval edits the comment whose first line starts with `👨‍💻📝` instead of adding another.
