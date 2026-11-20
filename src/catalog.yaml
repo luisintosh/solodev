@@ -69,7 +69,7 @@ shadows:
 
 skills:
   solo-task:
-    budget: 142
+    budget: 135
     argument_hint: >-
       <request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | feedback [<slug> | <PR url> |
       <file> | "<review>"] | init [<tool>]
@@ -82,7 +82,7 @@ skills:
       touch several files, need design decisions or have unclear requirements, or to resume one. Not for one-line fixes
       or simple, well-defined changes (suggest /plan), or roadmaps (/solo-epic).
   solo-plan:
-    budget: 113
+    budget: 109
     description: >-
       Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys)
       for the spec gate. Used by /solo-task, or on its own to spec a feature without running it.
@@ -92,7 +92,7 @@ skills:
       Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing
       after it. Loaded by shadow-coder for a /solo-task run.
   solo-review:
-    budget: 90
+    budget: 76
     description: >-
       Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small
       change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive
