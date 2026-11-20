@@ -5,7 +5,7 @@ Write a feature's `spec.md`, the spec and its plan, which the user approves at t
 Answer "can this be built as asked?" from the code, not from the request's wording: what exists today that the feature
 touches, including what makes a requirement impossible as written; adjacent work (an issue's parent, siblings and
 links, open PRs and unmerged branches), who owns it and which way each dependency runs; and any source the user names,
-such as a prototype, a design board or a doc, read as [references/sources.md](references/sources.md) says.
+such as a prototype, a design board or a doc. Read [references/sources.md](references/sources.md) when there is one.
 
 ## Interview
 
