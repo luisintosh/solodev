@@ -53,7 +53,8 @@ at the findings.
 - **The re-review** is one reviewer, `lens: single`, whatever the size of the first review, on the fix diff since the
   commit the last review saw. A security row is open: start a second fresh reviewer with `lens: security` in the same
   turn. It gets the rows whose `lens` cell names security and replies with a result per row and any new finding; the
-  single reviewer gets the rest. Write security's results into `review.md` once both have replied.
+  single reviewer gets the rest, runs the journey commands at HEAD and judges the coder's `checks:` from their output
+  instead of rerunning them. Write security's results into `review.md` once both have replied.
 - **Budget:** up to three rounds, each with its re-review, while a blocker, major or QA failure is open. A row still
   open after two rounds goes to the user, and so does whatever is open after the third re-review: another fix round,
   `deferred` or `dropped`, written into `review.md`.
