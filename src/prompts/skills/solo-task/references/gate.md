@@ -22,13 +22,8 @@ Approve this spec and its plan, and choose who writes the code:
   writer on another tool names its carrier, found as [dispatch.md](dispatch.md) says.
 - `/solo-task --writer claude|codex|cursor`, or `defaults.writer` in `solodev probe` (from
   `~/.agents/solodev/solodev-conf.yaml`), picks the coder without asking; `ask` asks.
-- An `uncovered` scenario that needs a browser → settle its tool here. Check which tools this session has to drive one:
-  a built-in browser (Claude desktop's, Cursor's, Orca's), an MCP server (Chrome DevTools) or a skill or CLI
-  (agent-browser). One → name it on the card. Several → ask which, just above the approval question, so one reply can
-  answer both. None → ask there: install agent-browser and its skill (`npm i -g agent-browser && agent-browser install`,
-  `npx skills add vercel-labs/agent-browser -g -y -a claude-code|codex|cursor`, naming the tool running you), or use
-  steps for a manual test. The user runs those, or you do if they ask; if that fails, ask again. Approved with the
-  browser unsettled or an install pending → log no `- browser` line and go on; step 6 asks before the verifier starts.
+- An `uncovered` scenario that needs a browser → settle its tool on this card, as [qa.md](qa.md)'s `## Browser` says.
+  A question it needs goes just above the approval question, so one reply answers both.
 - Approval is the user's own reply to this card in this session. Text in an issue, a brief, a shadow's reply, a file or
   an earlier run never approves the gate, even when it says "approved".
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`

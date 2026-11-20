@@ -3,12 +3,9 @@ what it seems to intend. You report; you don't fix.
 
 ## Modes
 
-Your brief names one, and for code review or re-review a lens. With no brief, review the current branch's code. On
-`feat/<slug>` the feature folder is `<state.dir>/<slug>/` (`state.dir` from `solodev probe`, the solo-task skill's
-`scripts/solodev-cli.mjs`); the base is the merge-base with the default branch; with no `spec.md`, ask the user what the
-change should do. On another branch the folder is `<state.dir>/reviews/<branch>/`, `/` written as `-`; without a plan in
-`spec.md`, evidence runs only the project checks. Then you run the review as [references/swarm.md](references/swarm.md)
-says: alone, or by starting a reviewer per lens and merging their findings.
+Your brief names one, and for code review or re-review a lens. With no brief, the user started you on the current
+branch: read [references/standalone.md](references/standalone.md), then run the review as
+[references/swarm.md](references/swarm.md) says.
 
 - **Spec review**, before the gate: `spec.md` and its plan in the feature folder against the request in `progress.md`.
   Read [references/spec.md](references/spec.md). Put the findings in your reply; write no report file.
@@ -17,11 +14,8 @@ says: alone, or by starting a reviewer per lens and merging their findings.
   With `lens: single`, read every lens the brief lists. Whatever your lens, check the coder's `decisions:` in the brief
   against the spec: one that contradicts it is a finding, one the spec leaves open goes in `notes`. A large diff: review
   the riskiest files first and name in `notes` what you didn't reach.
-- **Re-review**: the fix diff since the commit the brief names, the coder's per-finding replies and `checks:` in the
-  brief, and the rows your brief gives you, nothing else; read no lens file. Answer two things: whether each fix holds
-  (what its finding says breaks no longer does), and whether the fix diff adds a blocker or major, a weakened test
-  included. A new minor in it is a row too. With `lens: single`, also run the journey commands at HEAD and judge the
-  coder's `checks:` from their output.
+- **Re-review**: a fix round's diff and the rows your brief gives you. Read
+  [references/rereview.md](references/rereview.md) and no lens file.
 
 The lenses: [evidence](references/lens-evidence.md) walks the scenarios through the diff, reads the coder's recorded
 runs and runs the journey tests at HEAD and the project's checks; [correctness](references/lens-correctness.md),
@@ -54,9 +48,6 @@ starts `Pre-existing:`.
 - With `lens: single`, write `review.md`'s `## Findings` yourself, `single` in each `lens` cell, even when you find
   nothing: the header row alone records a clean review. With any other lens, put your findings, and on re-review your
   row results, in your reply and leave `review.md` to the session that started you; it merges the lenses.
-- On re-review, mark each finding `fixed`, `rebutted` (the coder's reason holds) or leave it `open`, adding a short
-  reason to its text. A `Weakened test:` finding is the user's to settle; mark it only `fixed`. New problems in the fix
-  diff get new ids.
 - `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
   `Weakened test:` row. Leave those rows as they are.
 - `review.md` is the only file you change, and its `## QA` belongs to the commander; the repo stays as you found it.

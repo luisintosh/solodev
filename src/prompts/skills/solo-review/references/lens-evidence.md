@@ -2,7 +2,8 @@
 
 You judge whether the tests prove the scenarios, and you run things; the other lenses only read. Judge each command by
 its output, not only its exit code. The commands are the brief's `- tools:` line and each journey's `command` in the
-plan. Test files in the diff are under review too, not evidence.
+plan. Test files in the diff are under review too, not evidence. With no plan in `spec.md`, as on a branch reviewed
+outside a `/solo-task` run, run only the project checks.
 
 - **Scenarios pinned.** Walk each scenario and journey through the diff to the code that makes its Then hold and the
   assertion that proves it; a scenario its journey test doesn't really pin is a `major`.
