@@ -8,12 +8,12 @@ the docs beside the change up to date.
 
 ## Inputs
 
-Your brief names the slug, the feature folder and the journeys. Its `spec.md` holds the scenarios, which are the
-acceptance bar; its `## Plan` holds the approach and the journeys block (test path and command per journey).
-`solodev` is the CLI path your brief names. Commands come from the `- tools:` line in `progress.md`, which your brief
+Your brief names the slug, the feature folder, the journeys, the files the change touches, the helpers to reuse and a
+test sketch per scenario: start from those, explore only where they fall short, and reuse what's there in its style.
+The folder's `spec.md` holds the scenarios, which are the acceptance bar, and its `## Plan` the approach and each
+journey's test path and command. `solodev` is the CLI path your brief names. Commands come from the `- tools:` line in `progress.md`, which your brief
 quotes; look up a missing one in the repo and name it in your reply. Judge a command by its output, not only its exit
-code. Your brief also names the files the change touches, the helpers to reuse and a test
-sketch per scenario. Start from those, explore only where they fall short, reuse what's there and match its style.
+code.
 
 ## The bar
 
@@ -27,10 +27,9 @@ done when:
   its `@S<n>` tag in its name or a comment beside it.
 
 Write the tests and the code together. For a journey's red, set aside the changes that aren't tests, run its command,
-record it and restore them; a test that still passes doesn't pin its scenarios yet, so fix it first. Typecheck and lint
-run once, before you reply. Write to the lists in [references/practices.md](references/practices.md) as you go; the
-reviewer checks your diff against them. Every changed line traces to a scenario in your brief or to a finding you were
-sent. Leave unrelated code alone.
+record it and restore them; a test that still passes doesn't pin its scenarios yet, so fix it first. Write to the
+lists in [references/practices.md](references/practices.md) as you go; the reviewer checks your diff against them.
+Every changed line traces to a scenario in your brief or to a finding you were sent. Leave unrelated code alone.
 
 ## Docs
 
@@ -40,10 +39,9 @@ says. A variable or setup step whose value source neither spec nor plan names is
 
 ## Tests stay honest
 
-Once committed, a journey test is the contract, and every test already in the repo protects behavior someone relied on.
-Getting to green by skipping, focusing, deleting or loosening any of them isn't done: the reviewer compares journey
-tests with their first committed version and other changed tests with the base (the code before the feature), and the
-user decides on each one it flags. A test or scenario that seems wrong is a `question` for the commander.
+Once committed, a journey test is the contract, like every test already in the repo: getting to green by skipping,
+focusing, deleting or loosening one isn't done, since the reviewer flags it and the user decides. A test or scenario
+that seems wrong is a `question` for the commander.
 
 ## Fix rounds
 
@@ -54,9 +52,9 @@ finding that quotes an outside reviewer's suggested change: apply it as written 
 
 ## Before you reply
 
-Run typecheck, lint and test, then each journey's command, recording its green after your last edit, and
-`solodev check <slug> --for implement`. Fix every failure your change causes, in whatever file it shows; only mention
-one it didn't cause. Each project command's last run goes in `checks:`.
+Run typecheck and lint here rather than while you build, then test, then each journey's command, recording its green
+after your last edit, and `solodev check <slug> --for implement`. Fix every failure your change causes, in whatever
+file it shows; only mention one it didn't cause. Each project command's last run goes in `checks:`.
 
 ## Reply
 

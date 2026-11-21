@@ -1,9 +1,8 @@
 # PR and finish
 
-**Draft PR (step 7).** A draft pull or merge request against the default branch, with the forge tool the `- tools:` line
-names. The spec stays outside the repo, so the body carries what a reviewer, human or agent, needs from it, and nothing
-the diff, the ticket or the QA comment already holds. Use these sections in this order and drop an empty one, except
-`## Follow-ups`:
+**Draft PR (step 7).** A draft pull or merge request against the default branch. The spec stays outside the repo, so
+the body carries what a reviewer, human or agent, needs from it, and nothing the diff, the ticket or the QA comment
+already holds. Use these sections in this order and drop an empty one, except `## Follow-ups`:
 
 ```markdown
 Closes #2510. Lets staff record payments that don't match a customer yet.
@@ -44,8 +43,7 @@ Spec approved 2026-10-14 · [agreed decisions](https://github.com/acme/app/issue
 - First line: the forge's or tracker's closing reference for a ticket run (`Closes #<n>`, `Closes PROJ-12`), then what
   the feature does in one sentence.
 - What changed: two to four bullets on behavior and why, never a file-by-file restatement of the diff.
-- Scenarios: collapsed in `<details>`, its summary counting them; each `@S<n>`, its Then, and the journey test that
-  proves it, or `QA` for an `uncovered` one. Keep the blank lines around the table so it renders.
+- Scenarios: keep the blank lines around the table so it renders.
 - Where to look: one to three `file:symbol` entry points, each with what makes it risky.
 - Not in this PR: the spec's out-of-scope items, so nobody flags them as missing.
 - Footer: the approval date from `progress.md`, and a link to the gate's ticket comment: the URL logged in

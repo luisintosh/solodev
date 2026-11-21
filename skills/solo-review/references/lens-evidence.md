@@ -2,11 +2,11 @@
 
 You judge whether the tests prove the scenarios, and you run things; the other lenses only read. Judge each command by
 its output, not only its exit code. The commands are the brief's `- tools:` line and each journey's `command` in the
-plan. Test files in the diff are under review too, not evidence.
+plan. Test files in the diff are under review too, not evidence. With no plan in `spec.md`, as on a branch reviewed
+outside a `/solo-task` run, run only the project checks.
 
-- **Scenarios pinned.** Walk each scenario in `spec.md` and each journey in its `## Plan` through the diff: find the
-  code that makes its Given/When/Then hold and the assertion that proves it. A violated scenario is a `blocker`; a
-  changed code path no test asserts, or a scenario its journey test doesn't really pin, is a `major`.
+- **Scenarios pinned.** Walk each scenario and journey through the diff to the code that makes its Then hold and the
+  assertion that proves it; a scenario its journey test doesn't really pin is a `major`.
 
 - **Fail, then pass.** `progress.md` holds the coder's runs, a `- proof <journey> red` and a `green` per journey with the
   last lines of each output. Read the red: one that failed for any reason but the missing behavior (a broken import
@@ -16,9 +16,7 @@ plan. Test files in the diff are under review too, not evidence.
 - **Project checks.** Typecheck, lint, test and build, where the repo has them. A failure in code the feature touched is
   a `blocker` naming the command and the output lines that matter; one elsewhere goes in `notes`.
 - **Tests not weakened.** Compare each journey test with its first committed version and every other changed test with
-  the base. A skip or focus marker added, a test deleted, or an assertion removed or loosened is a `major` whose text
-  starts `Weakened test:` and names the `git diff` to show; the user decides it.
-- **Config documented.** Undocumented config, as below, is a `major`.
+  the base; a `Weakened test:` finding (below) names the `git diff` to show.
 
 ## Contract
 
@@ -30,7 +28,7 @@ plan. Test files in the diff are under review too, not evidence.
 ## Tests
 
 - **Test quality:** tests assert behavior, not implementation; none passes only because a mock was called or relies on
-  another test's order or leftovers. Any test skipped, deleted or loosened to get green is a `major` whose text starts
-  `Weakened test:`; the user decides it.
+  another test's order or leftovers. A test skipped, focused or deleted, or an assertion removed or loosened, is a
+  `major` whose text starts `Weakened test:`; the user decides it.
 - **Config documented:** a variable or setting the change starts reading is named in a README, a `docs/` page or the env
-  template.
+  template; one that isn't is a `major`.
