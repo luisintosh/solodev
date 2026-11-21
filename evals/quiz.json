@@ -55,6 +55,18 @@
       "expect": "No spec review; tells the user it was skipped and why, then shows the gate card and waits for approval."
     },
     {
+      "id": "spec-review-additive-flag",
+      "situation": "You wrote spec.md, with its plan, for a new --version flag on the project's CLI: one journey, no new dependency, no auth or security change, and the user didn't ask for a review. Every existing command and flag behaves as before.",
+      "ask": "Does a spec review run?",
+      "expect": "No: adding a flag doesn't count on its own, and nothing callers rely on changes, so it skips the review and tells the user why."
+    },
+    {
+      "id": "spec-review-renamed-flag",
+      "situation": "You wrote spec.md, with its plan, renaming the CLI's existing --out flag to --output and dropping --out: one journey, no new dependency, no auth or security change, and the user didn't ask for a review.",
+      "ask": "Does a spec review run?",
+      "expect": "Yes: removing --out changes behavior callers rely on, so a fresh shadow-spec-reviewer reviews the spec before the gate."
+    },
+    {
       "id": "mission-run-spec-review",
       "situation": "Your plan in spec.md has two journeys and the feature adds a login token check.",
       "ask": "Does a spec review run, and how?",
