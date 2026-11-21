@@ -59,8 +59,9 @@ the code, tests and docs. Every brief names the folder's absolute path.
      Commands come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
 2. **Spec.** Load solo-plan, interview the user as it says, write `spec.md`, pass `solodev check <slug> --for gate`.
 3. **Spec review** runs where a wrong spec is costly to fix once code exists: the plan has more than one journey, adds
-   a dependency, changes or removes behavior callers rely on (a public API, a wire format, a data schema or a
-   migration), touches auth or security, or the user asks. Adding a flag, field or endpoint doesn't count on its own.
+   a dependency, changes or removes behavior callers rely on (a public API, a wire format), changes a data schema or
+   adds a migration, touches auth or security, or the user asks. A new CLI flag or API field or endpoint, added without
+   changing anything else, doesn't count.
    The reviewer judges the spec against `progress.md`'s request; apply the findings you agree with and bring the rest to
    the gate. Otherwise tell the user you skipped it and why.
 4. **Gate.** Show the gate card from [references/gate.md](references/gate.md), wait, and act on the reply as it says.

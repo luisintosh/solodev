@@ -46,7 +46,8 @@ starts `Pre-existing:`.
 ```
 
 - With `lens: single`, write `review.md`'s `## Findings` yourself, `single` in each `lens` cell, even when you find
-  nothing: the header row alone records a clean review. With any other lens, put your findings, and on re-review your
+  nothing: the header row alone records a clean review. A new row takes the next free id, status `open`. With any other
+  lens, put your findings, and on re-review your
   row results, in your reply and leave `review.md` to the session that started you; it merges the lenses.
 - `deferred` and `dropped` are the user's decisions, written by the commander, and so is `rebutted` on a
   `Weakened test:` row. Leave those rows as they are.

@@ -35,6 +35,7 @@ Start: `pnpm dev`, then open http://localhost:3000/payments and sign in as `staf
 ```
 
 - How it works: add a fenced diagram only when the flow branches.
+- Look at first: one to three places, each with why.
 - Try it: how to start (the `dev` command from the `- tools:` line, the URL or entry point, the account or data
   needed), then per scenario the steps that walk its When and what the user should see. Commands and values are the
   ones the coder or verifier really used; a step you couldn't source from them or the diff says so, never a guess.

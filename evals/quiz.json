@@ -67,6 +67,18 @@
       "expect": "Yes: removing --out changes behavior callers rely on, so a fresh shadow-spec-reviewer reviews the spec before the gate."
     },
     {
+      "id": "spec-review-additive-migration",
+      "situation": "You wrote spec.md, with its plan, for a new optional `nickname` column on the users table, added by a migration: one journey, no new dependency, no auth or security change, and the user didn't ask for a review. Nothing existing changes.",
+      "ask": "Does a spec review run?",
+      "expect": "Yes: a migration always counts, even an additive one, so a fresh shadow-spec-reviewer reviews the spec before the gate."
+    },
+    {
+      "id": "reviewer-single-next-id",
+      "situation": "You are shadow-reviewer with `lens: single` on a first review after a reopened gate. review.md already has rows R1 to R4. You find one new major issue.",
+      "ask": "What id and status does its row get?",
+      "expect": "R5, status `open`: a new row takes the next free id, so it doesn't restart at R1."
+    },
+    {
       "id": "mission-run-spec-review",
       "situation": "Your plan in spec.md has two journeys and the feature adds a login token check.",
       "ask": "Does a spec review run, and how?",
