@@ -106,6 +106,25 @@ else
   ok "--force replaces the edited shadow"
 fi
 
+# 2b. a retired shadow init wrote is removed; one the user changed is kept, and init still exits 0
+old_shadow() { # <file> <body>: a shadow as an earlier init wrote it, with its hash line
+  local hash
+  hash="$(printf '%s' "$2" | shasum -a 256 | cut -c1-16)"
+  printf '%s<!-- solodev-hash: %s -->\n' "$2" "$hash" >"$1"
+}
+old_shadow "${TARGET}/.claude/agents/shadow-reviewer.md" $'old reviewer\n'
+old_shadow "${TARGET}/.claude/agents/shadow-verifier.md" $'old verifier\n'
+echo "my rule" >>"${TARGET}/.claude/agents/shadow-verifier.md"
+set +e
+retired_out="$(cd "$TARGET" && "$SOLODEV" init claude 2>&1)"
+retired_rc=$?
+set -e
+assert_eq "$retired_rc" "0" "init exits 0 when it only keeps a changed retired shadow"
+assert_file_absent "${TARGET}/.claude/agents/shadow-reviewer.md" "init removes a retired shadow it wrote"
+assert_file_exists "${TARGET}/.claude/agents/shadow-verifier.md" "init keeps a retired shadow the user changed"
+assert_grep 'kept' "$retired_out" "init names the retired shadow it kept"
+rm "${TARGET}/.claude/agents/shadow-verifier.md"
+
 # 3. no tool named and none detected: a usage error
 set +e
 (cd "$TARGET" && env -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX -u CODEX_THREAD_ID -u SOLODEV_HOME "$SOLODEV" init >/dev/null 2>&1)
@@ -212,6 +231,16 @@ assert_file_exists "${FAKE_HOME}/.cursor/agents/user-agent.md" "init keeps the u
 assert_eq "$(cat "${FAKE_HOME}/.claude/settings.json")" '{"keep":true}' "init leaves claude settings.json alone"
 (cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" init claude --project >/dev/null)
 assert_file_exists "${GLOBAL_TARGET}/.claude/agents/shadow-coder.md" "--project overrides a global skill's scope"
+
+# 5b. `solodev coder` writes only the personal config, under $HOME
+(cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" coder claude opus/high >/dev/null)
+CONF="${FAKE_HOME}/.agents/solodev/solodev-conf.yaml"
+assert_grep 'claude: opus/high' "$(cat "$CONF")" "solodev coder writes coder.claude"
+assert_grep 'opus/high' "$(cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" coder claude)" "solodev coder shows the user's coder"
+assert_grep '"coder": "opus/high"' "$(cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" probe)" "probe passes the user's coder through"
+(cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" coder claude default >/dev/null)
+if grep -q 'claude' "$CONF"; then bad "solodev coder default removes coder.claude"; else ok "solodev coder default removes coder.claude"; fi
+assert_grep 'model: inherit' "$(cat "${FAKE_HOME}/.claude/agents/shadow-coder.md")" "solodev coder leaves the coder shadow alone"
 
 # 6. optional: the real `npx skills add` from the built product (needs network)
 if [[ "${E2E_NPX_SKILLS:-}" == "1" ]]; then

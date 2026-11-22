@@ -38,7 +38,7 @@ describe("probe", () => {
       { tool: "claude", coder: "sonnet/high", recommended: false },
     ])
     expect(p.tools.claude.coder).toBe("sonnet/high")
-    expect(p.defaults).toEqual({ writer: "ask" })
+    expect(p.defaults).toEqual({ writer: "ask", coder: {} })
     expect(p.state).toEqual({ dir: "/home/u/.agents/solodev/acme/repo", writable: true })
     expect(p.warnings).toEqual([])
   })
@@ -58,6 +58,13 @@ describe("probe", () => {
     expect(p.warnings).toContain(
       "can't write to /home/u/.agents/solodev/acme/repo; allow it in this tool's sandbox before /solo-task",
     )
+  })
+
+  test("shadows out of date in a scope send the user to init there", async () => {
+    const p = await probe(deps({ stale: async (tool) => (tool === "claude" ? ["project"] : []) }), models)
+    expect(p.tools.claude.shadows).toBe(false)
+    expect(p.warnings).toEqual(["claude's solodev shadows (project) are out of date; run /solo-task init --project"])
+    expect((await probe(deps({ stale: async () => [] }), models)).tools.claude.shadows).toBe(true)
   })
 
   test("a logged-out tool is not offered; one without solodev's skills still is", async () => {
@@ -84,7 +91,7 @@ describe("personal defaults", () => {
 
   test("the retired dispatch key is a warning", async () => {
     const p = await probe(withDefaults("writer: codex\ndispatch: orca\n"), models)
-    expect(p.defaults).toEqual({ writer: "codex" })
+    expect(p.defaults).toEqual({ writer: "codex", coder: {} })
     expect(p.warnings.join("\n")).toContain("dispatch is no longer used")
   })
 
@@ -93,11 +100,34 @@ describe("personal defaults", () => {
     expect(p.warnings.join("\n")).toContain("writer: codex is set, but that tool can't write here")
   })
 
+  test("the user's coder replaces the catalog's in the tool row and the writer options", async () => {
+    const p = await probe(withDefaults("coder:\n  claude: opus/high\n  codex: session\n"), models)
+    expect(p.defaults.coder).toEqual({ claude: "opus/high", codex: "session" })
+    expect(p.tools.claude.coder).toBe("opus/high")
+    expect(p.tools.cursor.coder).toBe("grok/medium")
+    expect(p.writers.map((w) => `${w.tool} ${w.coder}`)).toEqual([
+      "codex session",
+      "cursor grok/medium",
+      "claude opus/high",
+    ])
+    expect(p.warnings).toEqual([])
+  })
+
+  test("a bad coder entry is a warning and keeps the default", async () => {
+    const p = await probe(withDefaults("coder:\n  gemini: pro/high\n  claude: ''\n"), models)
+    expect(p.tools.claude.coder).toBe("sonnet/high")
+    expect(p.warnings.join("\n")).toContain("coder.gemini is not claude, codex or cursor")
+    expect(p.warnings.join("\n")).toContain("coder.claude must be <model>/<effort> or session")
+    expect((await probe(withDefaults("coder: opus/high\n"), models)).warnings.join("\n")).toContain(
+      "coder must map a tool",
+    )
+  })
+
   test("bad values fall back to asking", () => {
     const warnings: string[] = []
-    expect(parseDefaults("writer: gemini\n", warnings)).toEqual({ writer: "ask" })
+    expect(parseDefaults("writer: gemini\n", warnings)).toEqual({ writer: "ask", coder: {} })
     expect(warnings).toHaveLength(1)
-    expect(parseDefaults(": : :", warnings)).toEqual({ writer: "ask" })
+    expect(parseDefaults(": : :", warnings)).toEqual({ writer: "ask", coder: {} })
   })
 })
 

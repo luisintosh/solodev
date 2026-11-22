@@ -70,9 +70,22 @@ export const HELP: Record<string, CommandHelp> = {
       "session. Scope follows where the skill is installed (under $HOME: global; in a repo: that repo); --global or",
       "--project overrides. Writes .claude/agents/*.md, .cursor/agents/*.md or .codex/agents/*.toml",
       "(global Codex: $CODEX_HOME/agents). A shadow you edited is kept, shown as a diff, and exits 1; --force",
-      "replaces it.",
+      "replaces it. A shadow an earlier release wrote and that has since been retired is removed, unless you changed",
+      "it.",
     ],
     example: "solodev init codex",
+  },
+  coder: {
+    usage: "solodev coder [claude|codex|cursor] [<model>/<effort> | session | default]",
+    summary: "Show or set what the coder starts on, per coding tool.",
+    detail: [
+      "Without a value: each tool's coder, yours or the default. With one: writes `coder.<tool>` in",
+      "~/.agents/solodev/solodev-conf.yaml, keeping its comments; `default` removes yours. The value is a short",
+      "<model>/<effort> (opus/high, sol/xhigh) the commander resolves to the tool's model when it starts the coder, or",
+      "session for the session's own. A value without a tool is for the tool running this session. It applies from",
+      "the next /solo-task run; nothing to re-init.",
+    ],
+    example: "solodev coder codex sol/xhigh",
   },
   install: {
     usage: "npx skills add luisintosh/solodev [-g]",

@@ -108,6 +108,18 @@ The coder starts on that model and effort, a short value the commander resolves 
 release needs no update. Everything else (the spec, the spec review, code review and QA) runs on your session's model
 and effort: pick them with your tool's `/model` and `/effort`. A high session effort makes QA cost more.
 
+Pick your own coder with `/solo-task coder`, from the next run on:
+
+```text
+/solo-task coder                    # what each tool's coder starts on
+/solo-task coder opus/high          # this tool's coder
+/solo-task coder codex sol/xhigh    # another tool's
+/solo-task coder session            # the coder follows your session too
+/solo-task coder default            # back to the table above
+```
+
+It writes `coder:` in `~/.agents/solodev/solodev-conf.yaml`, which you can also edit by hand.
+
 ## How it's built
 
 ```mermaid
@@ -147,6 +159,10 @@ Jira, Linear…); without one, it asks you.
 **How do I resume?** Ask `/solo-task` to continue. Any session can, since state lives in git and the feature folder.
 
 **Can it merge or push to main?** No. It opens the PR and marks it ready; use branch protection as the backstop.
+
+**Upgrading from v8.3 or earlier?** The spec reviewer, reviewer and verifier are no longer shadows, and the coder
+carries no model id. Run `/solo-task init` in each coding tool and scope you set up: it removes the old shadows it wrote
+and rewrites the coder. One you changed is kept and named in its report.
 
 **Upgrading from v7 or earlier?** v8 names every skill `solo-*`: `/mission` (v6: `/solodev-mission`) is now
 `/solo-task`, `/strategy` (v6: `/solodev-roadmap`) is `/solo-epic`, and `solodev-plan`, `-review`, `-code` and `-verify`

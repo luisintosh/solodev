@@ -7,12 +7,19 @@ export type Scope = "project" | "global"
 /** The shadows `solodev init` writes, by host and file name, read from the skill's `shadows/<host>/`. */
 export type AgentFiles = Record<Tool, Record<string, string>>
 
+/** Shadows earlier releases wrote; init removes one it wrote and nobody changed since. */
+export const RETIRED_SHADOWS = ["shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"]
+
 export type InitOp =
   | { kind: "create" | "update" | "unchanged"; path: string; content: string }
   /** The user changed a shadow init wrote; left alone unless --force. */
   | { kind: "edited"; path: string; content: string }
   /** A repo path that resolves outside the repo (a symlinked folder): left alone. */
   | { kind: "outside"; path: string }
+  /** A retired shadow init wrote, unchanged since: deleted. */
+  | { kind: "remove"; path: string }
+  /** A retired shadow the user changed, or one init didn't write: left alone. */
+  | { kind: "kept"; path: string }
 
 export type InitInput = {
   host: Tool
@@ -107,11 +114,36 @@ export async function planInit(input: InitInput): Promise<InitOp[]> {
     else kind = intact(current) || input.force ? "update" : "edited"
     ops.push({ kind, path: dest, content })
   }
+  if (!dirInside) return ops
+  const ext = input.host === "codex" ? "toml" : "md"
+  for (const name of RETIRED_SHADOWS) {
+    const dest = path.join(dir, `${name}.${ext}`)
+    const current = await input.read(dest)
+    if (current === undefined) continue
+    ops.push({ kind: intact(current) ? "remove" : "kept", path: dest })
+  }
   return ops
 }
 
-export async function applyInit(ops: InitOp[], write: (filePath: string, content: string) => Promise<void>) {
-  for (const op of ops) if (op.kind === "create" || op.kind === "update") await write(op.path, op.content)
+/** The scopes where `solodev init` would update or remove a shadow: what's installed there is out of date. */
+export async function staleScopes(inputs: InitInput[]): Promise<Scope[]> {
+  const out: Scope[] = []
+  for (const input of inputs) {
+    const ops = await planInit(input)
+    if (ops.some((op) => op.kind === "update" || op.kind === "remove")) out.push(input.scope)
+  }
+  return out
+}
+
+export async function applyInit(
+  ops: InitOp[],
+  write: (filePath: string, content: string) => Promise<void>,
+  remove: (filePath: string) => Promise<void>,
+) {
+  for (const op of ops) {
+    if (op.kind === "create" || op.kind === "update") await write(op.path, op.content)
+    else if (op.kind === "remove") await remove(op.path)
+  }
 }
 
 const VERB: Record<InitOp["kind"], string> = {
@@ -120,6 +152,8 @@ const VERB: Record<InitOp["kind"], string> = {
   unchanged: "= unchanged",
   edited: "! edited   ",
   outside: "! outside  ",
+  remove: "- removed  ",
+  kept: "! kept     ",
 }
 
 export function formatInit(input: Pick<InitInput, "host" | "scope" | "root" | "home">, ops: InitOp[], dryRun: boolean) {
@@ -135,6 +169,8 @@ export function formatInit(input: Pick<InitInput, "host" | "scope" | "root" | "h
     let line = `  ${VERB[op.kind]} ${show(op.path)}`
     if (op.kind === "edited") line += " — kept your edits; --force replaces them"
     if (op.kind === "outside") line += " — a symlink leads outside the repo; left alone"
+    if (op.kind === "remove") line += " — retired; solodev starts this role as a generic subagent now"
+    if (op.kind === "kept") line += " — retired, but you changed it; delete it when you're done with it"
     lines.push(line)
   }
   return lines.join("\n")

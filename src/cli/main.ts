@@ -7,12 +7,22 @@ import { fileURLToPath } from "node:url"
 import catalog from "../catalog.yaml"
 import { approve } from "./approve.ts"
 import { CHECK_SETS, type CheckSet, formatResults, runChecks } from "./checks.ts"
+import { formatCoders, parseCoderArgs, withCoder } from "./coder.ts"
 import { run } from "./exec.ts"
 import { exists, featureDir, SLUG } from "./feature.ts"
 import { HELP, helpText } from "./help.ts"
-import { type AgentFiles, applyInit, formatInit, type InitOp, locate, planInit, type Scope } from "./init.ts"
+import {
+  type AgentFiles,
+  applyInit,
+  formatInit,
+  type InitOp,
+  locate,
+  planInit,
+  type Scope,
+  staleScopes,
+} from "./init.ts"
 import { isTool, modelsFromCatalog, TOOLS } from "./models.ts"
-import { detectHome, probe } from "./probe.ts"
+import { detectHome, parseDefaults, probe } from "./probe.ts"
 import { proof } from "./proof.ts"
 import { stateDir } from "./state.ts"
 import { branchFeature, featureStatus, formatStatus, listFeatures, type Stage } from "./status.ts"
@@ -76,6 +86,7 @@ async function main(argv: string[]): Promise<number> {
     return 0
   }
   if (command === "init") return init(args)
+  if (command === "coder") return coder(args)
   const root = await repoRoot()
   const state = await stateDir(root, process.env, os.homedir())
   const models = modelsFromCatalog(catalog)
@@ -96,6 +107,21 @@ async function main(argv: string[]): Promise<number> {
           which: async (bin) => (await run("sh", ["-c", `command -v ${bin}`])).code === 0,
           exists,
           read: (file) => fs.readFile(file, "utf8").catch(() => undefined),
+          stale: async (tool) => {
+            let agents: AgentFiles
+            try {
+              agents = await readShadows(await shippedShadowsDir())
+            } catch {
+              return []
+            }
+            const home = os.homedir()
+            const read = (file: string) => fs.readFile(file, "utf8").catch(() => undefined)
+            const base = { host: tool, home, env: process.env, agents, force: false, read }
+            return staleScopes([
+              { ...base, scope: "project", root, inside: await insideOf(root) },
+              { ...base, scope: "global", root: home, inside: async () => true },
+            ])
+          },
           writable: async (dir) => {
             try {
               await fs.mkdir(dir, { recursive: true })
@@ -189,6 +215,46 @@ async function readShadows(dir: string): Promise<AgentFiles> {
   return agents
 }
 
+const CONF = path.join(".agents", "solodev", "solodev-conf.yaml")
+
+async function coder(args: string[]): Promise<number> {
+  let parsed: ReturnType<typeof parseCoderArgs>
+  try {
+    parsed = parseCoderArgs(positional(args))
+  } catch (err) {
+    throw new UsageError((err as Error).message)
+  }
+  const file = path.join(os.homedir(), CONF)
+  const raw = await fs.readFile(file, "utf8").catch(() => undefined)
+  const models = modelsFromCatalog(catalog)
+  if (parsed.value === undefined) {
+    const warnings: string[] = []
+    const configured = parseDefaults(raw, warnings).coder
+    console.log(`solodev coder (~/${CONF})\n${formatCoders(models, configured, parsed.tool)}`)
+    for (const w of warnings) console.error(`warning: ${w}`)
+    return 0
+  }
+  const tool = parsed.tool ?? detectHome(process.env)
+  if (!tool)
+    throw new UsageError("couldn't tell which coding tool runs this session; name it: solodev coder claude <value>")
+  const next = withCoder(raw, tool, parsed.value)
+  try {
+    await fs.mkdir(path.dirname(file), { recursive: true })
+    await fs.writeFile(file, next)
+  } catch (err) {
+    console.error(`solodev coder: can't write ${file} (${(err as Error).message}); allow it in this tool's sandbox`)
+    return 1
+  }
+  const now = parsed.value === "default" ? `${models[tool].coder} (default)` : parsed.value
+  console.log(`${tool} coder: ${now}. It applies from the next /solo-task run.`)
+  return 0
+}
+
+/** The `shadows/` folder beside this CLI, as the skill ships it. */
+async function shippedShadowsDir(): Promise<string> {
+  return path.join(path.dirname(await fs.realpath(fileURLToPath(import.meta.url))), "..", "shadows")
+}
+
 async function init(args: string[]): Promise<number> {
   const named = positional(args)[0]
   if (named && !isTool(named)) throw new UsageError(`unknown tool "${named}" (claude, codex or cursor)`)
@@ -213,7 +279,7 @@ async function init(args: string[]): Promise<number> {
     root,
     home,
     env: process.env,
-    agents: await readShadows(path.join(path.dirname(cliPath), "..", "shadows")),
+    agents: await readShadows(await shippedShadowsDir()),
     force: args.includes("--force"),
     read: (file: string) => fs.readFile(file, "utf8").catch(() => undefined),
     inside: scope === "global" ? async () => true : await insideOf(root),
@@ -221,12 +287,16 @@ async function init(args: string[]): Promise<number> {
   const ops = await planInit(input)
   if (!dryRun) {
     // Write beside the file, then rename over it: a symlink in its place is replaced, never written through.
-    await applyInit(ops, async (file, content) => {
-      await fs.mkdir(path.dirname(file), { recursive: true })
-      const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.tmp`)
-      await fs.writeFile(tmp, content, { flag: "wx" })
-      await fs.rename(tmp, file)
-    })
+    await applyInit(
+      ops,
+      async (file, content) => {
+        await fs.mkdir(path.dirname(file), { recursive: true })
+        const tmp = path.join(path.dirname(file), `.${path.basename(file)}.${process.pid}.tmp`)
+        await fs.writeFile(tmp, content, { flag: "wx" })
+        await fs.rename(tmp, file)
+      },
+      (file) => fs.rm(file, { force: true }),
+    )
   }
   const edited = ops.filter((op): op is Extract<InitOp, { kind: "edited" }> => op.kind === "edited")
   const failed = edited.length > 0 || ops.some((op) => op.kind === "outside")

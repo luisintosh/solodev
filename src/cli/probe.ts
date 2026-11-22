@@ -1,6 +1,6 @@
 import * as path from "node:path"
 import { parse as parseYaml } from "yaml"
-import { agentsDir } from "./init.ts"
+import { agentsDir, type Scope } from "./init.ts"
 import { isTool, type Models, TOOLS, type Tool } from "./models.ts"
 
 export type ProbeDeps = {
@@ -16,6 +16,8 @@ export type ProbeDeps = {
   which: (bin: string) => Promise<boolean>
   exists: (filePath: string) => Promise<boolean>
   read: (filePath: string) => Promise<string | undefined>
+  /** The scopes where init would update or remove one of this tool's shadows. */
+  stale?: (tool: Tool) => Promise<Scope[]>
 }
 
 export type ToolProbe = {
@@ -25,7 +27,7 @@ export type ToolProbe = {
   loggedIn: boolean | null
   /** solodev's coder skill is where this tool looks for skills. */
   skills: boolean
-  /** `solodev init` wrote every shadow for this tool, in this repo or globally. */
+  /** `solodev init` wrote every shadow for this tool, in this repo or globally, and none is out of date. */
   shadows: boolean
   /** What the coder starts on: `<model>/<effort>` as written (`sonnet/high`), or `session`. */
   coder: string
@@ -33,8 +35,11 @@ export type ToolProbe = {
 
 export type WriterOption = { tool: Tool; coder: string; recommended: boolean }
 
-/** Personal defaults from `~/.agents/solodev/solodev-conf.yaml`; usage limits belong to a person, not a repo. */
-export type Defaults = { writer: Tool | "ask" }
+/**
+ * Personal defaults from `~/.agents/solodev/solodev-conf.yaml`; usage limits belong to a person, not a repo. `coder`
+ * holds the user's `<model>/<effort>` (or `session`) per tool, passed through as written.
+ */
+export type Defaults = { writer: Tool | "ask"; coder: Partial<Record<Tool, string>> }
 
 export type Probe = {
   home: Tool | null
@@ -58,9 +63,9 @@ const SKILL_DIRS: Record<Tool, string[]> = {
 export const SHADOWS = ["shadow-coder"]
 
 export function parseDefaults(raw: string | undefined, warnings: string[]): Defaults {
-  const out: Defaults = { writer: "ask" }
+  const out: Defaults = { writer: "ask", coder: {} }
   if (raw === undefined) return out
-  let doc: { writer?: unknown; dispatch?: unknown }
+  let doc: { writer?: unknown; dispatch?: unknown; coder?: unknown }
   try {
     doc = (parseYaml(raw) ?? {}) as typeof doc
   } catch {
@@ -73,6 +78,21 @@ export function parseDefaults(raw: string | undefined, warnings: string[]): Defa
       warnings.push(
         `~/.agents/solodev/solodev-conf.yaml: writer must be ask, claude, codex or cursor (got ${doc.writer})`,
       )
+  }
+  if (doc.coder !== undefined) {
+    if (!doc.coder || typeof doc.coder !== "object" || Array.isArray(doc.coder)) {
+      warnings.push(
+        "~/.agents/solodev/solodev-conf.yaml: coder must map a tool to <model>/<effort>, e.g. claude: opus/high",
+      )
+    } else {
+      for (const [tool, value] of Object.entries(doc.coder as Record<string, unknown>)) {
+        if (!isTool(tool))
+          warnings.push(`~/.agents/solodev/solodev-conf.yaml: coder.${tool} is not claude, codex or cursor`)
+        else if (typeof value !== "string" || !value.trim())
+          warnings.push(`~/.agents/solodev/solodev-conf.yaml: coder.${tool} must be <model>/<effort> or session`)
+        else out.coder[tool] = value.trim()
+      }
+    }
   }
   if (doc.dispatch !== undefined) {
     warnings.push(
@@ -135,6 +155,11 @@ async function hasSkill(deps: ProbeDeps, tool: Tool): Promise<boolean> {
 export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   const home = detectHome(deps.env)
   const warnings: string[] = []
+  // First: the user's `coder` overrides the catalog's in every tool's row and writer option.
+  const defaults = parseDefaults(
+    await deps.read(path.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
+    warnings,
+  )
   const probed = await Promise.all(
     TOOLS.map(async (tool): Promise<[Tool, ToolProbe]> => {
       const cli = BINARIES[tool]
@@ -147,7 +172,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
           loggedIn: installed ? await loggedIn(deps, tool) : false,
           skills: await hasSkill(deps, tool),
           shadows: await hasShadows(deps, tool),
-          coder: models[tool].coder,
+          coder: defaults.coder[tool] ?? models[tool].coder,
         },
       ]
     }),
@@ -155,14 +180,17 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   const tools = Object.fromEntries(probed) as Record<Tool, ToolProbe>
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor")
   else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /solo-task init`)
+  else {
+    // A shadow an earlier release wrote, or a retired one still installed: out of date until init runs there.
+    const stale = (await deps.stale?.(home)) ?? []
+    if (stale.length) tools[home].shadows = false
+    for (const scope of stale) {
+      warnings.push(`${home}'s solodev shadows (${scope}) are out of date; run /solo-task init --${scope}`)
+    }
+  }
 
   const writable = await deps.writable(deps.state)
   if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /solo-task`)
-
-  const defaults = parseDefaults(
-    await deps.read(path.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
-    warnings,
-  )
 
   // Another tool first: it saves the home tool's usage and gives every PR a review from another model family.
   const writers: WriterOption[] = []

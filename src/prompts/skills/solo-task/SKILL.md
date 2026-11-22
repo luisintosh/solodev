@@ -13,7 +13,7 @@ checks read only git and the feature folder; `solodev help <command>` explains e
 - `solodev probe`: coding tools and their coder, the coder options, and `state`: the feature folders' home.
 - `solodev status [<slug>]`: where a feature stands and the next step.
 - `solodev init [claude|codex|cursor]`: writes a coding tool's coder shadow.
-- These start no feature: `/solo-task init [tool]` ([references/init.md](references/init.md)); `explain [<slug>]`, a
+- These start no feature: `/solo-task init [tool]` and `coder [<tool>] [<value>]` ([references/init.md](references/init.md)); `explain [<slug>]`, a
   feature's walkthrough and questions about it ([references/walkthrough.md](references/walkthrough.md)); `feedback
   [<slug> | <PR url> | <file> | "<review>"]`, one round of outside review on its PR
   ([references/feedback.md](references/feedback.md)). `feedback` followed by unquoted words, as in `/solo-task feedback

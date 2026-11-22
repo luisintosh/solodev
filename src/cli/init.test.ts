@@ -1,10 +1,20 @@
 import { describe, expect, test } from "vitest"
-import { type AgentFiles, agentsDir, type InitInput, intact, locate, planInit, stripHash, withHash } from "./init.ts"
+import {
+  type AgentFiles,
+  agentsDir,
+  type InitInput,
+  intact,
+  locate,
+  planInit,
+  staleScopes,
+  stripHash,
+  withHash,
+} from "./init.ts"
 
 const agents: AgentFiles = {
-  claude: { "shadow-coder.md": "coder\n", "shadow-reviewer.md": "reviewer\n" },
-  codex: { "shadow-coder.toml": 'name = "shadow-coder"\n', "shadow-reviewer.toml": 'name = "shadow-reviewer"\n' },
-  cursor: { "shadow-coder.md": "coder\n", "shadow-reviewer.md": "reviewer\n" },
+  claude: { "shadow-coder.md": "coder\n", "shadow-other.md": "other\n" },
+  codex: { "shadow-coder.toml": 'name = "shadow-coder"\n', "shadow-other.toml": 'name = "shadow-other"\n' },
+  cursor: { "shadow-coder.md": "coder\n", "shadow-other.md": "other\n" },
 }
 
 function input(files: Record<string, string>, over: Partial<InitInput> = {}): InitInput {
@@ -65,15 +75,15 @@ describe("planInit", () => {
   test("creates, then leaves its own files unchanged", async () => {
     expect(await kinds(input({}))).toEqual([
       "create /repo/.claude/agents/shadow-coder.md",
-      "create /repo/.claude/agents/shadow-reviewer.md",
+      "create /repo/.claude/agents/shadow-other.md",
     ])
     const written = {
       "/repo/.claude/agents/shadow-coder.md": withHash("shadow-coder.md", "coder\n"),
-      "/repo/.claude/agents/shadow-reviewer.md": withHash("shadow-reviewer.md", "old reviewer\n"),
+      "/repo/.claude/agents/shadow-other.md": withHash("shadow-other.md", "old other\n"),
     }
     expect(await kinds(input(written))).toEqual([
       "unchanged /repo/.claude/agents/shadow-coder.md",
-      "update /repo/.claude/agents/shadow-reviewer.md",
+      "update /repo/.claude/agents/shadow-other.md",
     ])
   })
 
@@ -90,14 +100,48 @@ describe("planInit", () => {
 
   test("global codex follows CODEX_HOME", async () => {
     const ops = await kinds(input({}, { scope: "global", root: "/home/u", host: "codex", env: { CODEX_HOME: "/c" } }))
-    expect(ops).toEqual(["create /c/agents/shadow-coder.toml", "create /c/agents/shadow-reviewer.toml"])
+    expect(ops).toEqual(["create /c/agents/shadow-coder.toml", "create /c/agents/shadow-other.toml"])
   })
 
   test("a project init leaves alone a shadows folder a symlink leads outside the repo", async () => {
     const inside = async (p: string) => !p.startsWith("/repo/.cursor/")
     expect(await kinds(input({}, { host: "cursor", inside }))).toEqual([
       "outside /repo/.cursor/agents/shadow-coder.md",
-      "outside /repo/.cursor/agents/shadow-reviewer.md",
+      "outside /repo/.cursor/agents/shadow-other.md",
     ])
+  })
+
+  test("removes a retired shadow it wrote, keeps one the user changed or didn't come from init", async () => {
+    const files = {
+      "/repo/.claude/agents/shadow-reviewer.md": withHash("shadow-reviewer.md", "old reviewer\n"),
+      "/repo/.claude/agents/shadow-verifier.md": `${withHash("shadow-verifier.md", "old verifier\n")}my rule\n`,
+      "/repo/.claude/agents/shadow-spec-reviewer.md": "someone's own\n",
+      "/home/u/.claude/agents/shadow-reviewer.md": withHash("shadow-reviewer.md", "old reviewer\n"),
+    }
+    expect((await kinds(input(files))).slice(2)).toEqual([
+      "kept /repo/.claude/agents/shadow-spec-reviewer.md",
+      "remove /repo/.claude/agents/shadow-reviewer.md",
+      "kept /repo/.claude/agents/shadow-verifier.md",
+    ])
+    const outside = await kinds(input(files, { inside: async () => false }))
+    expect(outside.some((op) => op.startsWith("remove") || op.startsWith("kept"))).toBe(false)
+  })
+})
+
+describe("staleScopes", () => {
+  test("names the scopes where init would update or remove a shadow", async () => {
+    const coder = withHash("shadow-coder.md", "coder\n")
+    const other = withHash("shadow-other.md", "other\n")
+    const files = {
+      "/repo/.claude/agents/shadow-coder.md": coder,
+      "/repo/.claude/agents/shadow-other.md": other,
+      "/repo/.claude/agents/shadow-reviewer.md": withHash("shadow-reviewer.md", "old\n"),
+      "/home/u/.claude/agents/shadow-coder.md": coder,
+      "/home/u/.claude/agents/shadow-other.md": other,
+    }
+    const project = input(files)
+    const global = input(files, { scope: "global", root: "/home/u" })
+    expect(await staleScopes([project, global])).toEqual(["project"])
+    expect(await staleScopes([input({}), input({}, { scope: "global", root: "/home/u" })])).toEqual([])
   })
 })

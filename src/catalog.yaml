@@ -38,15 +38,16 @@ skills:
     budget: 135
     argument_hint: >-
       <request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | feedback [<slug> | <PR url> |
-      <file> | "<review>"] | init [<tool>]
+      <file> | "<review>"] | init [<tool>] | coder [<tool>] [<model>/<effort> | session | default]
     description: >-
       Takes one feature from a request or ticket to a reviewed, tested pull request you merge: a spec you approve, one
       coder writing tests and code, each test seen failing without the code, a fresh-context review and QA, and a
       walkthrough of how it works and how to try it. Usage: /solo-task <request, or ticket URL or id> [--writer
       claude|codex|cursor]; /solo-task continue; /solo-task explain [<slug>]; /solo-task feedback [<slug>, PR URL, file
-      or review text] for a round of PR or written review; /solo-task init [claude|codex|cursor]. Use for features that
-      touch several files, need design decisions or have unclear requirements, or to resume one. Not for one-line fixes
-      or simple, well-defined changes (suggest /plan), or roadmaps (/solo-epic).
+      or review text] for a round of PR or written review; /solo-task init [claude|codex|cursor]; /solo-task coder
+      [<tool>] [<model>/<effort>] to show or set the coder's model. Use for features that touch several files, need
+      design decisions or have unclear requirements, or to resume one. Not for one-line fixes or simple, well-defined
+      changes (suggest /plan), or roadmaps (/solo-epic).
   solo-plan:
     budget: 109
     description: >-

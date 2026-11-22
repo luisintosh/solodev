@@ -25,6 +25,12 @@
       "expect": "Shows the user the diff and asks whether to replace their edited shadow; reruns `solodev init` with `--force` only if they say yes. Does not pass --force on its own."
     },
     {
+      "id": "coder-switch",
+      "situation": "The user runs `/solo-task coder opus/high` in Claude Code, between features.",
+      "ask": "What do you do?",
+      "expect": "Runs `solodev coder opus/high` and shows its report; starts no feature and doesn't run init or ask for a new session. The next run's coder starts on Opus at high effort."
+    },
+    {
       "id": "mission-no-shadows",
       "situation": "The user runs `/solo-task add an /healthz endpoint that returns the build sha` in Claude Code. `solodev probe` shows `tools.claude.shadows: false` and warns `claude has no solodev shadows yet; run /solo-task init`; `state.writable` is true.",
       "ask": "What do you do?",
