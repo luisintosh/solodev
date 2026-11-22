@@ -1,7 +1,7 @@
 {
   "tier": "stage",
   "skill": "solo-task",
-  "covers": ["solo-task", "solo-review", "shadow-reviewer"],
+  "covers": ["solo-task", "solo-review"],
   "prompt": "continue the remove-user feature\n\nThis is an unattended eval: stop once code review has written review.md, before any fix round.",
   "npm": true,
   "branch": "feat/remove-user",
@@ -16,10 +16,18 @@
     {
       "expect": "A sensitive change (auth, data deletion) got parallel lens reviewers",
       "tool": "Agent",
-      "input": "shadow-reviewer",
+      "input": "lens:\\s*(evidence|correctness|design|security|ui)\\b",
       "count": {
         "min": 3,
         "max": 6
+      }
+    },
+    {
+      "expect": "No retired shadow was started: reviewers are fresh generic subagents",
+      "tool": "Agent",
+      "input": "shadow-(spec-)?reviewer|shadow-verifier",
+      "count": {
+        "max": 0
       }
     },
     {

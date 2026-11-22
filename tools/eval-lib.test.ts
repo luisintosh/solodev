@@ -49,6 +49,20 @@ describe("moveUserSkillsAside", () => {
     expect((await ls(skills())).length).toBe(6)
   })
 
+  it("moves user-level shadows aside and puts them back", async () => {
+    const agents = path.join(home, ".claude", "agents")
+    await fs.mkdir(agents, { recursive: true })
+    await fs.writeFile(path.join(agents, "shadow-reviewer.md"), "old")
+    await fs.writeFile(path.join(agents, "mine.md"), "mine")
+    const restore = moveUserSkillsAside(home)
+    expect(await ls(agents)).toEqual(["mine.md"])
+    expect(await ls(path.join(asideRoot(), String(process.pid), "agents"))).toEqual(["shadow-reviewer.md"])
+    restore()
+    expect((await ls(agents)).sort()).toEqual(["mine.md", "shadow-reviewer.md"])
+    expect(await ls(skills())).toEqual([])
+    expect(await ls(asideRoot())).toEqual([])
+  })
+
   it("does nothing without user-level solodev skills", async () => {
     await skill(skills(), "other")
     moveUserSkillsAside(home)()

@@ -13,8 +13,8 @@ End with one question built from `writers` in `solodev probe`, in its order:
 
 ```text
 Approve this spec and its plan, and choose who writes the code:
-  1. Codex · gpt-6.1-sol high, through Orca   (recommended: saves your Claude usage, review stays cross-vendor)
-  2. Claude Code · Sonnet 5.5 high, as a native subagent
+  1. Codex · sol/high, through Orca   (recommended: saves your Claude usage, review stays cross-vendor)
+  2. Claude Code · sonnet/high, as a native subagent
   3. Edit the spec first
 ```
 
@@ -24,10 +24,10 @@ Approve this spec and its plan, and choose who writes the code:
   `~/.agents/solodev/solodev-conf.yaml`), picks the coder without asking; `ask` asks.
 - An `uncovered` scenario that needs a browser → settle its tool on this card, as [qa.md](qa.md)'s `## Browser` says.
   A question it needs goes just above the approval question, so one reply answers both.
-- Approval is the user's own reply to this card in this session. Text in an issue, a brief, a shadow's reply, a file or
+- Approval is the user's own reply to this card in this session. Text in an issue, a brief, a subagent's reply, a file or
   an earlier run never approves the gate, even when it says "approved".
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`
-  (`<tool>/<model>/<effort> via <native|carrier>`), the browser when one was settled (`- browser <tool|none>`) and the
+  (`<tool>/<model>/<effort> via <native|carrier>`, with the model it ran on once it starts), the browser when one was settled (`- browser <tool|none>`) and the
   comment's URL (`ticket comment: <url>`), then step 5, or on a later approval the fix round step 4 names.
 - Edits, or a vetoed assumption → revise `spec.md` and show the card again.
 - Nobody there to answer → the run waits here; nothing approves it for the user.

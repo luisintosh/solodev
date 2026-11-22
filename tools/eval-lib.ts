@@ -100,6 +100,9 @@ const LEGACY_SKILLS = [
   "strategy",
 ]
 
+/** Where a run keeps the user-level shadows it moved aside, inside its aside folder; no skill has this name. */
+const AGENTS_ASIDE = "agents"
+
 /** The catalog's skills plus their legacy names: only these are moved aside, never another author's skills. */
 function solodevSkills(): Set<string> {
   const catalog = parseYaml(fsSync.readFileSync(path.join(root, "src", "catalog.yaml"), "utf8")) as {
@@ -110,23 +113,34 @@ function solodevSkills(): Set<string> {
 
 /**
  * Claude Code prefers a user-level skill over a project one with the same name, so solodev's skills in `~/.claude/skills`
- * (see `solodevSkills`) would shadow the workspace's skills under test. Moves them to
- * `~/.claude/solodev-eval-aside/<pid>/` for the run and returns the restore, which also runs on exit and on SIGINT,
+ * (see `solodevSkills`) would shadow the workspace's skills under test, and a user-level `~/.claude/agents/shadow-*` from
+ * an earlier release (a shadow since retired) could be started in place of the run's own subagents. Moves both to
+ * `~/.claude/solodev-eval-aside/<pid>/` (the agents under `agents/`) for the run and returns the restore, which also runs on exit and on SIGINT,
  * SIGTERM or SIGHUP. A folder left by a killed run is restored first; another live run holding the skills aside is an
  * error, since its restore would unshadow this run midway.
  */
 export function moveUserSkillsAside(home = os.homedir()): () => void {
   const skills = path.join(home, ".claude", "skills")
+  const agents = path.join(home, ".claude", "agents")
   const asideRoot = path.join(home, ".claude", "solodev-eval-aside")
   const list = (dir: string) => (fsSync.existsSync(dir) ? fsSync.readdirSync(dir) : [])
-  const putBack = (from: string) => {
-    fsSync.mkdirSync(skills, { recursive: true })
-    for (const name of list(from)) {
-      const to = path.join(skills, name)
+  const moveBack = (from: string, into: string, names: string[]) => {
+    if (names.length) fsSync.mkdirSync(into, { recursive: true })
+    for (const name of names) {
+      const to = path.join(into, name)
       if (fsSync.existsSync(to))
         throw new Error(`can't restore ${path.join(from, name)}: ${to} exists; merge them by hand`)
       fsSync.renameSync(path.join(from, name), to)
     }
+  }
+  const putBack = (from: string) => {
+    const asideAgents = path.join(from, AGENTS_ASIDE)
+    if (fsSync.existsSync(asideAgents)) moveBack(asideAgents, agents, list(asideAgents))
+    moveBack(
+      from,
+      skills,
+      list(from).filter((n) => n !== AGENTS_ASIDE),
+    )
     fsSync.rmSync(from, { recursive: true, force: true })
   }
 
@@ -137,12 +151,16 @@ export function moveUserSkillsAside(home = os.homedir()): () => void {
   }
   const ours = solodevSkills()
   const names = list(skills).filter((n) => ours.has(n))
-  if (!names.length) return () => {}
+  const shadows = list(agents).filter((n) => n.startsWith("shadow-"))
+  if (!names.length && !shadows.length) return () => {}
 
   const aside = path.join(asideRoot, String(process.pid))
-  fsSync.mkdirSync(aside, { recursive: true })
+  fsSync.mkdirSync(shadows.length ? path.join(aside, AGENTS_ASIDE) : aside, { recursive: true })
   for (const name of names) fsSync.renameSync(path.join(skills, name), path.join(aside, name))
-  console.log(`eval: moved ${names.length} user-level solodev skills aside for this run (${aside})`)
+  for (const name of shadows) fsSync.renameSync(path.join(agents, name), path.join(aside, AGENTS_ASIDE, name))
+  console.log(
+    `eval: moved ${names.length} user-level solodev skills and ${shadows.length} shadows aside for this run (${aside})`,
+  )
 
   const onSignal = (signal: NodeJS.Signals) => {
     restore()

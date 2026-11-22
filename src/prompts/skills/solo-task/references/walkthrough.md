@@ -46,7 +46,7 @@ Save it as the last section of `progress.md`, replacing an earlier one, and show
 the PR link and the counts ([pr.md](pr.md)).
 
 **Questions afterwards.** The user asking how something works, why it was built that way or how to test a case is
-yours to answer, from the diff and the feature folder, read-only: start no shadow and change nothing. Point at
+yours to answer, from the diff and the feature folder, read-only: start no subagent and change nothing. Point at
 `file:line`, and say when the answer is a guess.
 
 **`/solo-task explain [<slug>]`.** Runs only this and starts no feature: the slug, or the current branch's feature.

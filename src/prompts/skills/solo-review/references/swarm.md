@@ -1,7 +1,7 @@
 # Running a code review
 
 The session that starts the review runs this: the commander at `/solo-task`'s code review, or your own session when the
-user runs `/solo-review` directly. A reviewer started from a brief never runs it, since a subagent can't start
+user runs `/solo-review` directly. A reviewer started from a brief never runs it: its brief says to start no
 subagents.
 
 ## Pick the lenses
@@ -23,9 +23,10 @@ Read `git diff --stat <base>..HEAD`, the untracked files and the plan's journeys
   finds nothing costs less than a missed blocker.
 
 Each brief, in its spawn call: solo-review's absolute `SKILL.md` path, the slug, the feature folder, the base, the
-coder's `decisions:`, the `- tools:` line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks.
-Spawn each with one call: Claude Code's Agent tool (`shadow-reviewer` for every lens), Codex's `spawn_agent` or Cursor's
-Task tool; on any other coding tool use one reviewer. Tell the user the choice in one line:
+coder's `decisions:`, the `- tools:` line, the `solodev` path, `lens: <name>` and, on re-review, the rows it rechecks;
+then that it reports and doesn't fix, changes only `review.md`, and starts no subagents. Spawn each as a fresh generic
+subagent with one call, the parts every brief shares first and the lens last, so the lenses share a prompt cache; on a
+coding tool with no subagents use one reviewer. Tell the user the choice in one line:
 `→ review: 3 lenses in parallel (evidence, correctness, design): 14 files, 3 journeys`.
 
 ## Merge the lenses

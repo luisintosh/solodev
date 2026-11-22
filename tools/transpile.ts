@@ -8,7 +8,7 @@ import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml"
-import { formatCodexModel, formatCursorModel, type Host, type ModelRef } from "./models.ts"
+import type { Host } from "./models.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const srcDir = path.join(root, "src")
@@ -22,12 +22,9 @@ export const PRODUCT_EXTRAS = ["README.md", "LICENSE", "assets"]
 type Permission = { edit?: unknown }
 
 export type Shadow = {
-  profile: string
   /** Role skills this shadow plays; Claude Code preloads them. */
   skills: string[]
   description: string
-  /** Per host, the effort this shadow runs at instead of its profile's. */
-  effort?: Partial<Record<Host, string>>
   permission?: Permission
   claude?: {
     /** Only for a shadow the commander continues: a longer TTL costs 2x per write and pays off only on reuse. */
@@ -45,26 +42,14 @@ export type Skill = {
 }
 
 export type Catalog = {
-  hosts: Record<Host, { profiles: Record<string, ModelRef> }>
+  /** The coder's default per host: a short `<model>/<effort>` value or `session`, passed through to the commander. */
+  hosts: Record<Host, { coder: string }>
   shadows: Record<string, Shadow>
   skills: Record<string, Skill>
 }
 
 export async function loadCatalog(): Promise<Catalog> {
   return parseYaml(await fs.readFile(path.join(srcDir, "catalog.yaml"), "utf8")) as Catalog
-}
-
-function resolveModel(catalog: Catalog, host: Host, profile: string): ModelRef {
-  const ref = catalog.hosts[host]?.profiles[profile]
-  if (!ref?.id) throw new Error(`catalog: hosts.${host}.profiles.${profile} missing`)
-  return ref
-}
-
-/** The model a shadow runs on for a host: its profile's, at the shadow's own effort when it sets one. */
-export function shadowModel(catalog: Catalog, host: Host, shadow: Shadow): ModelRef {
-  const ref = resolveModel(catalog, host, shadow.profile)
-  const effort = shadow.effort?.[host]
-  return effort ? { ...ref, effort } : ref
 }
 
 async function inlineIncludes(body: string, depth: number): Promise<string> {
@@ -153,36 +138,25 @@ async function emitShadows(catalog: Catalog) {
   for (const [name, shadow] of Object.entries(catalog.shadows)) {
     const body = await renderPrompt(`agents/${name}.md`)
 
-    const claudeRef = shadowModel(catalog, "claude", shadow)
-    const claudeFm: Record<string, unknown> = {
-      name,
-      description: shadow.description,
-      model: claudeRef.id,
-    }
-    if (claudeRef.effort) claudeFm.effort = claudeRef.effort
+    // No model id: the commander passes the coder's model and effort on the spawn call; without one it runs on the
+    // session's.
+    const claudeFm: Record<string, unknown> = { name, description: shadow.description, model: "inherit" }
     claudeFm.disallowedTools = claudeDisallowedTools(shadow)
     claudeFm.skills = shadow.skills
     // Keeps a continued shadow's prompt cache alive past the 5m subagent default.
     if (shadow.claude?.cache_ttl) claudeFm.experimental = { cacheTtl: shadow.claude.cache_ttl }
     await writeFile(path.join(distDir, "claude", "agents", `${name}.md`), frontmatter(claudeFm) + body)
 
-    const cursorFm = {
-      name,
-      description: shadow.description,
-      model: formatCursorModel(shadowModel(catalog, "cursor", shadow)),
-    }
+    const cursorFm = { name, description: shadow.description, model: "inherit" }
     await writeFile(
       path.join(distDir, "cursor", "agents", `${name}.md`),
       `${frontmatter(cursorFm)}${body.trimEnd()}\n${cursorRestrictions(shadow)}`,
     )
 
-    const codex = formatCodexModel(shadowModel(catalog, "codex", shadow))
     const toml = [
       `name = ${JSON.stringify(name)}`,
       `description = ${JSON.stringify(shadow.description)}`,
       `developer_instructions = ${JSON.stringify(body.trim())}`,
-      `model = ${JSON.stringify(codex.model)}`,
-      ...(codex.reasoning ? [`model_reasoning_effort = ${JSON.stringify(codex.reasoning)}`] : []),
       `sandbox_mode = ${JSON.stringify(denied(shadow.permission?.edit) ? "read-only" : "workspace-write")}`,
     ]
     await writeFile(path.join(distDir, "codex", "agents", `${name}.toml`), `${toml.join("\n")}\n`)

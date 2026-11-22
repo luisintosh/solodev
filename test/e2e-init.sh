@@ -32,7 +32,7 @@ assert_grep() {
 }
 
 SKILLS=(solo-task solo-plan solo-code solo-review solo-verify solo-epic gen-docs)
-SHADOWS=(shadow-coder shadow-spec-reviewer shadow-reviewer shadow-verifier)
+SHADOWS=(shadow-coder)
 CLI_REL="skills/solo-task/scripts/solodev-cli.mjs"
 
 # 0. build output: the product holds the skills, the CLI inside the solo-task skill, README.md, LICENSE and assets/
@@ -43,7 +43,7 @@ for skill in "${SKILLS[@]}"; do
 done
 assert_file_exists "${PRODUCT}/${CLI_REL}" "the CLI ships inside the solo-task skill"
 if [[ -x "${PRODUCT}/${CLI_REL}" ]]; then ok "the CLI is executable"; else bad "the CLI is executable"; fi
-assert_grep 'spawn_agent' "$(cat "${PRODUCT}/skills/solo-task/SKILL.md")" "solo-task documents Codex spawn_agent"
+assert_grep 'shadow-coder' "$(cat "${PRODUCT}/skills/solo-task/SKILL.md")" "solo-task starts the coder shadow"
 if grep -q '^model:' "${PRODUCT}/skills/solo-task/SKILL.md"; then
   bad "skills carry no model"
 else
@@ -69,11 +69,11 @@ for shadow in "${SHADOWS[@]}"; do
   assert_file_exists "${TARGET}/.claude/agents/${shadow}.md" "init claude writes ${shadow}"
 done
 assert_grep '- solo-code' "$(cat "${TARGET}/.claude/agents/shadow-coder.md")" "claude shadow-coder preloads solo-code"
-assert_grep 'effort: high' "$(cat "${TARGET}/.claude/agents/shadow-spec-reviewer.md")" "claude shadow-spec-reviewer runs at its own effort"
-if grep -q -- '- solo-verify' "${TARGET}/.claude/agents/shadow-reviewer.md"; then
-  bad "claude shadow-reviewer preloads only solo-review"
+assert_grep 'model: inherit' "$(cat "${TARGET}/.claude/agents/shadow-coder.md")" "claude shadow-coder carries no model id"
+if grep -q '^effort:' "${TARGET}/.claude/agents/shadow-coder.md"; then
+  bad "claude shadow-coder carries no effort"
 else
-  ok "claude shadow-reviewer preloads only solo-review"
+  ok "claude shadow-coder carries no effort"
 fi
 assert_file_exists "${SOLODEV_STATE}/consumer-repo/kept/spec.md" "init never touches feature folders"
 (cd "$TARGET" && SOLODEV_HOME=codex "$SOLODEV" init >/dev/null)
@@ -82,6 +82,12 @@ for shadow in "${SHADOWS[@]}"; do
   assert_file_exists "${TARGET}/.codex/agents/${shadow}.toml" "init (SOLODEV_HOME=codex) writes ${shadow}"
   assert_file_exists "${TARGET}/.cursor/agents/${shadow}.md" "init cursor writes ${shadow}"
 done
+assert_grep 'model: inherit' "$(cat "${TARGET}/.cursor/agents/shadow-coder.md")" "cursor shadow-coder carries no model id"
+if grep -q '^model' "${TARGET}/.codex/agents/shadow-coder.toml"; then
+  bad "codex shadow-coder carries no model"
+else
+  ok "codex shadow-coder carries no model"
+fi
 assert_grep 'unchanged' "$(cd "$TARGET" && "$SOLODEV" init claude)" "a second init changes nothing"
 
 # 2. an edited shadow is kept until --force
@@ -201,7 +207,7 @@ assert_file_absent "${GLOBAL_TARGET}/.claude" "a global init writes nothing into
 (cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" CODEX_HOME="${WORK}/codex-home" "$GSOLODEV" init codex >/dev/null)
 assert_file_exists "${WORK}/codex-home/agents/shadow-coder.toml" "global codex shadows follow CODEX_HOME"
 (cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" init cursor >/dev/null)
-assert_file_exists "${FAKE_HOME}/.cursor/agents/shadow-reviewer.md" "global cursor shadows land in ~/.cursor/agents"
+assert_file_exists "${FAKE_HOME}/.cursor/agents/shadow-coder.md" "global cursor shadows land in ~/.cursor/agents"
 assert_file_exists "${FAKE_HOME}/.cursor/agents/user-agent.md" "init keeps the user's own agents"
 assert_eq "$(cat "${FAKE_HOME}/.claude/settings.json")" '{"keep":true}' "init leaves claude settings.json alone"
 (cd "$GLOBAL_TARGET" && HOME="$FAKE_HOME" "$GSOLODEV" init claude --project >/dev/null)

@@ -46,10 +46,11 @@ repo once.
 
 ### `/solo-task`
 
-`/solo-task` is the commander. It writes the spec with you, then hands the work to four **shadows**, subagents with
-their own models and fresh context: a coder, a spec reviewer, a code reviewer and a verifier. You can read them first in
-`skills/solo-task/shadows/<tool>/`; `init` copies them into the tool's agents folder (`.claude/agents/`,
-`.codex/agents/`, `.cursor/agents/`), adding only a hash line that lets it spot your edits.
+`/solo-task` is the commander. It writes the spec with you, then hands the work to subagents in fresh context: a coder,
+a spec reviewer, a code reviewer and a verifier. The coder is a **shadow**, the one agent that edits source; you can
+read it first in `skills/solo-task/shadows/<tool>/`, and `init` copies it into the tool's agents folder
+(`.claude/agents/`, `.codex/agents/`, `.cursor/agents/`), adding only a hash line that lets it spot your edits. The
+reviewers and the verifier are your tool's own generic subagents, briefed with their role.
 
 1. **Spec.** Requirements, acceptance scenarios tagged `@S1`, `@S2`…, and a plan of at most three **journeys**: one test
    file each, proving a group of scenarios.
@@ -99,19 +100,13 @@ has no `AGENTS.md`.
 
 ## Models
 
-| profile     | Claude Code                      | Codex                 | Cursor                        |
-| ----------- | -------------------------------- | --------------------- | ----------------------------- |
-| `think`     | `claude-opus-5-5[effort=medium]` | `gpt-6-astra[medium]` | `gemini-4-argon[effort=high]` |
-| `implement` | `claude-sonnet-5-5[effort=high]` | `gpt-6.1-sol[high]`   | `grok-4.7[effort=high]`       |
+|         | Claude Code   | Codex      | Cursor      |
+| ------- | ------------- | ---------- | ----------- |
+| `coder` | `sonnet/high` | `sol/high` | `grok/high` |
 
-| shadow                 | profile     | effort instead of the profile's |
-| ---------------------- | ----------- | ------------------------------- |
-| `shadow-coder`         | `implement` | —                               |
-| `shadow-spec-reviewer` | `think`     | claude high · codex high        |
-| `shadow-reviewer`      | `think`     | —                               |
-| `shadow-verifier`      | `implement` | claude medium · codex medium    |
-
-Start your session on the `think` model; it plans and reviews, and the cheaper `implement` model writes the code.
+The coder starts on that model and effort, a short value the commander resolves to your tool's current model, so a new
+release needs no update. Everything else (the spec, the spec review, code review and QA) runs on your session's model
+and effort: pick them with your tool's `/model` and `/effort`. A high session effort makes QA cost more.
 
 ## How it's built
 
@@ -126,8 +121,8 @@ flowchart LR
   evals["prompt quiz + stage evals"] -.->|every prompt change| src
 ```
 
-- **One source, three tools.** Roles are written once and compiled to each tool's native format, models pinned in one
-  catalog.
+- **One source, three tools.** Roles are written once and compiled to each tool's native format, with no model ids
+  pinned: the coder's default is a short value, everything else runs on your session.
 - **Rules that code can check are code.** "No code before approval" and "every scenario is claimed" are CLI checks over
   git, with unit tests; prompts keep only what needs judgment.
 - **Prompts are tested like software.** A quiz of 123 decision scenarios and 42 routing queries runs after every prompt

@@ -1,10 +1,11 @@
-# Model ids live only under hosts.*.profiles: `think` plans and reviews, `implement` writes code and docs. Pinned and
-# updated by hand when a better model ships; README.md's matrix must match.
+# No model ids live in solodev. Each host has a default for the coder, a short `<model>/<effort>` value
+# (`sonnet/high`) that the commander passes when it starts shadow-coder and resolves to a real model itself; the user's
+# `coder:` in ~/.agents/solodev/solodev-conf.yaml overrides it, and `session` runs the coder on the session's model.
+# README.md's coder row must match. Every other role (spec reviewer, reviewer, verifier) is a fresh generic subagent on
+# the session's model and effort, so it needs no shadow.
 #
 # Role skills (`skills:`) carry the instructions; shadows (`shadows:`) are the agents that play them, each a thin shell
-# with a model and hard denies. A shadow runs on its profile's model; `effort`, per host, overrides the profile's effort
-# for that shadow. One shadow per model-and-effort a role needs, never one per lens: reviewers started together share a
-# prompt cache only when their definition is the same. `budget` caps a skill body's lines (tools/check.ts enforces it).
+# with hard denies and no model. `budget` caps a skill body's lines (tools/check.ts enforces it).
 #
 # `permission` holds hard edit denies only, by path; what a shadow may run is a prompt rule (fragments/boundaries.md).
 # Hosts have no shared permission config, so transpile renders them: Cursor gets them as prose restrictions, Claude
@@ -13,22 +14,12 @@
 # agents.
 
 hosts:
-  claude:
-    profiles:
-      think: { id: claude-opus-5-5, effort: medium }
-      implement: { id: claude-sonnet-5-5, effort: high }
-  codex:
-    profiles:
-      think: { id: gpt-6-astra, effort: medium }
-      implement: { id: gpt-6.1-sol, effort: high }
-  cursor:
-    profiles:
-      think: { id: gemini-4-argon, effort: high }
-      implement: { id: grok-4.7, effort: high }
+  claude: { coder: sonnet/high }
+  codex: { coder: sol/high }
+  cursor: { coder: grok/high }
 
 shadows:
   shadow-coder:
-    profile: implement
     skills: [solo-code]
     description: >-
       Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task
@@ -41,31 +32,6 @@ shadows:
     # subagent cache. 1h writes cost 2x, so only the continued shadow sets it.
     claude:
       cache_ttl: 1h
-
-  shadow-spec-reviewer:
-    profile: think
-    # One agent per feature, on the stage that finds the most: worth the deeper pass.
-    effort: { claude: high, codex: high }
-    skills: [solo-review]
-    description: >-
-      Fresh-context spec reviewer: reviews a feature's spec and plan against the request before the gate (solo-review).
-      Report-only; replies with its findings and writes no file.
-
-  shadow-reviewer:
-    profile: think
-    skills: [solo-review]
-    description: >-
-      Fresh-context code reviewer: reviews a feature diff against its scenarios, alone or on one lens, and re-reviews a
-      fix round (solo-review). Report-only; writes only review.md.
-
-  shadow-verifier:
-    profile: implement
-    # QA drives the app and captures evidence: many tool calls, little judgment.
-    effort: { claude: medium, codex: medium }
-    skills: [solo-verify]
-    description: >-
-      Fresh-context verifier: checks the scenarios no test covers from outside the system (solo-verify). Report-only;
-      replies with its verdicts and changes no file.
 
 skills:
   solo-task:
@@ -101,7 +67,7 @@ skills:
     budget: 54
     description: >-
       Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per
-      scenario. Loaded by shadow-verifier for a /solo-task run.
+      scenario. Loaded by the verifier subagent for a /solo-task run.
   solo-epic:
     budget: 150
     argument_hint: "<idea> | <epic ticket or URL>"

@@ -4,12 +4,13 @@ export type CommandHelp = { usage: string; summary: string; detail: string[]; ex
 export const HELP: Record<string, CommandHelp> = {
   probe: {
     usage: "solodev probe",
-    summary: "What's available: coding tools, their models, and this repo's folder of features.",
+    summary: "What's available: coding tools, their coder, and this repo's folder of features.",
     detail: [
-      "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models and",
-      "their launch fields), `state`: this repo's folder of features (outside the repo) and whether this session can",
-      "write there, personal defaults from ~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for",
-      "the gate card, another tool first.",
+      "Prints JSON: each coding tool (installed, logged in, solodev skills present, and `coder`: what the coder starts",
+      "on, as `<model>/<effort>` or `session`, passed through for the commander to resolve), `state`: this repo's",
+      "folder of features (outside the repo) and whether this session can write there, personal defaults from",
+      "~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for the gate card, another tool first.",
+      "Every other role runs on the session's model and effort.",
     ],
     example: "solodev probe",
   },
@@ -63,7 +64,7 @@ export const HELP: Record<string, CommandHelp> = {
   },
   init: {
     usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",
-    summary: "Write the shadow agents (coder, spec reviewer, reviewer, verifier) for one coding tool.",
+    summary: "Write the coder shadow agent for one coding tool.",
     detail: [
       "Run once per coding tool after `npx skills add luisintosh/solodev`. Without a tool: the one running this",
       "session. Scope follows where the skill is installed (under $HOME: global; in a repo: that repo); --global or",

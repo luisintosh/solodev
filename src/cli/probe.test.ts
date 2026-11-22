@@ -3,21 +3,9 @@ import type { Models } from "./models.ts"
 import { detectHome, parseDefaults, type ProbeDeps, probe } from "./probe.ts"
 
 const models: Models = {
-  claude: {
-    think: { id: "claude-opus-5-5", effort: "medium" },
-    implement: { id: "claude-sonnet-5-5", effort: "high" },
-    shadows: { "shadow-spec-reviewer": { id: "claude-opus-5-5", effort: "high" } },
-  },
-  codex: {
-    think: { id: "gpt-6.1-sol", effort: "max" },
-    implement: { id: "gpt-6.1-sol", effort: "medium" },
-    shadows: {},
-  },
-  cursor: {
-    think: { id: "grok-4.7", effort: "xhigh" },
-    implement: { id: "grok-4.7", effort: "medium" },
-    shadows: {},
-  },
+  claude: { coder: "sonnet/high" },
+  codex: { coder: "sol/medium" },
+  cursor: { coder: "grok/medium" },
 }
 
 function deps(over: Partial<ProbeDeps> = {}): ProbeDeps {
@@ -44,16 +32,12 @@ describe("probe", () => {
   test("offers other tools first, then the home tool", async () => {
     const p = await probe(deps(), models)
     expect(p.home).toBe("claude")
-    expect(p.writers.map(({ launch, ...w }) => w)).toEqual([
-      { tool: "codex", model: "codex/gpt-6.1-sol/medium", recommended: true },
-      { tool: "cursor", model: "cursor/grok-4.7/medium", recommended: false },
-      { tool: "claude", model: "claude/claude-sonnet-5-5/high", recommended: false },
+    expect(p.writers).toEqual([
+      { tool: "codex", coder: "sol/medium", recommended: true },
+      { tool: "cursor", coder: "grok/medium", recommended: false },
+      { tool: "claude", coder: "sonnet/high", recommended: false },
     ])
-    expect(p.writers[0]!.launch).toEqual({ agent: "codex", model: "gpt-6.1-sol", effort: "medium" })
-    expect(p.tools.claude.launch.think).toEqual({ agent: "claude", model: "claude-opus-5-5", effort: "medium" })
-    expect(p.tools.claude.launch.shadows).toEqual({
-      "shadow-spec-reviewer": { agent: "claude", model: "claude-opus-5-5", effort: "high" },
-    })
+    expect(p.tools.claude.coder).toBe("sonnet/high")
     expect(p.defaults).toEqual({ writer: "ask" })
     expect(p.state).toEqual({ dir: "/home/u/.agents/solodev/acme/repo", writable: true })
     expect(p.warnings).toEqual([])

@@ -64,17 +64,17 @@
       "id": "spec-review-renamed-flag",
       "situation": "You wrote spec.md, with its plan, renaming the CLI's existing --out flag to --output and dropping --out: one journey, no new dependency, no auth or security change, and the user didn't ask for a review.",
       "ask": "Does a spec review run?",
-      "expect": "Yes: removing --out changes behavior callers rely on, so a fresh shadow-spec-reviewer reviews the spec before the gate."
+      "expect": "Yes: removing --out changes behavior callers rely on, so a fresh spec reviewer, a generic subagent briefed with solo-review, reviews the spec before the gate."
     },
     {
       "id": "spec-review-additive-migration",
       "situation": "You wrote spec.md, with its plan, for a new optional `nickname` column on the users table, added by a migration: one journey, no new dependency, no auth or security change, and the user didn't ask for a review. Nothing existing changes.",
       "ask": "Does a spec review run?",
-      "expect": "Yes: a migration always counts, even an additive one, so a fresh shadow-spec-reviewer reviews the spec before the gate."
+      "expect": "Yes: a migration always counts, even an additive one, so a fresh spec reviewer, a generic subagent briefed with solo-review, reviews the spec before the gate."
     },
     {
       "id": "reviewer-single-next-id",
-      "situation": "You are shadow-reviewer with `lens: single` on a first review after a reopened gate. review.md already has rows R1 to R4. You find one new major issue.",
+      "situation": "You are a reviewer subagent with `lens: single` on a first review after a reopened gate. review.md already has rows R1 to R4. You find one new major issue.",
       "ask": "What id and status does its row get?",
       "expect": "R5, status `open`: a new row takes the next free id, so it doesn't restart at R1."
     },
@@ -82,7 +82,7 @@
       "id": "mission-run-spec-review",
       "situation": "Your plan in spec.md has two journeys and the feature adds a login token check.",
       "ask": "Does a spec review run, and how?",
-      "expect": "Yes: a fresh shadow-spec-reviewer playing solo-review in spec mode judges spec.md and its plan against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
+      "expect": "Yes: a fresh generic subagent playing solo-review in spec mode judges spec.md and its plan against progress.md's request; you apply the findings you agree with and bring the rest to the gate."
     },
     {
       "id": "gate-unattended",
@@ -98,7 +98,7 @@
     },
     {
       "id": "gate-approved",
-      "situation": "The user answers your gate card with '2' (Claude Code · Sonnet 5.5 high, as a native subagent). It's a ticket run.",
+      "situation": "The user answers your gate card with '2' (Claude Code · sonnet/high, as a native subagent). It's a ticket run.",
       "ask": "What do you do, in order?",
       "expect": "Runs `solodev approve <slug>`, posts the ticket comment (the agreed decisions), logs the coder choice and the comment URL in progress.md, then briefs the coder for implement."
     },
@@ -131,6 +131,12 @@
       "situation": "You just briefed the coder: it touches src/export.ts and src/routes.ts, reuses `formatRow`, and you gave a test sketch for S1 and S2.",
       "ask": "What do you log in progress.md about that brief?",
       "expect": "One `- brief: files src/export.ts, src/routes.ts · helpers formatRow` line and a `- sketch S<n>: <text>` line for each of S1 and S2, so a later session can rebuild the brief without exploring again."
+    },
+    {
+      "id": "implement-coder-model",
+      "situation": "Home tool is Codex. The gate is approved, and the chosen writer in `solodev probe` is Codex with `coder: sol/xhigh`.",
+      "ask": "What model and effort does the coder start on?",
+      "expect": "shadow-coder starts with a Codex model of the `sol` family at `xhigh` effort, set on the spawn call, not the session's; the coder line in progress.md logs the model it ran on."
     },
     {
       "id": "report-progress-bar",
@@ -166,7 +172,13 @@
       "id": "review-sensitive",
       "situation": "Code review. 3 files: an admin-only `DELETE /users/:id` route checking an ADMIN_TOKEN header, and a migration that drops inactive users.",
       "ask": "One reviewer or one per lens, which lenses, and how do you start them?",
-      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design and security, each a fresh shadow-reviewer with its own brief in its spawn call, all Agent calls in the same turn."
+      "expect": "One reviewer per lens because it's sensitive, whatever its size: evidence, correctness, design and security, each a fresh generic subagent with its own brief in its spawn call, all Agent calls in the same turn."
+    },
+    {
+      "id": "review-lens-start",
+      "situation": "Code review on Claude Code, three lenses in parallel: evidence, correctness and design.",
+      "ask": "What do you start for each lens, and on what model and effort?",
+      "expect": "A fresh generic subagent per lens, not a fork and not a named shadow, all started in the same turn, each with its brief (solo-review's SKILL.md path and its lens) in the call. No model or effort is set on the call, so each runs on the session's."
     },
     {
       "id": "review-unsure-size",
@@ -190,7 +202,7 @@
       "id": "dispatch-carrier",
       "situation": "Home tool is Claude Code and the user approved Codex as the writer. This session has no skill or plugin that runs Codex agents; the `codex` CLI is installed.",
       "ask": "How do you start the coder?",
-      "expect": "Runs the Codex CLI itself headless, in the background, in the current worktree, with the model and effort from the writer's `launch` in `solodev probe`."
+      "expect": "Runs the Codex CLI itself headless, in the background, in the current worktree, with the model and effort from the writer's `coder` in `solodev probe`."
     },
     {
       "id": "dispatch-reply",
@@ -296,37 +308,37 @@
     },
     {
       "id": "reviewer-pre-existing",
-      "situation": "You are shadow-reviewer with `lens: correctness`. In src/users.js, which the diff edits, a function the diff neither changes nor newly calls has an off-by-one that predates the feature.",
+      "situation": "You are a reviewer subagent with `lens: correctness`. In src/users.js, which the diff edits, a function the diff neither changes nor newly calls has an off-by-one that predates the feature.",
       "ask": "How do you report it?",
       "expect": "As a `minor` whose text starts `Pre-existing:`, not a blocker or major: only what the change introduces or makes reachable counts."
     },
     {
       "id": "reviewer-major-no-input",
-      "situation": "You are shadow-reviewer with `lens: single`. You suspect parseDate returns the wrong day but can't name an input that makes it. Separately, a changed branch in src/export.js has no test that runs it.",
+      "situation": "You are a reviewer subagent with `lens: single`. You suspect parseDate returns the wrong day but can't name an input that makes it. Separately, a changed branch in src/export.js has no test that runs it.",
       "ask": "What severity is each?",
       "expect": "The suspected wrong day is a `minor` at most, since it names no input that breaks it; the changed branch no test runs is a `major`."
     },
     {
       "id": "reviewer-rereview-checks",
-      "situation": "You are shadow-reviewer on a single re-review. The brief carries the coder's `checks:` (typecheck, lint and test, each exit 0, with their output) and a fix diff touching two source files.",
+      "situation": "You are a reviewer subagent on a single re-review. The brief carries the coder's `checks:` (typecheck, lint and test, each exit 0, with their output) and a fix diff touching two source files.",
       "ask": "What do you run?",
       "expect": "Only the journey commands at HEAD: it judges the coder's `checks:` from their output instead of rerunning typecheck, lint and test, and reads no lens file."
     },
     {
       "id": "reviewer-lens-no-subagents",
-      "situation": "You are shadow-reviewer, started from a brief with `lens: security`. You'd like a second opinion on one finding.",
+      "situation": "You are a reviewer subagent, started from a brief with `lens: security`. You'd like a second opinion on one finding.",
       "ask": "Do you start another reviewer? Where do your findings go?",
       "expect": "No subagents. Findings go in its reply (the YAML as its final message), not in review.md, which the session that started it merges."
     },
     {
       "id": "reviewer-single-clean",
-      "situation": "You are shadow-reviewer with `lens: single`. You found nothing.",
+      "situation": "You are a reviewer subagent with `lens: single`. You found nothing.",
       "ask": "What do you write in review.md, and what do you reply?",
       "expect": "review.md with the header row alone (the lens column present), recording a clean review, plus the reply with zero counts. The repo stays as it found it."
     },
     {
       "id": "reviewer-user-rows",
-      "situation": "You are shadow-reviewer on a single re-review. review.md has R6 with status `deferred`, and R7 with status `open` whose text starts `Weakened test:`. The fix diff doesn't touch R7's test; instead the coder's reply rebuts R7 with a sound reason.",
+      "situation": "You are a reviewer subagent on a single re-review. review.md has R6 with status `deferred`, and R7 with status `open` whose text starts `Weakened test:`. The fix diff doesn't touch R7's test; instead the coder's reply rebuts R7 with a sound reason.",
       "ask": "What do you mark R6 and R7?",
       "expect": "Leaves R6 as it is (the user's decision). R7 can only be marked fixed by the reviewer, so it stays open; rebutted on a Weakened test: row is the user's call."
     },
@@ -352,7 +364,7 @@
       "id": "qa-with-review",
       "situation": "The implement check passed and the coder's work is committed. The plan lists `uncovered: [S5]`, a CLI scenario, and the change is small: one reviewer.",
       "ask": "Which agents do you start, and when?",
-      "expect": "The `lens: single` shadow-reviewer and a fresh shadow-verifier for S5, both in the same turn, before any PR exists. QA doesn't wait for the PR."
+      "expect": "The `lens: single` reviewer and a fresh verifier for S5, both in the same turn, before any PR exists. QA doesn't wait for the PR."
     },
     {
       "id": "qa-fail-with-findings",
@@ -386,13 +398,13 @@
     },
     {
       "id": "verifier-no-browser",
-      "situation": "You are shadow-verifier playing solo-verify. S5 is a UI scenario and your brief says `browser none`.",
+      "situation": "You are the verifier subagent playing solo-verify. S5 is a UI scenario and your brief says `browser none`.",
       "ask": "What do you do?",
       "expect": "Installs nothing and marks S5 `manual`, with a person's steps as evidence and the lack of a browser in its headline; it doesn't fake a verdict."
     },
     {
       "id": "verifier-browser-unreachable",
-      "situation": "You are shadow-verifier playing solo-verify. S5 is a UI scenario, your brief says `browser Chrome DevTools MCP`, and that tool isn't in your session.",
+      "situation": "You are the verifier subagent playing solo-verify. S5 is a UI scenario, your brief says `browser Chrome DevTools MCP`, and that tool isn't in your session.",
       "ask": "What do you do?",
       "expect": "Marks S5 `manual` with a person's steps as evidence and says in its headline that it couldn't reach the tool; it installs nothing."
     },

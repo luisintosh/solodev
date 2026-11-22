@@ -171,11 +171,17 @@ async function main(argv: string[]): Promise<number> {
   return 0
 }
 
-/** The shadows this skill ships in `shadows/<host>/`, as init writes them. */
+/**
+ * The shadows this skill ships in `shadows/<host>/`, as init writes them. Only the catalog's: an update that left an
+ * older shadow behind in that folder doesn't bring it back.
+ */
 async function readShadows(dir: string): Promise<AgentFiles> {
+  const names = new Set(Object.keys((catalog as { shadows?: Record<string, unknown> }).shadows ?? {}))
   const agents = {} as AgentFiles
   for (const host of TOOLS) {
-    const files = await fs.readdir(path.join(dir, host)).catch(() => [] as string[])
+    const files = (await fs.readdir(path.join(dir, host)).catch(() => [] as string[])).filter((file) =>
+      names.has(file.replace(/\.(md|toml)$/, "")),
+    )
     if (!files.length) throw new Error(`no shadows in ${path.join(dir, host)}; reinstall solodev`)
     agents[host] = {}
     for (const file of files.sort()) agents[host][file] = await fs.readFile(path.join(dir, host, file), "utf8")

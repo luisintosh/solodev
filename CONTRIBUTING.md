@@ -27,9 +27,9 @@ The shadows go to `dist/{claude,cursor,codex}/agents/` and are copied, as plain 
 
 ```text
 src/
-  catalog.yaml          models per host and profile, skills, shadows   ← source of truth
+  catalog.yaml          the coder default per host, skills, shadows    ← source of truth
   prompts/skills/       role skills and their references               ← source of truth
-  prompts/agents/       the shadow shells
+  prompts/agents/       the coder shadow's shell
   prompts/fragments/    shared includes
   cli/                  the solodev CLI
 tools/                  transpile, build-cli, hygiene check, release, evals
@@ -41,18 +41,18 @@ dist/                   generated (untracked); dist/product/skills is what a rel
 
 Skills are named `solo-<name>` (plus `gen-docs`) and shadows `shadow-<name>`, so neither collides with host built-ins
 such as Codex's `/review` or Cursor's `code-reviewer`. `solo-task`, `solo-epic` and `gen-docs` are the ones a user
-types; the rest are roles the shadows play or that a user can start on their own.
+types; the rest are roles the subagents play or that a user can start on their own.
 
 ## Hygiene (`pnpm run check`)
 
 Requires a prior `pnpm run build`. Validates:
 
-- `src/catalog.yaml` shape: the three hosts × `think`/`implement` with the pinned models in `tools/models.ts`, the four
-  shadows, the seven skills, and a prompt file for each; a shadow's `permission` holds only `edit` path denies
+- `src/catalog.yaml` shape: the three hosts with a `coder` default each, the coder shadow (no model), the seven skills,
+  and a prompt file for each; a shadow's `permission` holds only `edit` path denies
 - Prompt rules: each skill within its line budget, no capitalized MUST/NEVER/CRITICAL/ALWAYS, required phrases, every
   `references/` link resolves and every reference is linked
-- Emitted skill and shadow frontmatter (and Codex TOML) match the catalog; skills carry no model
-- README profile × host matrix and shadow → profile table match the catalog
+- Emitted skill and shadow frontmatter (and Codex TOML) match the catalog; skills and shadows carry no model id
+- README's coder row matches the catalog
 - `dist/product` holds only `skills/`, `README.md`, `LICENSE` and `assets/`, and its CLI's `init --dry-run` writes
   exactly the built shadows for each host
 - Only `release vX.Y.Z` commits touch `skills/`, and they touch nothing else; `skills/` has no uncommitted changes; at a

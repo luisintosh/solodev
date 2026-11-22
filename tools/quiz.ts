@@ -206,8 +206,9 @@ async function main(argv: string[]): Promise<number> {
   const quiz = await loadQuiz()
   const system = [
     "You are an AI coding agent in a user's repository, with solodev installed for Claude Code. These are solodev's",
-    "files exactly as installed: each skill's SKILL.md with its references/, and the two subagents, whose skills are",
-    "preloaded.",
+    "files exactly as installed: each skill's SKILL.md with its references/, and the coder subagent, whose skill is",
+    "preloaded. The other roles (spec reviewer, reviewer, verifier) are fresh generic subagents that read their skill by",
+    "path from the brief.",
     "",
     await corpus(skillsDir, "skills/"),
     "",

@@ -1,7 +1,7 @@
 import * as path from "node:path"
 import { parse as parseYaml } from "yaml"
 import { agentsDir } from "./init.ts"
-import { isTool, type ModelRef, type Models, TOOLS, type Tool, writerId } from "./models.ts"
+import { isTool, type Models, TOOLS, type Tool } from "./models.ts"
 
 export type ProbeDeps = {
   env: Record<string, string | undefined>
@@ -18,9 +18,6 @@ export type ProbeDeps = {
   read: (filePath: string) => Promise<string | undefined>
 }
 
-/** What a coder on this tool starts with, whatever carries it. */
-export type Launch = { agent: Tool; model: string; effort?: string }
-
 export type ToolProbe = {
   cli: string
   installed: boolean
@@ -30,13 +27,11 @@ export type ToolProbe = {
   skills: boolean
   /** `solodev init` wrote every shadow for this tool, in this repo or globally. */
   shadows: boolean
-  think: string
-  implement: string
-  /** `shadows` is keyed by shadow name: what each one launches with. */
-  launch: { think: Launch; implement: Launch; shadows: Record<string, Launch> }
+  /** What the coder starts on: `<model>/<effort>` as written (`sonnet/high`), or `session`. */
+  coder: string
 }
 
-export type WriterOption = { tool: Tool; model: string; launch: Launch; recommended: boolean }
+export type WriterOption = { tool: Tool; coder: string; recommended: boolean }
 
 /** Personal defaults from `~/.agents/solodev/solodev-conf.yaml`; usage limits belong to a person, not a repo. */
 export type Defaults = { writer: Tool | "ask" }
@@ -60,11 +55,7 @@ const SKILL_DIRS: Record<Tool, string[]> = {
   codex: [".agents/skills", ".codex/skills"],
   cursor: [".agents/skills", ".cursor/skills", ".claude/skills"],
 }
-export const SHADOWS = ["shadow-coder", "shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"]
-
-function launch(tool: Tool, ref: ModelRef): Launch {
-  return ref.effort ? { agent: tool, model: ref.id, effort: ref.effort } : { agent: tool, model: ref.id }
-}
+export const SHADOWS = ["shadow-coder"]
 
 export function parseDefaults(raw: string | undefined, warnings: string[]): Defaults {
   const out: Defaults = { writer: "ask" }
@@ -156,15 +147,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
           loggedIn: installed ? await loggedIn(deps, tool) : false,
           skills: await hasSkill(deps, tool),
           shadows: await hasShadows(deps, tool),
-          think: writerId(tool, models[tool].think),
-          implement: writerId(tool, models[tool].implement),
-          launch: {
-            think: launch(tool, models[tool].think),
-            implement: launch(tool, models[tool].implement),
-            shadows: Object.fromEntries(
-              Object.entries(models[tool].shadows).map(([name, ref]) => [name, launch(tool, ref)]),
-            ),
-          },
+          coder: models[tool].coder,
         },
       ]
     }),
@@ -186,8 +169,7 @@ export async function probe(deps: ProbeDeps, models: Models): Promise<Probe> {
   const offer = (tool: Tool) =>
     writers.push({
       tool,
-      model: tools[tool].implement,
-      launch: tools[tool].launch.implement,
+      coder: tools[tool].coder,
       recommended: writers.length === 0,
     })
   for (const tool of TOOLS) {
