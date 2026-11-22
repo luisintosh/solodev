@@ -211,10 +211,16 @@
       "expect": "Runs the Codex CLI itself headless, in the background, in the current worktree, with the model and effort from the writer's `coder` in `solodev probe`."
     },
     {
+      "id": "dispatch-orca-reply",
+      "situation": "Home tool is Claude Code and the coder runs on Codex through Orca, whose workers report back with a done message carrying a body.",
+      "ask": "Where does the coder's reply come from?",
+      "expect": "From the Orca worker's done message: the brief asks for the reply as its final message, with no reply file, since the carrier returns one."
+    },
+    {
       "id": "dispatch-reply",
       "situation": "The coder runs on another tool than the home tool. You're sending it the first fix round.",
       "ask": "Where does its reply land?",
-      "expect": "In a new file for this round, in a temp folder outside the repo and the feature folder, named at the end of the brief."
+      "expect": "In what the carrier returns: the agent's final message, a worker's done message or the CLI's output. Only when the carrier returns none does the brief name a reply file, new for the round, outside the repo and the feature folder."
     },
     {
       "id": "review-security-lens-fails",
