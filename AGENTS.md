@@ -7,8 +7,8 @@ file. Keep it under about 100 lines: link CONTRIBUTING.md or the README instead 
 
 solodev ships no runtime app. It ships role skills, with a small workflow CLI inside the solo-task skill, that
 `npx skills add luisintosh/solodev` installs into a _consuming_ repo or `$HOME`; `/solo-task init` (the CLI's `init`)
-then writes the shadow agents per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here
-runs against this repo's own code.
+then writes the coder shadow per coding tool (`.claude/agents/`, `.cursor/agents/`, `.codex/agents/`). Nothing here runs
+against this repo's own code.
 
 One branch, `master`: branch from it and PR into it. `skills/` at the root is what `npx skills add` installs, and only
 `pnpm run release` writes it: never edit, rebuild or copy into `skills/` by hand or in a feature PR. `pnpm run check`
@@ -25,10 +25,10 @@ fails on any other commit that touches it.
 
 ## Generation model
 
-`src/catalog.yaml` (host × profile models, skills with line budgets, shadows with hard denies) and `src/prompts/**` are
-the **only** sources of truth. `tools/transpile.ts` emits one skill tree for every host into `dist/product/skills` and
-the shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and copies those shadows beside it,
-as plain files, into `dist/product/skills/solo-task/shadows/`.
+`src/catalog.yaml` (each host's default `coder`, skills with line budgets, the shadow with its hard denies) and
+`src/prompts/**` are the **only** sources of truth. `tools/transpile.ts` emits one skill tree for every host into
+`dist/product/skills` and the shadows per host into `dist/<host>/agents`; `tools/build-cli.ts` bundles the CLI and
+copies those shadows beside it, as plain files, into `dist/product/skills/solo-task/shadows/`.
 
 - `dist/` is generated and untracked: fix the catalog or the prompt body, then `pnpm run build`.
 - Prompt bodies (`src/prompts/skills/<name>/SKILL.md`, `references/*.md`, `agents/*.md`) carry **no frontmatter**;
@@ -53,28 +53,31 @@ solodev targets top-tier models on Claude Code, Codex and Cursor. Keep it that w
   `solodev status` derives the stage from both. Nothing harness-related is committed to the user's repo.
 - **Capability, not product.** A prompt names the tracker, forge or carrier generically, with one example at most. A
   skill ends on its own output and doesn't hand off to another skill.
-- **One writer.** Only `shadow-coder` edits source. `shadow-reviewer` changes only `review.md`; the spec reviewer and
+- **One writer.** Only `shadow-coder` edits source. The code reviewer changes only `review.md`; the spec reviewer and
   the verifier reply and change no file. The commander owns the rest of the feature folder.
 - **The user decides.** New pauses for the user go in `/solo-task`'s "ask the user only at" list; nothing approves the
   gate or merges for them.
-- **No new stage or agent** unless the stage evals show it pays for itself. Four shadows, two profiles, three hosts. A
-  shadow exists per model-and-effort a role needs, never per lens: reviewers started together share a prompt cache, so
-  lenses share `shadow-reviewer`.
+- **No new stage or agent** unless the stage evals show it pays for itself. One shadow, three hosts. Only the coder is a
+  shadow, since it alone needs hard denies and its own model; every other role is a fresh generic subagent briefed with
+  its role skill, on the session's model and effort, and lens reviewers started together share a prompt cache.
+- **No model ids.** The coder's model is a short `<model>/<effort>` value (`sonnet/high`) that the commander resolves
+  itself, so a model release needs no change here; the CLI passes it through and never resolves it.
 
 ## Checked artifacts
 
 `pnpm run check` fails the build (and CI) on drift, so these must be updated together:
 
-- Changing a model in `src/catalog.yaml` requires editing the matrix in `README.md` and `GOLDEN_MODELS` in
-  `tools/models.ts` to match.
+- Changing a host's `coder` in `src/catalog.yaml` requires editing the `coder` row in `README.md`'s `## Models` to
+  match.
 - Any `src/` change requires a `pnpm run build` before `pnpm run check`; check compares against `dist/` and runs the
   built CLI's `init --dry-run`.
 - Adding, removing or renaming a skill or shadow: `src/catalog.yaml`, its folder under `src/prompts/`, the `SKILLS` /
   `SHADOWS` lists in `tools/check.ts` (and `SHADOWS` in `src/cli/probe.ts`), the lists in `test/e2e-init.sh`, the old
-  name in `LEGACY_SKILLS` in `tools/eval-lib.ts`, `locate` in `src/cli/init.ts`, `skillDir` in `tools/build-cli.ts`,
-  `README.md`, and its scenarios and routing queries in `evals/quiz.json`.
-- Changing a prompt or a skill `description`: `pnpm run eval:quiz`; changing the workflow (stages, checks, the shadows)
-  also needs `pnpm run eval:stage`, and so does a release (`pnpm run release`, the only writer of `skills/`).
+  name in `LEGACY_SKILLS` in `tools/eval-lib.ts`, `locate` in `src/cli/init.ts` (a removed shadow also goes in
+  `RETIRED_SHADOWS` there, so init deletes the copies it wrote), `skillDir` in `tools/build-cli.ts`, `README.md`, and
+  its scenarios and routing queries in `evals/quiz.json`.
+- Changing a prompt or a skill `description`: `pnpm run eval:quiz`; changing the workflow (stages, checks, how subagents
+  start) also needs `pnpm run eval:stage`, and so does a release (`pnpm run release`, the only writer of `skills/`).
 - Changing what a prompt decides: add or edit its scenario in `evals/quiz.json` in the same commit, one decision per
   question. An `unclear` note that repeats is a prompt gap: fix the prompt.
 - Changing what a stage eval's setup relies on (the feature-folder format, `solodev approve`, the fixture):
