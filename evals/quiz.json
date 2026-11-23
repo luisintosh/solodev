@@ -142,7 +142,7 @@
       "id": "implement-coder-model",
       "situation": "Home tool is Codex. The gate is approved, and the chosen writer in `solodev probe` is Codex with `coder: sol/xhigh`.",
       "ask": "What model and effort does the coder start on?",
-      "expect": "shadow-coder starts with a Codex model of the `sol` family at `xhigh` effort, set on the spawn call, not the session's; the coder line in progress.md logs the model it ran on."
+      "expect": "shadow-coder starts with a Codex model of the `sol` family at `xhigh` effort, set on the spawn call, not the session's."
     },
     {
       "id": "report-progress-bar",

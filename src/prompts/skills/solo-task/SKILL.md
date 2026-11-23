@@ -94,8 +94,8 @@ entry, its latest `how:` and `try:` as `- how: <entries>` and `- try S<n>: <step
 Put each brief in the spawn call, never in a file: the role skill's absolute `SKILL.md` path, the slug, the feature
 folder, the `- tools:` line, the `solodev` path and what to do now; the reply is the subagent's final message.
 
-- **Coder:** `shadow-coder`, started on the writer's `coder` model and effort, or on the session's when it's `session`.
-  One coder serves the whole feature: continue it for fix rounds.
+- **Coder:** `shadow-coder`, with the writer's `coder` model and effort set on the spawn call itself, or none when
+  it's `session`. One coder serves the whole feature: continue it for fix rounds.
 - **Reviewers and the verifier:** a fresh generic subagent each, not a fork, with no model or effort set, so it runs on
   the session's; start lens reviewers together, one spawn call each in the same turn.
 - **A coder on another coding tool:** read [references/dispatch.md](references/dispatch.md).
