@@ -39,6 +39,15 @@ describe("withCoder", () => {
     expect(withCoder("", "cursor", "default")).toBe("")
   })
 
+  test("handles a missing, empty or scalar coder key", () => {
+    expect(withCoder("writer: codex\n", "claude", "default")).toBe("writer: codex\n")
+    expect(withCoder("writer: codex\n", "claude", "opus/high")).toMatch(/coder:\n {2}claude: opus\/high/)
+    expect(withCoder("coder:\n", "claude", "opus/high")).toMatch(/coder:\n {2}claude: opus\/high/)
+    expect(withCoder("writer: ask\ncoder:\n", "claude", "default")).toBe("writer: ask\n")
+    expect(withCoder("coder: opus/high\n", "codex", "sol/xhigh")).toMatch(/coder:\n {2}codex: sol\/xhigh/)
+    expect(withCoder("writer: ask\ncoder: opus/high\n", "claude", "default")).toBe("writer: ask\n")
+  })
+
   test("refuses a file that isn't YAML", () => {
     expect(() => withCoder("coder: [", "claude", "opus/high")).toThrow(/valid YAML/)
   })

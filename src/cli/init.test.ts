@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest"
 import {
   type AgentFiles,
   agentsDir,
+  formatInit,
   type InitInput,
   intact,
   locate,
@@ -125,6 +126,22 @@ describe("planInit", () => {
     ])
     const outside = await kinds(input(files, { inside: async () => false }))
     expect(outside.some((op) => op.startsWith("remove") || op.startsWith("kept"))).toBe(false)
+  })
+
+  test("removes a retired codex shadow and says why a kept one stays", async () => {
+    const files = {
+      "/repo/.codex/agents/shadow-reviewer.toml": withHash("shadow-reviewer.toml", 'name = "shadow-reviewer"\n'),
+      "/repo/.codex/agents/shadow-verifier.toml": "my own verifier\n",
+      "/repo/.codex/agents/shadow-spec-reviewer.toml": `# mine\n${withHash("shadow-spec-reviewer.toml", "old\n")}`,
+    }
+    const args = input(files, { host: "codex" })
+    const ops = await planInit(args)
+    expect(ops.filter((op) => op.kind === "remove").map((op) => op.path)).toEqual([
+      "/repo/.codex/agents/shadow-reviewer.toml",
+    ])
+    const report = formatInit(args, ops, false)
+    expect(report).toMatch(/kept\s+\.codex\/agents\/shadow-verifier\.toml — a retired name, but init didn't write it/)
+    expect(report).toMatch(/kept\s+\.codex\/agents\/shadow-spec-reviewer\.toml — retired, but you changed it/)
   })
 })
 

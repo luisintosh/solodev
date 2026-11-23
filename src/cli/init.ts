@@ -18,8 +18,8 @@ export type InitOp =
   | { kind: "outside"; path: string }
   /** A retired shadow init wrote, unchanged since: deleted. */
   | { kind: "remove"; path: string }
-  /** A retired shadow the user changed, or one init didn't write: left alone. */
-  | { kind: "kept"; path: string }
+  /** A retired shadow the user changed, or one init didn't write (`unmarked`): left alone. */
+  | { kind: "kept"; path: string; unmarked?: boolean }
 
 export type InitInput = {
   host: Tool
@@ -120,7 +120,9 @@ export async function planInit(input: InitInput): Promise<InitOp[]> {
     const dest = path.join(dir, `${name}.${ext}`)
     const current = await input.read(dest)
     if (current === undefined) continue
-    ops.push({ kind: intact(current) ? "remove" : "kept", path: dest })
+    const mark = intact(current)
+    if (mark) ops.push({ kind: "remove", path: dest })
+    else ops.push(mark === undefined ? { kind: "kept", path: dest, unmarked: true } : { kind: "kept", path: dest })
   }
   return ops
 }
@@ -170,7 +172,10 @@ export function formatInit(input: Pick<InitInput, "host" | "scope" | "root" | "h
     if (op.kind === "edited") line += " — kept your edits; --force replaces them"
     if (op.kind === "outside") line += " — a symlink leads outside the repo; left alone"
     if (op.kind === "remove") line += " — retired; solodev starts this role as a generic subagent now"
-    if (op.kind === "kept") line += " — retired, but you changed it; delete it when you're done with it"
+    if (op.kind === "kept")
+      line += op.unmarked
+        ? " — a retired name, but init didn't write it; left alone"
+        : " — retired, but you changed it; delete it when you're done with it"
     lines.push(line)
   }
   return lines.join("\n")

@@ -225,7 +225,15 @@ async function coder(args: string[]): Promise<number> {
     throw new UsageError((err as Error).message)
   }
   const file = path.join(os.homedir(), CONF)
-  const raw = await fs.readFile(file, "utf8").catch(() => undefined)
+  let raw: string | undefined
+  try {
+    raw = await fs.readFile(file, "utf8")
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
+      console.error(`solodev coder: can't read ${file} (${(err as Error).message}); allow it in this tool's sandbox`)
+      return 1
+    }
+  }
   const models = modelsFromCatalog(catalog)
   if (parsed.value === undefined) {
     const warnings: string[] = []

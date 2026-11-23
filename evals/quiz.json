@@ -37,6 +37,12 @@
       "expect": "Runs `solodev init` for Claude Code and shows its report, then asks the user to start a new session (agents load at startup) and rerun the command, and stops. No branch, feature folder or spec in this session."
     },
     {
+      "id": "mission-stale-shadows",
+      "situation": "The user runs `/solo-task add rate limiting to the login route` in Claude Code, with solodev installed globally. `solodev probe` shows `tools.claude.shadows: false` and warns `claude's solodev shadows (project) are out of date; run /solo-task init --project`.",
+      "ask": "Which init do you run?",
+      "expect": "Runs `solodev init` with `--project`, the scope the warning names, not a plain init that would follow the global install."
+    },
+    {
       "id": "mission-not-writable",
       "situation": "Fresh /solo-task run. `solodev probe` reports `state.writable: false`.",
       "ask": "What do you do?",

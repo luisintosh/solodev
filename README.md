@@ -106,7 +106,8 @@ has no `AGENTS.md`.
 
 The coder starts on that model and effort, a short value the commander resolves to your tool's current model, so a new
 release needs no update. Everything else (the spec, the spec review, code review and QA) runs on your session's model
-and effort: pick them with your tool's `/model` and `/effort`. A high session effort makes QA cost more.
+and effort: pick them with your tool's `/model` and `/effort`, unless your tool's config sets a default model for
+subagents, as Codex's `default_subagent_model` does. A high session effort makes QA cost more.
 
 Pick your own coder with `/solo-task coder`, from the next run on:
 
@@ -137,8 +138,8 @@ flowchart LR
   pinned: the coder's default is a short value, everything else runs on your session.
 - **Rules that code can check are code.** "No code before approval" and "every scenario is claimed" are CLI checks over
   git, with unit tests; prompts keep only what needs judgment.
-- **Prompts are tested like software.** A quiz of 123 decision scenarios and 42 routing queries runs after every prompt
-  change (latest run: 123/123 scenarios, 42/42 routing); it caught, for example, that tools load subagents only at
+- **Prompts are tested like software.** A quiz of 132 decision scenarios and 42 routing queries runs after every prompt
+  change (latest run: 132/132 scenarios, 42/42 routing); it caught, for example, that tools load subagents only at
   startup, so a run that installs them mid-session now stops for a restart. Stage evals run the real workflow headless,
   with real subagents, graded by scripts on what reached git.
 - **Lean.** Each skill has a line budget enforced in CI, detail loads only when a step needs it, and a feature's stage

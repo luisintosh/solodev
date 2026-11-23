@@ -30,15 +30,16 @@ export function withCoder(raw: string | undefined, tool: Tool, value: string): s
   const doc = parseDocument(raw ?? "")
   if (doc.errors.length) throw new Error(`the config file isn't valid YAML: ${doc.errors[0]!.message}`)
   if (value === "default") {
-    if (!isMap(doc.contents)) return raw ?? ""
-    doc.deleteIn(["coder", tool])
+    if (!isMap(doc.contents) || !doc.has("coder")) return raw ?? ""
     const coder = doc.get("coder")
-    if (isMap(coder) && coder.items.length === 0) doc.delete("coder")
+    if (isMap(coder)) coder.delete(tool)
+    if (!isMap(coder) || coder.items.length === 0) doc.delete("coder")
   } else {
     const empty = doc.contents === null || (isScalar(doc.contents) && doc.contents.value === null)
     if (empty) doc.contents = doc.createNode({})
     else if (!isMap(doc.contents)) throw new Error("the config file isn't a YAML map of settings")
-    doc.setIn(["coder", tool], value)
+    if (isMap(doc.get("coder"))) doc.setIn(["coder", tool], value)
+    else doc.set("coder", doc.createNode({ [tool]: value }))
   }
   const out = doc.toString()
   return out.trim() === "{}" || out.trim() === "" ? "" : out

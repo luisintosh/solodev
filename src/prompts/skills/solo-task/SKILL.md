@@ -44,8 +44,8 @@ the code, tests and docs. Every brief names the folder's absolute path.
 1. **Start.** Run `solodev probe` and show its `warnings` in one line.
    - `home` null → rerun it as `SOLODEV_HOME=claude|codex|cursor`, naming the tool running you; on any other tool, tell
      the user solodev runs on these three, and stop. `state.writable` false → tell the user to allow `state.dir` in
-     their tool's sandbox, and stop. `shadows` false for the home tool → run init and stop: the user reruns in a new
-     session.
+     their tool's sandbox, and stop. `shadows` false for the home tool → run init, in the scope a warning names, and
+     stop: the user reruns in a new session.
    - On "continue": check out the feature's branch, run `solodev status`, read `progress.md` and reuse its `- tools:`
      line. A coder from an earlier session is gone: rebuild its brief from `spec.md` and the `- brief` and `- sketch`
      lines, plus what's left, for a new one. Continue at the step it names; at `implement` with an implement check logged as passed, go to
