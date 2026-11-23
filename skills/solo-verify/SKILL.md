@@ -1,6 +1,6 @@
 ---
 name: solo-verify
-description: Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by shadow-verifier for a /solo-task run.
+description: Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by the verifier subagent for a /solo-task run.
 ---
 
 Check the acceptance scenarios that no journey test covers, from outside the system, and reply with a verdict for each.
@@ -49,7 +49,7 @@ headline: <one plain sentence for the user>
 ```
 
 **Who does what.** In a `/solo-task` run: the **commander** is the session running it; the **coder** is shadow-coder;
-the **reviewer** is shadow-spec-reviewer for a spec and shadow-reviewer for code; the **verifier** is shadow-verifier.
+the **reviewer** (of the spec, or of the code) and the **verifier** are fresh subagents, each briefed with its role.
 Only the coder edits the project's files; the reviewer changes only its report and the verifier nothing (scratch files
 or a temporary worktree outside the repo are fine). The feature folder, commits, pushes, PR comments and history belong
 to the commander. Merging, approving or closing a pull or merge request belongs to the user, whatever tool or tracker

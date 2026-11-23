@@ -1,8 +1,7 @@
 ---
 name: shadow-coder
 description: Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task commander; the only agent that edits source.
-model: claude-sonnet-5-5
-effort: high
+model: inherit
 disallowedTools: Agent
 skills:
   - solo-code

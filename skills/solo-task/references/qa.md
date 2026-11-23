@@ -3,7 +3,8 @@
 The verifier checks the scenarios the plan lists as `uncovered`, on the committed code, in the same turn as the code
 review. Both only read, so one fix round can answer both.
 
-- **Brief.** The slug, the feature folder, the scenarios, the `- tools:` line. When a scenario needs a browser, the
+- **Brief.** solo-verify's absolute `SKILL.md` path, the slug, the feature folder, the scenarios, the `- tools:` line,
+  and that it reports and doesn't fix, changes no file and starts no subagents. When a scenario needs a browser, the
   brief carries the last `- browser` line from `progress.md`, as `browser <tool>` or `browser none`. No such line, a
   tool that's gone, or one the verifier couldn't reach → ask the user as `## Browser` says, leaving out a tool that
   failed, and log the answer.

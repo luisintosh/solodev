@@ -1,6 +1,7 @@
 # Spec review checklist
 
-Check the spec against the request, then the plan against the spec.
+Check the spec against the request, then the plan against the spec. You report and change no file, and start no
+subagents.
 
 **Spec**
 

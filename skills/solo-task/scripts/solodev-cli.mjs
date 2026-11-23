@@ -50,9 +50,9 @@ var require_identity = __commonJS({
     var NODE_TYPE = /* @__PURE__ */ Symbol.for("yaml.node.type");
     var isAlias = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === ALIAS;
     var isDocument = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === DOC;
-    var isMap = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === MAP;
+    var isMap2 = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === MAP;
     var isPair = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === PAIR;
-    var isScalar = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SCALAR;
+    var isScalar2 = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SCALAR;
     var isSeq = (node) => !!node && typeof node === "object" && node[NODE_TYPE] === SEQ;
     function isCollection(node) {
       if (node && typeof node === "object")
@@ -74,7 +74,7 @@ var require_identity = __commonJS({
         }
       return false;
     }
-    var hasAnchor = (node) => (isScalar(node) || isCollection(node)) && !!node.anchor;
+    var hasAnchor = (node) => (isScalar2(node) || isCollection(node)) && !!node.anchor;
     exports.ALIAS = ALIAS;
     exports.DOC = DOC;
     exports.MAP = MAP;
@@ -86,10 +86,10 @@ var require_identity = __commonJS({
     exports.isAlias = isAlias;
     exports.isCollection = isCollection;
     exports.isDocument = isDocument;
-    exports.isMap = isMap;
+    exports.isMap = isMap2;
     exports.isNode = isNode;
     exports.isPair = isPair;
-    exports.isScalar = isScalar;
+    exports.isScalar = isScalar2;
     exports.isSeq = isSeq;
   }
 });
@@ -4198,9 +4198,9 @@ var require_resolve_flow_collection = __commonJS({
     var blockMsg = "Block collections are not allowed within flow collections";
     var isBlock = (token) => token && (token.type === "block-map" || token.type === "block-seq");
     function resolveFlowCollection({ composeNode, composeEmptyNode }, ctx, fc, onError, tag) {
-      const isMap = fc.start.source === "{";
-      const fcName = isMap ? "flow map" : "flow sequence";
-      const NodeClass = tag?.nodeClass ?? (isMap ? YAMLMap.YAMLMap : YAMLSeq.YAMLSeq);
+      const isMap2 = fc.start.source === "{";
+      const fcName = isMap2 ? "flow map" : "flow sequence";
+      const NodeClass = tag?.nodeClass ?? (isMap2 ? YAMLMap.YAMLMap : YAMLSeq.YAMLSeq);
       const coll = new NodeClass(ctx.schema);
       coll.flow = true;
       const atRoot = ctx.atRoot;
@@ -4236,7 +4236,7 @@ var require_resolve_flow_collection = __commonJS({
             offset = props.end;
             continue;
           }
-          if (!isMap && ctx.options.strict && utilContainsNewline.containsNewline(key))
+          if (!isMap2 && ctx.options.strict && utilContainsNewline.containsNewline(key))
             onError(
               key,
               // checked by containsNewline()
@@ -4276,7 +4276,7 @@ var require_resolve_flow_collection = __commonJS({
             }
           }
         }
-        if (!isMap && !sep3 && !props.found) {
+        if (!isMap2 && !sep3 && !props.found) {
           const valueNode = value ? composeNode(ctx, value, props, onError) : composeEmptyNode(ctx, props.end, sep3, null, props, onError);
           coll.items.push(valueNode);
           offset = valueNode.range[2];
@@ -4299,7 +4299,7 @@ var require_resolve_flow_collection = __commonJS({
             startOnNewline: false
           });
           if (valueProps.found) {
-            if (!isMap && !props.found && ctx.options.strict) {
+            if (!isMap2 && !props.found && ctx.options.strict) {
               if (sep3)
                 for (const st of sep3) {
                   if (st === valueProps.found)
@@ -4331,7 +4331,7 @@ var require_resolve_flow_collection = __commonJS({
           const pair = new Pair.Pair(keyNode, valueNode);
           if (ctx.options.keepSourceTokens)
             pair.srcToken = collItem;
-          if (isMap) {
+          if (isMap2) {
             const map = coll;
             if (utilMapIncludes.mapIncludes(ctx, map.items, keyNode))
               onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
@@ -4347,7 +4347,7 @@ var require_resolve_flow_collection = __commonJS({
           offset = valueNode ? valueNode.range[2] : valueProps.end;
         }
       }
-      const expectedEnd = isMap ? "}" : "]";
+      const expectedEnd = isMap2 ? "}" : "]";
       const [ce, ...ee] = fc.end;
       let cePos = offset;
       if (ce?.source === expectedEnd)
@@ -5634,7 +5634,7 @@ var require_cst = __commonJS({
     var FLOW_END = "";
     var SCALAR = "";
     var isCollection = (token) => !!token && "items" in token;
-    var isScalar = (token) => !!token && (token.type === "scalar" || token.type === "single-quoted-scalar" || token.type === "double-quoted-scalar" || token.type === "block-scalar");
+    var isScalar2 = (token) => !!token && (token.type === "scalar" || token.type === "single-quoted-scalar" || token.type === "double-quoted-scalar" || token.type === "block-scalar");
     function prettyToken(token) {
       switch (token) {
         case BOM:
@@ -5718,7 +5718,7 @@ var require_cst = __commonJS({
     exports.FLOW_END = FLOW_END;
     exports.SCALAR = SCALAR;
     exports.isCollection = isCollection;
-    exports.isScalar = isScalar;
+    exports.isScalar = isScalar2;
     exports.prettyToken = prettyToken;
     exports.tokenType = tokenType;
   }
@@ -7248,7 +7248,7 @@ var require_public_api = __commonJS({
         return docs;
       return Object.assign([], { empty: true }, composer$1.streamInfo());
     }
-    function parseDocument(source, options = {}) {
+    function parseDocument2(source, options = {}) {
       const { lineCounter: lineCounter2, prettyErrors } = parseOptions(options);
       const parser$1 = new parser.Parser(lineCounter2?.addNewLine);
       const composer$1 = new composer.Composer(options);
@@ -7274,7 +7274,7 @@ var require_public_api = __commonJS({
       } else if (options === void 0 && reviver && typeof reviver === "object") {
         options = reviver;
       }
-      const doc = parseDocument(src, options);
+      const doc = parseDocument2(src, options);
       if (!doc)
         return null;
       doc.warnings.forEach((warning) => log.warn(doc.options.logLevel, warning));
@@ -7310,7 +7310,7 @@ var require_public_api = __commonJS({
     }
     exports.parse = parse;
     exports.parseAllDocuments = parseAllDocuments;
-    exports.parseDocument = parseDocument;
+    exports.parseDocument = parseDocument2;
     exports.stringify = stringify;
   }
 });
@@ -7375,7 +7375,7 @@ import { text } from "node:stream/consumers";
 import { fileURLToPath } from "node:url";
 
 // src/catalog.yaml
-var catalog_default = { hosts: { claude: { profiles: { think: { id: "claude-opus-5-5", effort: "medium" }, implement: { id: "claude-sonnet-5-5", effort: "high" } } }, codex: { profiles: { think: { id: "gpt-6-astra", effort: "medium" }, implement: { id: "gpt-6.1-sol", effort: "high" } } }, cursor: { profiles: { think: { id: "gemini-4-argon", effort: "high" }, implement: { id: "grok-4.7", effort: "high" } } } }, shadows: { "shadow-coder": { profile: "implement", skills: ["solo-code"], description: "Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } }, "shadow-spec-reviewer": { profile: "think", effort: { claude: "high", codex: "high" }, skills: ["solo-review"], description: "Fresh-context spec reviewer: reviews a feature's spec and plan against the request before the gate (solo-review). Report-only; replies with its findings and writes no file." }, "shadow-reviewer": { profile: "think", skills: ["solo-review"], description: "Fresh-context code reviewer: reviews a feature diff against its scenarios, alone or on one lens, and re-reviews a fix round (solo-review). Report-only; writes only review.md." }, "shadow-verifier": { profile: "implement", effort: { claude: "medium", codex: "medium" }, skills: ["solo-verify"], description: "Fresh-context verifier: checks the scenarios no test covers from outside the system (solo-verify). Report-only; replies with its verdicts and changes no file." } }, skills: { "solo-task": { budget: 135, argument_hint: '<request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | feedback [<slug> | <PR url> | <file> | "<review>"] | init [<tool>]', description: "Takes one feature from a request or ticket to a reviewed, tested pull request you merge: a spec you approve, one coder writing tests and code, each test seen failing without the code, a fresh-context review and QA, and a walkthrough of how it works and how to try it. Usage: /solo-task <request, or ticket URL or id> [--writer claude|codex|cursor]; /solo-task continue; /solo-task explain [<slug>]; /solo-task feedback [<slug>, PR URL, file or review text] for a round of PR or written review; /solo-task init [claude|codex|cursor]. Use for features that touch several files, need design decisions or have unclear requirements, or to resume one. Not for one-line fixes or simple, well-defined changes (suggest /plan), or roadmaps (/solo-epic)." }, "solo-plan": { budget: 109, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solo-task, or on its own to spec a feature without running it." }, "solo-code": { budget: 84, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solo-task run." }, "solo-review": { budget: 76, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch." }, "solo-verify": { budget: 54, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by shadow-verifier for a /solo-task run." }, "solo-epic": { budget: 150, argument_hint: "<idea> | <epic ticket or URL>", description: "Plans an epic for a product owner or manager: turns an idea into a measurable goal, the chosen approach, a data model and a roadmap of features in waves, then files it in your tracker (GitHub, GitLab, Jira, Linear) as an epic with one ready-to-assign ticket per feature, or keeps drafts outside the repo without one. Usage: /solo-epic <idea>; /solo-epic <epic ticket or URL> to revise it. Plans only: developers build each ticket with whatever workflow they use." }, "gen-docs": { budget: 50, user_only: true, description: "Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /solo-task runs don't rediscover it. Optional; run by the user as /gen-docs." } } };
+var catalog_default = { hosts: { claude: { coder: "sonnet/high" }, codex: { coder: "sol/high" }, cursor: { coder: "grok/high" } }, shadows: { "shadow-coder": { skills: ["solo-code"], description: "Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } } }, skills: { "solo-task": { budget: 135, argument_hint: '<request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | feedback [<slug> | <PR url> | <file> | "<review>"] | init [<tool>] | coder [<tool>] [<model>/<effort> | session | default]', description: "Takes one feature from a request or ticket to a reviewed, tested pull request you merge: a spec you approve, one coder writing tests and code, each test seen failing without the code, a fresh-context review and QA, and a walkthrough of how it works and how to try it. Usage: /solo-task <request, or ticket URL or id> [--writer claude|codex|cursor]; /solo-task continue; /solo-task explain [<slug>]; /solo-task feedback [<slug>, PR URL, file or review text] for a round of PR or written review; /solo-task init [claude|codex|cursor]; /solo-task coder [<tool>] [<model>/<effort>] to show or set the coder's model. Use for features that touch several files, need design decisions or have unclear requirements, or to resume one. Not for one-line fixes or simple, well-defined changes (suggest /plan), or roadmaps (/solo-epic)." }, "solo-plan": { budget: 109, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solo-task, or on its own to spec a feature without running it." }, "solo-code": { budget: 84, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solo-task run." }, "solo-review": { budget: 76, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch." }, "solo-verify": { budget: 54, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by the verifier subagent for a /solo-task run." }, "solo-epic": { budget: 150, argument_hint: "<idea> | <epic ticket or URL>", description: "Plans an epic for a product owner or manager: turns an idea into a measurable goal, the chosen approach, a data model and a roadmap of features in waves, then files it in your tracker (GitHub, GitLab, Jira, Linear) as an epic with one ready-to-assign ticket per feature, or keeps drafts outside the repo without one. Usage: /solo-epic <idea>; /solo-epic <epic ticket or URL> to revise it. Plans only: developers build each ticket with whatever workflow they use." }, "gen-docs": { budget: 50, user_only: true, description: "Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /solo-task runs don't rediscover it. Optional; run by the user as /gen-docs." } } };
 
 // src/cli/approve.ts
 import * as fs3 from "node:fs/promises";
@@ -7862,16 +7862,79 @@ async function approve(opts) {
   return approval;
 }
 
+// src/cli/coder.ts
+var import_yaml2 = __toESM(require_dist(), 1);
+
+// src/cli/models.ts
+var TOOLS = ["claude", "codex", "cursor"];
+function modelsFromCatalog(catalog) {
+  const out = {};
+  for (const tool of TOOLS) {
+    const coder2 = catalog.hosts?.[tool]?.coder;
+    if (typeof coder2 !== "string" || !coder2.trim()) throw new Error(`catalog: hosts.${tool} needs a coder`);
+    out[tool] = { coder: coder2.trim() };
+  }
+  return out;
+}
+function isTool(value) {
+  return TOOLS.includes(value);
+}
+
+// src/cli/coder.ts
+function parseCoderArgs(words) {
+  if (words.length > 2) throw new Error("usage: solodev coder [<tool>] [<model>/<effort> | session | default]");
+  const [first, second] = words;
+  if (first === void 0) return {};
+  if (isTool(first)) return second === void 0 ? { tool: first } : { tool: first, value: checkValue(second) };
+  if (second !== void 0) throw new Error(`unknown tool "${first}" (claude, codex or cursor)`);
+  return { value: checkValue(first) };
+}
+function checkValue(value) {
+  if (!value.trim() || /\s/.test(value))
+    throw new Error(`"${value}" isn't a coder: give <model>/<effort>, e.g. opus/high`);
+  return value;
+}
+function withCoder(raw, tool, value) {
+  const doc = (0, import_yaml2.parseDocument)(raw ?? "");
+  if (doc.errors.length) throw new Error(`the config file isn't valid YAML: ${doc.errors[0].message}`);
+  if (value === "default") {
+    if (!(0, import_yaml2.isMap)(doc.contents) || !doc.has("coder")) return raw ?? "";
+    const coder2 = doc.get("coder");
+    if ((0, import_yaml2.isMap)(coder2)) coder2.delete(tool);
+    if (!(0, import_yaml2.isMap)(coder2) || coder2.items.length === 0) doc.delete("coder");
+  } else {
+    const empty = doc.contents === null || (0, import_yaml2.isScalar)(doc.contents) && doc.contents.value === null;
+    if (empty) doc.contents = doc.createNode({});
+    else if (!(0, import_yaml2.isMap)(doc.contents)) throw new Error("the config file isn't a YAML map of settings");
+    if ((0, import_yaml2.isMap)(doc.get("coder"))) doc.setIn(["coder", tool], value);
+    else doc.set("coder", doc.createNode({ [tool]: value }));
+  }
+  const out = doc.toString();
+  return out.trim() === "{}" || out.trim() === "" ? "" : out;
+}
+function formatCoders(models, configured, only) {
+  const lines = [];
+  for (const tool of TOOLS) {
+    if (only && tool !== only) continue;
+    const mine = configured[tool];
+    const dflt = models[tool].coder;
+    const note = mine === void 0 ? "default" : `yours; default ${dflt}`;
+    lines.push(`  ${tool.padEnd(7)} ${(mine ?? dflt).padEnd(14)} (${note})`);
+  }
+  return lines.join("\n");
+}
+
 // src/cli/help.ts
 var HELP = {
   probe: {
     usage: "solodev probe",
-    summary: "What's available: coding tools, their models, and this repo's folder of features.",
+    summary: "What's available: coding tools, their coder, and this repo's folder of features.",
     detail: [
-      "Prints JSON: each coding tool (installed, logged in, solodev skills present, think and implement models and",
-      "their launch fields), `state`: this repo's folder of features (outside the repo) and whether this session can",
-      "write there, personal defaults from ~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for",
-      "the gate card, another tool first."
+      "Prints JSON: each coding tool (installed, logged in, solodev skills present, and `coder`: what the coder starts",
+      "on, as `<model>/<effort>` or `session`, passed through for the commander to resolve), `state`: this repo's",
+      "folder of features (outside the repo) and whether this session can write there, personal defaults from",
+      "~/.agents/solodev/solodev-conf.yaml, and `writers`: the coder options for the gate card, another tool first.",
+      "Every other role runs on the session's model and effort."
     ],
     example: "solodev probe"
   },
@@ -7925,15 +7988,28 @@ var HELP = {
   },
   init: {
     usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",
-    summary: "Write the shadow agents (coder, spec reviewer, reviewer, verifier) for one coding tool.",
+    summary: "Write the coder shadow agent for one coding tool.",
     detail: [
       "Run once per coding tool after `npx skills add luisintosh/solodev`. Without a tool: the one running this",
       "session. Scope follows where the skill is installed (under $HOME: global; in a repo: that repo); --global or",
       "--project overrides. Writes .claude/agents/*.md, .cursor/agents/*.md or .codex/agents/*.toml",
       "(global Codex: $CODEX_HOME/agents). A shadow you edited is kept, shown as a diff, and exits 1; --force",
-      "replaces it."
+      "replaces it. A shadow an earlier release wrote and that has since been retired is removed, unless you changed",
+      "it."
     ],
     example: "solodev init codex"
+  },
+  coder: {
+    usage: "solodev coder [claude|codex|cursor] [<model>/<effort> | session | default]",
+    summary: "Show or set what the coder starts on, per coding tool.",
+    detail: [
+      "Without a value: each tool's coder, yours or the default. With one: writes `coder.<tool>` in",
+      "~/.agents/solodev/solodev-conf.yaml, keeping its comments; `default` removes yours. The value is a short",
+      "<model>/<effort> (opus/high, sol/xhigh) the commander resolves to the tool's model when it starts the coder, or",
+      "session for the session's own. A value without a tool is for the tool running this session. It applies from",
+      "the next /solo-task run; nothing to re-init."
+    ],
+    example: "solodev coder codex sol/xhigh"
   },
   install: {
     usage: "npx skills add luisintosh/solodev [-g]",
@@ -7964,6 +8040,7 @@ function helpText(command) {
 // src/cli/init.ts
 import { createHash as createHash2 } from "node:crypto";
 import * as path5 from "node:path";
+var RETIRED_SHADOWS = ["shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"];
 var MARK = /\n(?:<!-- solodev-hash: ([0-9a-f]{16}) -->|# solodev-hash: ([0-9a-f]{16}))\n?$/;
 function sha256(text2) {
   return createHash2("sha256").update(text2).digest("hex");
@@ -8017,17 +8094,40 @@ async function planInit(input) {
     else kind = intact(current) || input.force ? "update" : "edited";
     ops.push({ kind, path: dest, content });
   }
+  if (!dirInside) return ops;
+  const ext = input.host === "codex" ? "toml" : "md";
+  for (const name of RETIRED_SHADOWS) {
+    const dest = path5.join(dir, `${name}.${ext}`);
+    const current = await input.read(dest);
+    if (current === void 0) continue;
+    const mark = intact(current);
+    if (mark) ops.push({ kind: "remove", path: dest });
+    else ops.push(mark === void 0 ? { kind: "kept", path: dest, unmarked: true } : { kind: "kept", path: dest });
+  }
   return ops;
 }
-async function applyInit(ops, write) {
-  for (const op of ops) if (op.kind === "create" || op.kind === "update") await write(op.path, op.content);
+async function staleScopes(inputs) {
+  const out = [];
+  for (const input of inputs) {
+    const ops = await planInit(input);
+    if (ops.some((op) => op.kind === "update" || op.kind === "remove")) out.push(input.scope);
+  }
+  return out;
+}
+async function applyInit(ops, write, remove) {
+  for (const op of ops) {
+    if (op.kind === "create" || op.kind === "update") await write(op.path, op.content);
+    else if (op.kind === "remove") await remove(op.path);
+  }
 }
 var VERB = {
   create: "+ created  ",
   update: "~ updated  ",
   unchanged: "= unchanged",
   edited: "! edited   ",
-  outside: "! outside  "
+  outside: "! outside  ",
+  remove: "- removed  ",
+  kept: "! kept     "
 };
 function formatInit(input, ops, dryRun) {
   const under = (dir, p) => p.startsWith(`${dir}${path5.sep}`);
@@ -8042,40 +8142,16 @@ function formatInit(input, ops, dryRun) {
     let line = `  ${VERB[op.kind]} ${show(op.path)}`;
     if (op.kind === "edited") line += " \u2014 kept your edits; --force replaces them";
     if (op.kind === "outside") line += " \u2014 a symlink leads outside the repo; left alone";
+    if (op.kind === "remove") line += " \u2014 retired; solodev starts this role as a generic subagent now";
+    if (op.kind === "kept")
+      line += op.unmarked ? " \u2014 a retired name, but init didn't write it; left alone" : " \u2014 retired, but you changed it; delete it when you're done with it";
     lines.push(line);
   }
   return lines.join("\n");
 }
 
-// src/cli/models.ts
-var TOOLS = ["claude", "codex", "cursor"];
-function modelsFromCatalog(catalog) {
-  const out = {};
-  for (const tool of TOOLS) {
-    const profiles = catalog.hosts?.[tool]?.profiles ?? {};
-    const think = profiles.think;
-    const implement = profiles.implement;
-    if (!think?.id || !implement?.id) throw new Error(`catalog: hosts.${tool} needs think and implement profiles`);
-    const shadows = {};
-    for (const [name, shadow] of Object.entries(catalog.shadows ?? {})) {
-      const ref = profiles[shadow.profile];
-      if (!ref?.id) throw new Error(`catalog: shadows.${name} names profile ${shadow.profile}, which ${tool} lacks`);
-      const effort = shadow.effort?.[tool];
-      shadows[name] = effort ? { ...ref, effort } : ref;
-    }
-    out[tool] = { think, implement, shadows };
-  }
-  return out;
-}
-function isTool(value) {
-  return TOOLS.includes(value);
-}
-function writerId(tool, ref) {
-  return [tool, ref.id, ref.effort].filter(Boolean).join("/");
-}
-
 // src/cli/probe.ts
-var import_yaml2 = __toESM(require_dist(), 1);
+var import_yaml3 = __toESM(require_dist(), 1);
 import * as path6 from "node:path";
 var BINARIES = { claude: "claude", codex: "codex", cursor: "agent" };
 var CODER_SKILL = "solo-code";
@@ -8084,16 +8160,13 @@ var SKILL_DIRS = {
   codex: [".agents/skills", ".codex/skills"],
   cursor: [".agents/skills", ".cursor/skills", ".claude/skills"]
 };
-var SHADOWS = ["shadow-coder", "shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"];
-function launch(tool, ref) {
-  return ref.effort ? { agent: tool, model: ref.id, effort: ref.effort } : { agent: tool, model: ref.id };
-}
+var SHADOWS = ["shadow-coder"];
 function parseDefaults(raw, warnings) {
-  const out = { writer: "ask" };
+  const out = { writer: "ask", coder: {} };
   if (raw === void 0) return out;
   let doc;
   try {
-    doc = (0, import_yaml2.parse)(raw) ?? {};
+    doc = (0, import_yaml3.parse)(raw) ?? {};
   } catch {
     warnings.push("~/.agents/solodev/solodev-conf.yaml is not valid YAML; using writer: ask");
     return out;
@@ -8104,6 +8177,21 @@ function parseDefaults(raw, warnings) {
       warnings.push(
         `~/.agents/solodev/solodev-conf.yaml: writer must be ask, claude, codex or cursor (got ${doc.writer})`
       );
+  }
+  if (doc.coder !== void 0) {
+    if (!doc.coder || typeof doc.coder !== "object" || Array.isArray(doc.coder)) {
+      warnings.push(
+        "~/.agents/solodev/solodev-conf.yaml: coder must map a tool to <model>/<effort>, e.g. claude: opus/high"
+      );
+    } else {
+      for (const [tool, value] of Object.entries(doc.coder)) {
+        if (!isTool(tool))
+          warnings.push(`~/.agents/solodev/solodev-conf.yaml: coder.${tool} is not claude, codex or cursor`);
+        else if (typeof value !== "string" || !value.trim())
+          warnings.push(`~/.agents/solodev/solodev-conf.yaml: coder.${tool} must be <model>/<effort> or session`);
+        else out.coder[tool] = value.trim();
+      }
+    }
   }
   if (doc.dispatch !== void 0) {
     warnings.push(
@@ -8160,6 +8248,10 @@ async function hasSkill(deps, tool) {
 async function probe(deps, models) {
   const home = detectHome(deps.env);
   const warnings = [];
+  const defaults = parseDefaults(
+    await deps.read(path6.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
+    warnings
+  );
   const probed = await Promise.all(
     TOOLS.map(async (tool) => {
       const cli = BINARIES[tool];
@@ -8172,15 +8264,7 @@ async function probe(deps, models) {
           loggedIn: installed ? await loggedIn(deps, tool) : false,
           skills: await hasSkill(deps, tool),
           shadows: await hasShadows(deps, tool),
-          think: writerId(tool, models[tool].think),
-          implement: writerId(tool, models[tool].implement),
-          launch: {
-            think: launch(tool, models[tool].think),
-            implement: launch(tool, models[tool].implement),
-            shadows: Object.fromEntries(
-              Object.entries(models[tool].shadows).map(([name, ref]) => [name, launch(tool, ref)])
-            )
-          }
+          coder: defaults.coder[tool] ?? models[tool].coder
         }
       ];
     })
@@ -8188,17 +8272,19 @@ async function probe(deps, models) {
   const tools = Object.fromEntries(probed);
   if (!home) warnings.push("couldn't tell which coding tool runs this session; set SOLODEV_HOME=claude|codex|cursor");
   else if (!tools[home].shadows) warnings.push(`${home} has no solodev shadows yet; run /solo-task init`);
+  else {
+    const stale = await deps.stale?.(home) ?? [];
+    if (stale.length) tools[home].shadows = false;
+    for (const scope of stale) {
+      warnings.push(`${home}'s solodev shadows (${scope}) are out of date; run /solo-task init --${scope}`);
+    }
+  }
   const writable = await deps.writable(deps.state);
   if (!writable) warnings.push(`can't write to ${deps.state}; allow it in this tool's sandbox before /solo-task`);
-  const defaults = parseDefaults(
-    await deps.read(path6.join(deps.home, ".agents", "solodev", "solodev-conf.yaml")),
-    warnings
-  );
   const writers = [];
   const offer = (tool) => writers.push({
     tool,
-    model: tools[tool].implement,
-    launch: tools[tool].launch.implement,
+    coder: tools[tool].coder,
     recommended: writers.length === 0
   });
   for (const tool of TOOLS) {
@@ -8432,6 +8518,7 @@ async function main(argv) {
     return 0;
   }
   if (command === "init") return init(args);
+  if (command === "coder") return coder(args);
   const root = await repoRoot();
   const state = await stateDir(root, process.env, os2.homedir());
   const models = modelsFromCatalog(catalog_default);
@@ -8451,6 +8538,21 @@ async function main(argv) {
           which: async (bin) => (await run("sh", ["-c", `command -v ${bin}`])).code === 0,
           exists,
           read: (file) => fs6.readFile(file, "utf8").catch(() => void 0),
+          stale: async (tool) => {
+            let agents;
+            try {
+              agents = await readShadows(await shippedShadowsDir());
+            } catch {
+              return [];
+            }
+            const home = os2.homedir();
+            const read = (file) => fs6.readFile(file, "utf8").catch(() => void 0);
+            const base = { host: tool, home, env: process.env, agents, force: false, read };
+            return staleScopes([
+              { ...base, scope: "project", root, inside: await insideOf(root) },
+              { ...base, scope: "global", root: home, inside: async () => true }
+            ]);
+          },
           writable: async (dir) => {
             try {
               await fs6.mkdir(dir, { recursive: true });
@@ -8526,14 +8628,62 @@ ${formatResults(results)}`);
   return 0;
 }
 async function readShadows(dir) {
+  const names = new Set(Object.keys(catalog_default.shadows ?? {}));
   const agents = {};
   for (const host of TOOLS) {
-    const files = await fs6.readdir(path10.join(dir, host)).catch(() => []);
+    const files = (await fs6.readdir(path10.join(dir, host)).catch(() => [])).filter(
+      (file) => names.has(file.replace(/\.(md|toml)$/, ""))
+    );
     if (!files.length) throw new Error(`no shadows in ${path10.join(dir, host)}; reinstall solodev`);
     agents[host] = {};
     for (const file of files.sort()) agents[host][file] = await fs6.readFile(path10.join(dir, host, file), "utf8");
   }
   return agents;
+}
+var CONF = path10.join(".agents", "solodev", "solodev-conf.yaml");
+async function coder(args) {
+  let parsed;
+  try {
+    parsed = parseCoderArgs(positional(args));
+  } catch (err) {
+    throw new UsageError(err.message);
+  }
+  const file = path10.join(os2.homedir(), CONF);
+  let raw;
+  try {
+    raw = await fs6.readFile(file, "utf8");
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      console.error(`solodev coder: can't read ${file} (${err.message}); allow it in this tool's sandbox`);
+      return 1;
+    }
+  }
+  const models = modelsFromCatalog(catalog_default);
+  if (parsed.value === void 0) {
+    const warnings = [];
+    const configured = parseDefaults(raw, warnings).coder;
+    console.log(`solodev coder (~/${CONF})
+${formatCoders(models, configured, parsed.tool)}`);
+    for (const w of warnings) console.error(`warning: ${w}`);
+    return 0;
+  }
+  const tool = parsed.tool ?? detectHome(process.env);
+  if (!tool)
+    throw new UsageError("couldn't tell which coding tool runs this session; name it: solodev coder claude <value>");
+  const next = withCoder(raw, tool, parsed.value);
+  try {
+    await fs6.mkdir(path10.dirname(file), { recursive: true });
+    await fs6.writeFile(file, next);
+  } catch (err) {
+    console.error(`solodev coder: can't write ${file} (${err.message}); allow it in this tool's sandbox`);
+    return 1;
+  }
+  const now = parsed.value === "default" ? `${models[tool].coder} (default)` : parsed.value;
+  console.log(`${tool} coder: ${now}. It applies from the next /solo-task run.`);
+  return 0;
+}
+async function shippedShadowsDir() {
+  return path10.join(path10.dirname(await fs6.realpath(fileURLToPath(import.meta.url))), "..", "shadows");
 }
 async function init(args) {
   const named = positional(args)[0];
@@ -8554,19 +8704,23 @@ async function init(args) {
     root,
     home,
     env: process.env,
-    agents: await readShadows(path10.join(path10.dirname(cliPath), "..", "shadows")),
+    agents: await readShadows(await shippedShadowsDir()),
     force: args.includes("--force"),
     read: (file) => fs6.readFile(file, "utf8").catch(() => void 0),
     inside: scope === "global" ? async () => true : await insideOf(root)
   };
   const ops = await planInit(input);
   if (!dryRun) {
-    await applyInit(ops, async (file, content) => {
-      await fs6.mkdir(path10.dirname(file), { recursive: true });
-      const tmp = path10.join(path10.dirname(file), `.${path10.basename(file)}.${process.pid}.tmp`);
-      await fs6.writeFile(tmp, content, { flag: "wx" });
-      await fs6.rename(tmp, file);
-    });
+    await applyInit(
+      ops,
+      async (file, content) => {
+        await fs6.mkdir(path10.dirname(file), { recursive: true });
+        const tmp = path10.join(path10.dirname(file), `.${path10.basename(file)}.${process.pid}.tmp`);
+        await fs6.writeFile(tmp, content, { flag: "wx" });
+        await fs6.rename(tmp, file);
+      },
+      (file) => fs6.rm(file, { force: true })
+    );
   }
   const edited = ops.filter((op) => op.kind === "edited");
   const failed = edited.length > 0 || ops.some((op) => op.kind === "outside");

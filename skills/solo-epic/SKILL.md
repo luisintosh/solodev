@@ -90,7 +90,7 @@ Nothing connected → ask the user how to go on.
    in one item, an out-of-scope list that misses the obvious neighbours, a proposed solution presented as decided when
    it isn't, an open question with no owner or no word on whether it blocks starting, an item that touches data without
    its Data model section (or one that doesn't, with it).
-10. **Review the work items** at least once before the user sees them. Hand the drafts to a fresh shadow-reviewer (no
+10. **Review the work items** at least once before the user sees them. Hand the drafts to a fresh generic subagent (no
     role skill; this brief is its whole task), briefed as an adversarial product owner who wants these tickets to fail
     review before engineers see them. Pass inline: the approved roadmap with its data model, every work item, the step 9
     checklist and the repo path for checking `file:line` claims. It attacks vision fit (each item serves a success
