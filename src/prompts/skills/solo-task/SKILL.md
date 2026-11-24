@@ -52,9 +52,10 @@ the code, tests and docs. Every brief names the folder's absolute path.
      code review.
    - Fresh run: a slug that already has a folder → show its stage and ask: resume it, or start over under the next free
      slug (`<slug>-2`). Derive the slug from the request, or from a ticket's `F<n>: <name>` title. Cut `feat/<slug>`
-     from the default branch (adopt it if you're already on it) and create the folder's `progress.md`, starting with a
-     `## Request` section that holds the request verbatim (the ticket's title and body for a ticket run). Then log the
-     toolbox as one line for the whole run, `n/a` where the repo has none:
+     from the branch its PR will target, the default branch or the branch of a PR it builds on (adopt it if you're
+     already on it), and create the folder's `progress.md`: a `## Request` section that holds the request verbatim
+     (the ticket's title and body for a ticket run), then `- base <that branch>`. Log the toolbox as one line for the
+     whole run, `n/a` where the repo has none:
      `- tools: forge glab · tracker linear (mcp) · install … · dev … · test … · test_file … · lint … · typecheck … · build …`.
      Commands come from AGENTS.md, else however the repo defines them; ask when candidates conflict.
 2. **Spec.** Load solo-plan, interview the user as it says, write `spec.md`, pass `solodev check <slug> --for gate`.
@@ -71,8 +72,8 @@ the code, tests and docs. Every brief names the folder's absolute path.
    helpers to reuse, and per scenario a one-line test sketch: what to call, the setup and what to assert, never how to
    build it. When it replies `done`, run `solodev check <slug> --for implement` yourself, log the result, then commit.
    An attempt is one coder reply after which that check fails.
-6. **Code review.** Run it as solo-review's `references/swarm.md` says, the base being `git merge-base <default branch>
-   HEAD`. With `uncovered` scenarios in the plan, start the verifier in the same turn, as
+6. **Code review.** Run it as solo-review's `references/swarm.md` says, the base being the one `solodev status`
+   prints. With `uncovered` scenarios in the plan, start the verifier in the same turn, as
    [references/qa.md](references/qa.md) says; with none, the journey tests are the QA and no verifier starts. Then fix
    rounds with the same coder, as swarm.md's last section says: the implement check runs again, then a re-review whose
    brief carries the `- fix` line and the sha of the last `- review` line.

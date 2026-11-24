@@ -4,6 +4,7 @@ import {
   type Approval,
   currentApproval,
   failedQa,
+  parseBase,
   parsePlan,
   parseProofs,
   parseQa,
@@ -14,7 +15,7 @@ import {
   SEVERITIES,
   STATUSES,
 } from "./feature.ts"
-import { git, resolveBase, treeHash } from "./git.ts"
+import { type Base, git, resolveBase, treeHash } from "./git.ts"
 
 export type CheckStatus = "pass" | "fail"
 export type CheckResult = {
@@ -70,10 +71,15 @@ async function loadPlan(dir: string): Promise<Plan> {
   return parsePlan(raw)
 }
 
-/** The code without the feature: where the branch forked from the default branch. */
-const baseOf = (ctx: CheckContext) => resolveBase(ctx.root, { ...process.env, ...ctx.env })
+/** The code without the feature: where the branch forked from the branch its PR targets (resolveBase). */
+export async function featureBase(root: string, dir: string, env?: Record<string, string | undefined>) {
+  const recorded = parseBase((await readIfExists(path.join(dir, "progress.md"))) ?? "")
+  return resolveBase(root, { ...process.env, ...env }, recorded)
+}
 
-const NO_BASE = "can't find the base branch — set SOLODEV_BASE"
+export const NO_BASE = "can't find the base branch — log `- base <ref>` in progress.md, or set SOLODEV_BASE"
+
+const describeBase = (b: Base) => `${b.ref}${b.from === "default" ? "" : ` (${b.from})`}`
 
 /**
  * C1. At the gate the journey tests don't exist yet, so `requireTests` is off there. Past it, each scenario a journey
@@ -134,9 +140,23 @@ async function c2(ctx: CheckContext): Promise<CheckResult> {
   const { approval, approvals, matches } = await currentApproval(ctx.dir)
   if (!approval) return result("C2", "fail", "not approved — run solodev approve at the spec gate")
   if (!matches) return result("C2", "fail", "spec.md changed since approval — show the user and approve again")
-  const base = await baseOf(ctx)
+  const passed = () =>
+    result("C2", "pass", `approved ${approval.date} at ${approval.at.slice(0, 7)}, no code before the gate`)
+  // The first approval is the gate; later ones re-agree an edited spec once code exists. `solodev approve` counted the
+  // branch's commits at the gate, so a rebase that rewrites every sha since leaves the answer standing.
+  const first = approvals[0]!
+  if (first.early !== undefined) {
+    if (first.early > 0) return result("C2", "fail", `${first.early} commit(s) before the approval`)
+    return passed()
+  }
+  // A line from an older CLI: the earliest approval still in this branch, with no commit between the base and it.
+  let base: Base | undefined
+  try {
+    base = await featureBase(ctx.root, ctx.dir, ctx.env)
+  } catch (err) {
+    return result("C2", "fail", (err as Error).message)
+  }
   if (!base) return result("C2", "fail", NO_BASE)
-  // The gate is the earliest approval still in this branch: no code before it. Later ones re-agree an edited spec.
   let gate: Approval | undefined
   for (const a of approvals) {
     if ((await run("git", ["merge-base", "--is-ancestor", a.at, "HEAD"], { cwd: ctx.root })).code === 0) {
@@ -151,11 +171,16 @@ async function c2(ctx: CheckContext): Promise<CheckResult> {
       `approved at ${approval.at}, which isn't in this branch — it was rewritten; approve again`,
     )
   }
-  const early = (await git(ctx.root, ["log", "--format=%h %s", `${base}..${gate.at}`])).split("\n").filter(Boolean)
+  const early = (await git(ctx.root, ["log", "--format=%h %s", `${base.sha}..${gate.at}`])).split("\n").filter(Boolean)
   if (early.length) {
-    return result("C2", "fail", `${early.length} commit(s) before the approval`, early.slice(0, 20))
+    return result(
+      "C2",
+      "fail",
+      `${early.length} commit(s) before the approval, past base ${describeBase(base)}`,
+      early.slice(0, 20),
+    )
   }
-  return result("C2", "pass", `approved ${approval.date} at ${approval.at.slice(0, 7)}, no code before the gate`)
+  return passed()
 }
 
 async function c3(ctx: CheckContext): Promise<CheckResult> {

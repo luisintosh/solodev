@@ -5,8 +5,8 @@ import * as path from "node:path"
 import { afterEach, beforeEach, describe, expect, test } from "vitest"
 import { approve } from "./approve.ts"
 import { type CheckId, type CheckSet, runCheck, runChecks } from "./checks.ts"
-import { parseApprovals, parsePrEvents, parseProofs } from "./feature.ts"
-import { treeHash } from "./git.ts"
+import { approvalLine, parseApprovals, parseBase, parsePrEvents, parseProofs, specHash } from "./feature.ts"
+import { resolveBase, treeHash } from "./git.ts"
 import { proof } from "./proof.ts"
 import { featureStatus } from "./status.ts"
 
@@ -102,7 +102,9 @@ describe("approve", () => {
     const approval = await gate()
     expect(approval.at).toBe(sh("rev-parse", "--short=12", "HEAD").trim())
     const progress = fs.readFileSync(path.join(dir, "progress.md"), "utf8")
-    expect(progress).toBe(`## Request\n\nhello\n- approved 2026-10-12 · spec ${approval.spec} · at ${approval.at}\n`)
+    expect(progress).toBe(
+      `## Request\n\nhello\n- approved 2026-10-12 · spec ${approval.spec} · at ${approval.at} · early 0\n`,
+    )
     expect(parseApprovals(progress)).toEqual([approval])
     expect(sh("rev-parse", "HEAD")).toBe(head)
     expect(sh("status", "--porcelain")).toBe("")
@@ -111,6 +113,12 @@ describe("approve", () => {
   test("refuses a plan that leaves a scenario unclaimed", async () => {
     feat("spec.md", `${SPEC}- @S3 a third one\n\n${plan()}`)
     await expect(approve({ root, dir })).rejects.toThrow(/no journey or uncovered entry claims S3/)
+  })
+
+  test("refuses a first approval with commits on the branch, and names them", async () => {
+    write("src/hello.js", IMPL)
+    commit("feat: jumped the gate", "src")
+    await expect(gate()).rejects.toThrow(/1 commit\(s\) on the branch past base main[\s\S]*feat: jumped the gate/)
   })
 
   test("refuses while code is staged", async () => {
@@ -165,14 +173,69 @@ describe("checks", () => {
     expect((await check("C1")).status).toBe("pass")
   })
 
-  test("C2 fails without an approval and when code lands before it", async () => {
+  test("C2 fails without an approval", async () => {
     expect((await check("C2")).summary).toContain("not approved")
+  })
+
+  test("C2 judges an older CLI's approval line by its sha: code before it fails", async () => {
     write("src/hello.js", IMPL)
     commit("feat: jumped the gate", "src")
-    await gate()
+    const spec = `${SPEC}\n${plan()}`
+    feat("spec.md", spec)
+    const at = sh("rev-parse", "--short=12", "HEAD").trim()
+    feat("progress.md", `${approvalLine({ date: "2026-10-12", spec: specHash(spec), at })}\n`)
+    expect(parseApprovals(fs.readFileSync(path.join(dir, "progress.md"), "utf8"))[0]).not.toHaveProperty("early")
     const r = await check("C2")
     expect(r.status).toBe("fail")
+    expect(r.summary).toBe("1 commit(s) before the approval, past base main")
     expect(r.details.join("\n")).toContain("feat: jumped the gate")
+  })
+
+  /** A feature stacked on `parent`, a branch with one commit past main. */
+  function stack() {
+    sh("checkout", "-q", "main")
+    sh("checkout", "-q", "-b", "parent")
+    write("src/parent.js", "export const parent = 1\n")
+    commit("feat: the parent's work", "src")
+    sh("checkout", "-q", "-B", "feat/hello")
+  }
+
+  test("a stacked feature passes the gate on its recorded base", async () => {
+    stack()
+    await expect(gate()).rejects.toThrow(/past base main[\s\S]*the parent's work/)
+    feat("progress.md", "- base parent\n")
+    const approval = await gate()
+    expect(approval.early).toBe(0)
+    implement()
+    expect(await check("C2")).toMatchObject({ status: "pass" })
+    expect((await featureStatus(state, "hello", root)).base).toMatch(/^parent @ [0-9a-f]{7}$/)
+  })
+
+  test("C2 holds after a rebase onto main once the parent is squash-merged, and after a re-approval", async () => {
+    stack()
+    feat("progress.md", "- base parent\n")
+    await gate()
+    implement()
+    sh("checkout", "-q", "main")
+    sh("merge", "-q", "--squash", "parent")
+    sh("commit", "-q", "-m", "feat: the parent's work (#1)")
+    sh("checkout", "-q", "feat/hello")
+    sh("rebase", "-q", "--onto", "main", "parent")
+    fs.appendFileSync(path.join(dir, "progress.md"), "- base main\n")
+    sh("branch", "-q", "-D", "parent")
+    expect(await check("C2")).toMatchObject({ status: "pass" })
+    feat("spec.md", `${SPEC}\nA clarified line.\n\n${plan()}`)
+    const again = await approve({ root, dir, date: "2026-10-13" })
+    expect(again.early).toBe(1)
+    expect(await check("C2")).toMatchObject({ status: "pass", summary: expect.stringContaining("2026-10-13") })
+  })
+
+  test("C2 fails a first approval whose line counts code before it", async () => {
+    const spec = `${SPEC}\n${plan()}`
+    feat("spec.md", spec)
+    const at = sh("rev-parse", "--short=12", "HEAD").trim()
+    feat("progress.md", `${approvalLine({ date: "2026-10-12", spec: specHash(spec), at, early: 2 })}\n`)
+    expect((await check("C2")).summary).toBe("2 commit(s) before the approval")
   })
 
   test("C2 reopens the gate when the spec or its plan changes after approval", async () => {
@@ -321,6 +384,39 @@ describe("proof", () => {
     expect(withIgnore).not.toBe(clean)
     expect(objects()).toBe(before)
     expect(sh("status", "--porcelain")).toContain("?? untracked.txt")
+  })
+})
+
+describe("base", () => {
+  const resolve = (recorded?: string, env: Record<string, string> = {}) => resolveBase(root, env, recorded)
+
+  test("the last `- base` line wins", () => {
+    expect(parseBase("- base parent\n  > - base noise\n- base main\n")).toBe("main")
+    expect(parseBase("## Request\n")).toBeUndefined()
+  })
+
+  test("falls back to the default branch, and prefers a later origin copy over a stale local one", async () => {
+    expect(await resolve()).toMatchObject({ ref: "main", from: "default" })
+    sh("checkout", "-q", "-b", "parent")
+    write("a.txt", "1")
+    commit("one")
+    write("a.txt", "2")
+    commit("two")
+    sh("update-ref", "refs/remotes/origin/parent", "HEAD")
+    sh("checkout", "-q", "-B", "feat/hello", "origin/parent")
+    sh("branch", "-q", "-f", "parent", "HEAD~1")
+    const later = sh("rev-parse", "HEAD").trim()
+    expect(await resolve("parent")).toEqual({ ref: "origin/parent", sha: later, from: "- base" })
+  })
+
+  test("a named base that resolves nowhere, or reads as an option, is an error", async () => {
+    await expect(resolve("gone")).rejects.toThrow(/base gone \(- base\) not found/)
+    await expect(resolve("--all")).rejects.toThrow(/isn't a branch name/)
+    await expect(resolve(undefined, { SOLODEV_BASE: "gone" })).rejects.toThrow(/SOLODEV_BASE/)
+  })
+
+  test("SOLODEV_BASE overrides the recorded base", async () => {
+    expect(await resolve("gone", { SOLODEV_BASE: "main" })).toMatchObject({ ref: "main", from: "SOLODEV_BASE" })
   })
 })
 

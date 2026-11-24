@@ -174,7 +174,7 @@ assert_grep 'hello: gate' "$status_out" "solodev status finds the feature waitin
 head_before="$(cd "$TARGET" && git rev-parse HEAD)"
 approve_out="$(cd "$TARGET" && "$SOLODEV" approve hello)"
 assert_grep 'approved hello: spec ' "$approve_out" "solodev approve records the gate"
-assert_grep '^- approved .* · spec [0-9a-f]* · at [0-9a-f]*$' "$(cat "${FEATURE}/progress.md")" \
+assert_grep '^- approved .* · spec [0-9a-f]* · at [0-9a-f]* · early 0$' "$(cat "${FEATURE}/progress.md")" \
   "the approval line lands in the feature's progress.md"
 assert_eq "$(cd "$TARGET" && git rev-parse HEAD)" "$head_before" "solodev approve commits nothing to the repo"
 assert_eq "$(cd "$TARGET" && git status --porcelain)" "" "solodev approve leaves the repo clean"
@@ -189,11 +189,13 @@ assert_grep '^- proof J1 green · exit 0 · tree [0-9a-f]*$' "$(cat "${FEATURE}/
 assert_grep '^  > ERR_MODULE_NOT_FOUND$' "$(cat "${FEATURE}/progress.md")" "solodev proof keeps the output's last lines"
 (cd "$TARGET" && git add test src && git commit -q -m "feat: add hello")
 set +e
-check_out="$(cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for implement 2>&1)"
+printf -- '- base main\n' >>"${FEATURE}/progress.md"
+check_out="$(cd "$TARGET" && "$SOLODEV" check hello --for implement 2>&1)"
 check_rc=$?
 set -e
 assert_eq "$check_rc" "0" "solodev check --for implement passes a tagged journey after the gate"
 assert_grep '1 scenarios, 1 journey test' "$check_out" "C1 finds the journey test and its @S1 tag"
+assert_grep '^  base: main @ ' "$(cd "$TARGET" && "$SOLODEV" status hello)" "solodev status shows the base from - base"
 set +e
 (cd "$TARGET" && SOLODEV_BASE=main "$SOLODEV" check hello --for pr >/dev/null 2>&1)
 pr_rc=$?

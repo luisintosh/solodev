@@ -13,16 +13,53 @@ export async function gitOk(root: string, args: string[]): Promise<boolean> {
   return (await run("git", args, { cwd: root })).code === 0
 }
 
-/** The commit this branch forked from: SOLODEV_BASE, else origin's default branch, else main or master. */
-export async function resolveBase(root: string, env = process.env): Promise<string | undefined> {
-  const candidates: string[] = []
-  if (env.SOLODEV_BASE) candidates.push(env.SOLODEV_BASE)
+/** Where the base came from: the env override, the feature's `- base` line, or the repo's default branch. */
+export type BaseSource = "SOLODEV_BASE" | "- base" | "default"
+/** The commit this branch forked from, and the ref that named it. */
+export type Base = { ref: string; sha: string; from: BaseSource }
+
+const forkPoint = async (root: string, ref: string) => {
+  const r = await run("git", ["merge-base", ref, "HEAD"], { cwd: root })
+  return r.code === 0 && r.stdout.trim() ? r.stdout.trim() : undefined
+}
+
+/** Of two commits, the later one when one descends from the other, else the first. */
+const later = async (root: string, a: string, b: string) =>
+  (await run("git", ["merge-base", "--is-ancestor", a, b], { cwd: root })).code === 0 ? b : a
+
+/**
+ * The commit this branch forked from: SOLODEV_BASE, else the feature's recorded base (the branch its PR targets,
+ * tried on origin and locally, the later fork point winning so a stale copy doesn't), else origin's default branch,
+ * else main or master. A ref given by the first two that resolves nowhere throws rather than falling back.
+ */
+export async function resolveBase(root: string, env = process.env, recorded?: string): Promise<Base | undefined> {
+  const named: [string, BaseSource][] = []
+  if (env.SOLODEV_BASE) named.push([env.SOLODEV_BASE, "SOLODEV_BASE"])
+  else if (recorded) named.push([recorded, "- base"])
+  for (const [ref, from] of named) {
+    // It reaches git as an argument.
+    if (ref.startsWith("-")) throw new Error(`base ${ref} (${from}) isn't a branch name`)
+    const refs = ref.startsWith("origin/") ? [ref] : [`origin/${ref}`, ref]
+    let found: { ref: string; sha: string } | undefined
+    for (const r of refs) {
+      const sha = await forkPoint(root, r)
+      if (!sha) continue
+      if (!found || (await later(root, found.sha, sha)) === sha) found = { ref: r, sha }
+    }
+    if (!found) {
+      const fix =
+        from === "SOLODEV_BASE" ? "set SOLODEV_BASE to a branch that exists" : "log the new one as `- base <ref>`"
+      throw new Error(`base ${ref} (${from}) not found — ${fix}`)
+    }
+    return { ...found, from }
+  }
+  const defaults: string[] = []
   const originHead = await run("git", ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"], { cwd: root })
-  if (originHead.code === 0 && originHead.stdout.trim()) candidates.push(originHead.stdout.trim())
-  candidates.push("main", "master")
-  for (const ref of candidates) {
-    const r = await run("git", ["merge-base", ref, "HEAD"], { cwd: root })
-    if (r.code === 0 && r.stdout.trim()) return r.stdout.trim()
+  if (originHead.code === 0 && originHead.stdout.trim()) defaults.push(originHead.stdout.trim())
+  defaults.push("main", "master")
+  for (const ref of defaults) {
+    const sha = await forkPoint(root, ref)
+    if (sha) return { ref, sha, from: "default" }
   }
   return undefined
 }

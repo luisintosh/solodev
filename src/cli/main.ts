@@ -10,6 +10,7 @@ import { CHECK_SETS, type CheckSet, formatResults, runChecks } from "./checks.ts
 import { formatCoders, parseCoderArgs, withCoder } from "./coder.ts"
 import { run } from "./exec.ts"
 import { exists, featureDir, SLUG } from "./feature.ts"
+import { currentBranch } from "./git.ts"
 import { HELP, helpText } from "./help.ts"
 import {
   type AgentFiles,
@@ -142,7 +143,10 @@ async function main(argv: string[]): Promise<number> {
     case "status": {
       const slug = positional(args)[0] ?? (await branchFeature(root, state))
       if (slug) {
-        const status = await featureStatus(state, await requireFeature(state, slug))
+        const feature = await requireFeature(state, slug)
+        // The base is HEAD's fork point, so it's resolved only on the feature's own branch.
+        const onBranch = (await currentBranch(root)) === `feat/${feature}`
+        const status = await featureStatus(state, feature, onBranch ? root : undefined)
         console.log(json ? JSON.stringify(status, null, 2) : formatStatus(status))
         return 0
       }

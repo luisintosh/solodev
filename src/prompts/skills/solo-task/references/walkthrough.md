@@ -51,6 +51,6 @@ yours to answer, from the diff and the feature folder, read-only: start no subag
 
 **`/solo-task explain [<slug>]`.** Runs only this and starts no feature: the slug, or the current branch's feature.
 Print its `## Walkthrough`; when `progress.md` has none (an older or unfinished run), build one from the feature's diff
-and say what you couldn't source. The diff is `feat/<slug>` against the default branch while the branch is open; once
-it's merged, that diff is empty, so take the PR's from the last `- pr` line in `progress.md`, else the merge or squash
-commit that brought `feat/<slug>` in. Then answer questions as above.
+and say what you couldn't source. The diff is `feat/<slug>` against the base `solodev status` prints while the branch is
+open; once it's merged, that diff is empty, so take the PR's from the last `- pr` line in `progress.md`, else the merge
+or squash commit that brought `feat/<slug>` in. Then answer questions as above.

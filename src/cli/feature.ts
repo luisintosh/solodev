@@ -15,18 +15,32 @@ export function specHash(spec: string): string {
   return createHash("sha256").update(spec).digest("hex").slice(0, 12)
 }
 
-export type Approval = { date: string; spec: string; at: string }
+/**
+ * `early` counts the commits on the branch, past its base, when the approval was recorded: 0 at the gate. Lines an
+ * older CLI wrote have none.
+ */
+export type Approval = { date: string; spec: string; at: string; early?: number }
 
-const APPROVAL = /^- approved (\S+) · spec ([0-9a-f]+) · at ([0-9a-f]+)\s*$/gm
+const APPROVAL = /^- approved (\S+) · spec ([0-9a-f]+) · at ([0-9a-f]+)(?: · early (\d+))?\s*$/gm
 
 /** The line `solodev approve` appends to progress.md. */
 export function approvalLine(a: Approval): string {
-  return `- approved ${a.date} · spec ${a.spec} · at ${a.at}`
+  return `- approved ${a.date} · spec ${a.spec} · at ${a.at}${a.early === undefined ? "" : ` · early ${a.early}`}`
 }
 
 /** Approval lines in progress.md, oldest first; the last one is in force. */
 export function parseApprovals(progress: string): Approval[] {
-  return [...progress.matchAll(APPROVAL)].map((m) => ({ date: m[1]!, spec: m[2]!, at: m[3]! }))
+  return [...progress.matchAll(APPROVAL)].map((m) => ({
+    date: m[1]!,
+    spec: m[2]!,
+    at: m[3]!,
+    ...(m[4] === undefined ? {} : { early: Number(m[4]) }),
+  }))
+}
+
+/** The last `- base <ref>` line in progress.md: the branch the PR targets, logged at the start and after a rebase. */
+export function parseBase(progress: string): string | undefined {
+  return [...progress.matchAll(/^- base (\S+)\s*$/gm)].at(-1)?.[1]
 }
 
 export type PrEvent = { url: string; state: "draft" | "ready" }

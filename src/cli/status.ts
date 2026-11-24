@@ -13,6 +13,7 @@ import {
   parseTools,
   readIfExists,
 } from "./feature.ts"
+import { featureBase } from "./checks.ts"
 import { currentBranch } from "./git.ts"
 
 export const STAGES = ["spec", "gate", "implement", "review", "pr", "qa", "done"] as const
@@ -28,6 +29,8 @@ export type FeatureStatus = {
   pr?: PrEvent
   /** progress.md's `- tools:` line. */
   tools?: string
+  /** The base the checks use, `<ref> @ <sha>`: where the branch forked from the branch its PR targets. */
+  base?: string
   notes: string[]
 }
 
@@ -45,17 +48,31 @@ const NEXT: Record<Stage, (slug: string) => string> = {
   done: () => "the user reviews and merges the PR",
 }
 
-/** `state` is the repo's folder of features (state.ts). Reads only the feature folder. */
-export async function featureStatus(state: string, slug: string): Promise<FeatureStatus> {
+/**
+ * `state` is the repo's folder of features (state.ts). Reads the feature folder; given the project's `root`, also
+ * resolves the base from git.
+ */
+export async function featureStatus(state: string, slug: string, root?: string): Promise<FeatureStatus> {
   const dir = featureDir(state, slug)
   const notes: string[] = []
   const progress = (await readIfExists(path.join(dir, "progress.md"))) ?? ""
   const tools = parseTools(progress)
+  let base: string | undefined
+  if (root) {
+    try {
+      const b = await featureBase(root, dir)
+      if (b) base = `${b.ref} @ ${b.sha.slice(0, 7)}`
+      else notes.push("can't find the base branch — log `- base <ref>` in progress.md")
+    } catch (err) {
+      notes.push((err as Error).message)
+    }
+  }
   const done = (stage: Stage, extra: Partial<FeatureStatus> = {}): FeatureStatus => ({
     slug,
     stage,
     next: NEXT[stage](slug),
     ...(tools ? { tools } : {}),
+    ...(base ? { base } : {}),
     notes,
     ...extra,
   })
@@ -132,6 +149,7 @@ export function formatStatus(s: FeatureStatus): string {
   const lines = [`${s.slug}: ${s.stage}`]
   if (s.approved) lines.push(`  approved: ${s.approved}`)
   if (s.pr) lines.push(`  pr: ${s.pr.url}${s.pr.state === "draft" ? " (draft)" : ""}`)
+  if (s.base) lines.push(`  base: ${s.base}`)
   if (s.tools) lines.push(`  tools: ${s.tools}`)
   for (const n of s.notes) lines.push(`  note: ${n}`)
   lines.push(`  next: ${s.next}`)

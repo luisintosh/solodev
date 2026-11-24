@@ -1,6 +1,6 @@
 # PR and finish
 
-**Draft PR (step 7).** A draft pull or merge request against the default branch. The spec stays outside the repo, so
+**Draft PR (step 7).** A draft pull or merge request against the `- base` branch. The spec stays outside the repo, so
 the body carries what a reviewer, human or agent, needs from it, and nothing the diff, the ticket or the QA comment
 already holds. Use these sections in this order and drop an empty one, except `## Follow-ups`:
 

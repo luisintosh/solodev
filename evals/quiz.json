@@ -10,7 +10,13 @@
       "id": "mission-fresh-start",
       "situation": "The user runs `/solo-task add a --version flag to the CLI that prints the package.json version`. No feature folder exists for it and you are on the default branch.",
       "ask": "What do you do before writing the spec?",
-      "expect": "Runs `solodev probe`, derives a slug, cuts feat/<slug> from the default branch, creates progress.md starting with a ## Request section holding the request verbatim, and logs one `- tools:` line with the repo's commands (n/a where missing). Writes no code and commits nothing."
+      "expect": "Runs `solodev probe`, derives a slug, cuts feat/<slug> from the default branch, creates progress.md starting with a ## Request section holding the request verbatim, then `- base` naming the default branch, and logs one `- tools:` line with the repo's commands (n/a where missing). Writes no code and commits nothing."
+    },
+    {
+      "id": "start-stacked-base",
+      "situation": "The user runs `/solo-task add CSV export to the reports page; it builds on the open PR #41 (branch feat/report-filters), which isn't merged yet`. You are on the default branch.",
+      "ask": "Which branch do you cut feat/<slug> from, and what does progress.md record about it?",
+      "expect": "Cuts feat/<slug> from feat/report-filters, the branch of the PR it builds on, not from the default branch, and logs `- base feat/report-filters` in progress.md after the request."
     },
     {
       "id": "mission-init-codex",
@@ -370,7 +376,7 @@
       "id": "pr-step",
       "situation": "review.md has no open blocker or major.",
       "ask": "What do you do next?",
-      "expect": "Runs `solodev check <slug> --for pr`, pushes, opens a draft PR against the default branch with the forge tool from the `- tools:` line, and logs `- pr <url> · draft` in progress.md."
+      "expect": "Runs `solodev check <slug> --for pr`, pushes, opens a draft PR against the `- base` branch with the forge tool from the `- tools:` line, and logs `- pr <url> · draft` in progress.md."
     },
     {
       "id": "qa-none",
@@ -575,6 +581,24 @@
       "situation": "`/solo-task feedback` on csv-export. After the fetch, the PR branch has diverged from your local one: it was rebased on the forge.",
       "ask": "What do you do?",
       "expect": "Asks the user instead of fast-forwarding, merging or resetting."
+    },
+    {
+      "id": "feedback-rebased-reset",
+      "situation": "`/solo-task feedback` on csv-export, stacked on feat/report-filters. The fetched branch had diverged, you asked, and the user answered: \"yes, PR #41 merged, so I rebased csv-export onto main and force-pushed\".",
+      "ask": "How do you bring your local branch in line?",
+      "expect": "Resets the local branch to the forge's rebased branch; doesn't merge or rebase it again."
+    },
+    {
+      "id": "feedback-rebased-base",
+      "situation": "`/solo-task feedback` on csv-export. Its progress.md says `- base feat/report-filters`. The user rebased the branch onto main after PR #41 (feat/report-filters) merged, and you reset your local branch to the forge's.",
+      "ask": "What do you log in progress.md about the branch's base?",
+      "expect": "A new `- base main` line, so the checks and the review measure the feature from main."
+    },
+    {
+      "id": "feedback-rebased-retarget",
+      "situation": "`/solo-task feedback` on csv-export, rebased onto main after the PR it built on merged; progress.md now ends with `- base main`. The forge still shows the csv-export PR targeting feat/report-filters.",
+      "ask": "What do you do about the PR's target?",
+      "expect": "Points the PR at main on the forge, the new `- base`."
     },
     {
       "id": "feedback-suggestion-committed",
