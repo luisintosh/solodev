@@ -7432,12 +7432,20 @@ function featureDir(state, slug) {
 function specHash(spec) {
   return createHash("sha256").update(spec).digest("hex").slice(0, 12);
 }
-var APPROVAL = /^- approved (\S+) · spec ([0-9a-f]+) · at ([0-9a-f]+)\s*$/gm;
+var APPROVAL = /^- approved (\S+) · spec ([0-9a-f]+) · at ([0-9a-f]+)(?: · early (\d+))?\s*$/gm;
 function approvalLine(a) {
-  return `- approved ${a.date} \xB7 spec ${a.spec} \xB7 at ${a.at}`;
+  return `- approved ${a.date} \xB7 spec ${a.spec} \xB7 at ${a.at}${a.early === void 0 ? "" : ` \xB7 early ${a.early}`}`;
 }
 function parseApprovals(progress) {
-  return [...progress.matchAll(APPROVAL)].map((m) => ({ date: m[1], spec: m[2], at: m[3] }));
+  return [...progress.matchAll(APPROVAL)].map((m) => ({
+    date: m[1],
+    spec: m[2],
+    at: m[3],
+    ...m[4] === void 0 ? {} : { early: Number(m[4]) }
+  }));
+}
+function parseBase(progress) {
+  return [...progress.matchAll(/^- base (\S+)\s*$/gm)].at(-1)?.[1];
 }
 var PR_EVENT = /^- pr (\S+) · (draft|ready)\s*$/gm;
 function parsePrEvents(progress) {
@@ -7568,15 +7576,37 @@ async function git(root, args, input) {
   if (r.code !== 0) throw new Error(`git ${args.join(" ")} failed: ${(r.stderr || r.stdout).trim()}`);
   return r.stdout;
 }
-async function resolveBase(root, env = process.env) {
-  const candidates = [];
-  if (env.SOLODEV_BASE) candidates.push(env.SOLODEV_BASE);
+var forkPoint = async (root, ref) => {
+  const r = await run("git", ["merge-base", ref, "HEAD"], { cwd: root });
+  return r.code === 0 && r.stdout.trim() ? r.stdout.trim() : void 0;
+};
+var later = async (root, a, b) => (await run("git", ["merge-base", "--is-ancestor", a, b], { cwd: root })).code === 0 ? b : a;
+async function resolveBase(root, env = process.env, recorded) {
+  const named = [];
+  if (env.SOLODEV_BASE) named.push([env.SOLODEV_BASE, "SOLODEV_BASE"]);
+  else if (recorded) named.push([recorded, "- base"]);
+  for (const [ref, from] of named) {
+    if (ref.startsWith("-")) throw new Error(`base ${ref} (${from}) isn't a branch name`);
+    const refs = ref.startsWith("origin/") ? [ref] : [`origin/${ref}`, ref];
+    let found;
+    for (const r of refs) {
+      const sha = await forkPoint(root, r);
+      if (!sha) continue;
+      if (!found || await later(root, found.sha, sha) === sha) found = { ref: r, sha };
+    }
+    if (!found) {
+      const fix = from === "SOLODEV_BASE" ? "set SOLODEV_BASE to a branch that exists" : "log the new one as `- base <ref>`";
+      throw new Error(`base ${ref} (${from}) not found \u2014 ${fix}`);
+    }
+    return { ...found, from };
+  }
+  const defaults = [];
   const originHead = await run("git", ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"], { cwd: root });
-  if (originHead.code === 0 && originHead.stdout.trim()) candidates.push(originHead.stdout.trim());
-  candidates.push("main", "master");
-  for (const ref of candidates) {
-    const r = await run("git", ["merge-base", ref, "HEAD"], { cwd: root });
-    if (r.code === 0 && r.stdout.trim()) return r.stdout.trim();
+  if (originHead.code === 0 && originHead.stdout.trim()) defaults.push(originHead.stdout.trim());
+  defaults.push("main", "master");
+  for (const ref of defaults) {
+    const sha = await forkPoint(root, ref);
+    if (sha) return { ref, sha, from: "default" };
   }
   return void 0;
 }
@@ -7641,8 +7671,12 @@ async function loadPlan(dir) {
   if (raw === void 0) throw new Error(`spec.md not found in ${dir}`);
   return parsePlan(raw);
 }
-var baseOf = (ctx) => resolveBase(ctx.root, { ...process.env, ...ctx.env });
-var NO_BASE = "can't find the base branch \u2014 set SOLODEV_BASE";
+async function featureBase(root, dir, env) {
+  const recorded = parseBase(await readIfExists(path3.join(dir, "progress.md")) ?? "");
+  return resolveBase(root, { ...process.env, ...env }, recorded);
+}
+var NO_BASE = "can't find the base branch \u2014 log `- base <ref>` in progress.md, or set SOLODEV_BASE";
+var describeBase = (b) => `${b.ref}${b.from === "default" ? "" : ` (${b.from})`}`;
 async function coverage(root, dir, requireTests) {
   const spec = await readIfExists(path3.join(dir, "spec.md"));
   if (spec === void 0) return result("C1", "fail", `spec.md not found in ${dir}`);
@@ -7691,7 +7725,18 @@ async function c2(ctx) {
   const { approval, approvals, matches } = await currentApproval(ctx.dir);
   if (!approval) return result("C2", "fail", "not approved \u2014 run solodev approve at the spec gate");
   if (!matches) return result("C2", "fail", "spec.md changed since approval \u2014 show the user and approve again");
-  const base = await baseOf(ctx);
+  const passed = () => result("C2", "pass", `approved ${approval.date} at ${approval.at.slice(0, 7)}, no code before the gate`);
+  const first = approvals[0];
+  if (first.early !== void 0) {
+    if (first.early > 0) return result("C2", "fail", `${first.early} commit(s) before the approval`);
+    return passed();
+  }
+  let base;
+  try {
+    base = await featureBase(ctx.root, ctx.dir, ctx.env);
+  } catch (err) {
+    return result("C2", "fail", err.message);
+  }
   if (!base) return result("C2", "fail", NO_BASE);
   let gate;
   for (const a of approvals) {
@@ -7707,11 +7752,16 @@ async function c2(ctx) {
       `approved at ${approval.at}, which isn't in this branch \u2014 it was rewritten; approve again`
     );
   }
-  const early = (await git(ctx.root, ["log", "--format=%h %s", `${base}..${gate.at}`])).split("\n").filter(Boolean);
+  const early = (await git(ctx.root, ["log", "--format=%h %s", `${base.sha}..${gate.at}`])).split("\n").filter(Boolean);
   if (early.length) {
-    return result("C2", "fail", `${early.length} commit(s) before the approval`, early.slice(0, 20));
+    return result(
+      "C2",
+      "fail",
+      `${early.length} commit(s) before the approval, past base ${describeBase(base)}`,
+      early.slice(0, 20)
+    );
   }
-  return result("C2", "pass", `approved ${approval.date} at ${approval.at.slice(0, 7)}, no code before the gate`);
+  return passed();
 }
 async function c3(ctx) {
   const dirty = (await git(ctx.root, ["status", "--porcelain", "--untracked-files=no"])).split("\n").filter(Boolean);
@@ -7849,13 +7899,25 @@ async function approve(opts) {
   }
   const staged = (await git(opts.root, ["diff", "--cached", "--name-only"])).split("\n").filter(Boolean);
   if (staged.length) throw new Error(`can't approve: staged files: ${staged.join(", ")}`);
+  const base = await featureBase(opts.root, opts.dir, opts.env);
+  if (!base) throw new Error(`can't approve: ${NO_BASE}`);
+  const early = (await git(opts.root, ["log", "--format=%h %s", `${base.sha}..HEAD`])).split("\n").filter(Boolean);
+  const progressFile = path4.join(opts.dir, "progress.md");
+  const progress = await readIfExists(progressFile) ?? "";
+  if (early.length && !parseApprovals(progress).length) {
+    throw new Error(
+      [
+        `can't approve: ${early.length} commit(s) on the branch past base ${base.ref}: code before the gate, or the wrong base \u2014 log the branch the PR targets as \`- base <ref>\` in progress.md`,
+        ...early.slice(0, 20)
+      ].join("\n  ")
+    );
+  }
   const approval = {
     date: opts.date ?? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
     spec: specHash(await fs3.readFile(path4.join(opts.dir, "spec.md"), "utf8")),
-    at: (await git(opts.root, ["rev-parse", "--short=12", "HEAD"])).trim()
+    at: (await git(opts.root, ["rev-parse", "--short=12", "HEAD"])).trim(),
+    early: early.length
   };
-  const progressFile = path4.join(opts.dir, "progress.md");
-  const progress = await readIfExists(progressFile) ?? "";
   const sep3 = progress === "" || progress.endsWith("\n") ? "" : "\n";
   await fs3.writeFile(progressFile, `${progress}${sep3}${approvalLine(approval)}
 `);
@@ -7944,7 +8006,7 @@ var HELP = {
     detail: [
       "Derives the stage (spec, gate, implement, review, pr, qa, done) from the feature folder: the approval line,",
       "review.md's findings and QA verdicts, and the `- pr <url> \xB7 draft|ready` lines in progress.md. Shows the",
-      "`- tools:` line too.",
+      "`- tools:` line too, and on the feature's own branch the base the checks use (see check).",
       "Without a slug: the feature the current feat/<slug> branch names, or one line per feature."
     ],
     example: "solodev status csv-export"
@@ -7954,8 +8016,9 @@ var HELP = {
     summary: "Record the spec gate: an approval line in the feature's progress.md.",
     detail: [
       "Run only after the user approves. Checks the plan covers the spec (C1) and nothing is staged, then appends",
-      "`- approved <date> \xB7 spec <hash of spec.md> \xB7 at <HEAD>` to progress.md. Commits nothing. Editing spec.md,",
-      "its plan included, afterwards reopens the gate until the user approves again."
+      "`- approved <date> \xB7 spec <hash of spec.md> \xB7 at <HEAD> \xB7 early <n>` to progress.md, n being the branch's",
+      "commits past its base (see check). The first approval refuses n > 0: code before the gate, or the wrong base.",
+      "Commits nothing. Editing spec.md, its plan included, afterwards reopens the gate until the user approves again."
     ],
     example: "solodev approve csv-export"
   },
@@ -7965,24 +8028,28 @@ var HELP = {
     detail: [
       "Prints one line per check and exits 1 if any fails, naming what to fix. It reads only git and the feature",
       "folder and never runs the project's tools. C1 coverage: every scenario is claimed, and each journey test tags",
-      "the scenarios it claims with `@S<n>` \xB7 C2 gate held \xB7 C3 reports only \xB7 C4 review settled (no open blocker or",
+      "the scenarios it claims with `@S<n>` \xB7 C2 gate held: the first approval saw no commit past the base, which a",
+      "rebase leaves standing \xB7 C3 reports only \xB7 C4 review settled (no open blocker or",
       "major, no failed QA verdict) \xB7 C5 QA verdicts \xB7 C6 proof recorded: each journey has a red, then a green on the",
       "tree as it stands. implement runs C1, C2 and C6; pr runs C1\u2013C4 and C6; done adds C5. gate runs C1 on the plan",
       "alone, before any test exists, and notes a feature large enough to split. Without --for: the set for the",
-      "stage."
+      "stage. The base is where the branch forked from the branch its PR targets: SOLODEV_BASE, else the last",
+      "`- base <ref>` line in progress.md (origin's copy or the local one, whichever is later), else origin's",
+      "default branch, else main or master. A named base that doesn't resolve is an error."
     ],
     example: "solodev check csv-export --for implement"
   },
   proof: {
-    usage: "solodev proof <slug> <journey> red|green --exit <code> [< output]",
-    summary: "Record one run of a journey's command, which you ran yourself, in progress.md.",
+    usage: "solodev proof <slug> <journey>[,<journey>\u2026] red|green --exit <code> [< output]",
+    summary: "Record a run of a journey's command, or several journeys' tests run together, in progress.md.",
     detail: [
       "Runs nothing. Appends `- proof <journey> red|green \xB7 exit <code> \xB7 tree <hash>` with the hash of the working",
       "tree as it stands (tracked and untracked files) and the last lines of the output given on stdin. red is the",
       "journey test failing without the code (set aside, or not written yet), so it needs a non-zero exit; green",
       "needs 0. Any change to the tree after a green makes it stale for C6: run the command and record it again.",
       "Keep the output file outside the repo: a file written inside it changes the tree. A red counts only on",
-      "another tree than the green."
+      "another tree than the green. A green may name several journeys (J1,J2) whose tests ran in one run: one line",
+      "each, on one tree, the output's lines once. A red names one, since a run of several can fail on one alone."
     ],
     example: 'out="$(mktemp)"; npm test -- export > "$out" 2>&1; solodev proof csv-export J1 green --exit $? < "$out"'
   },
@@ -8320,20 +8387,29 @@ async function proof(opts) {
   const spec = await readIfExists(path7.join(opts.dir, "spec.md"));
   if (spec === void 0) throw new Error(`spec.md not found in ${opts.dir}`);
   const ids = parsePlan(spec).journeys.map((j) => j.id);
-  if (!ids.includes(opts.journey)) throw new Error(`the plan has no journey ${opts.journey} (${ids.join(", ")})`);
+  if (!opts.journeys.length || opts.journeys.some((j) => !j)) throw new Error("name at least one journey");
+  if (new Set(opts.journeys).size !== opts.journeys.length) throw new Error("a journey is named twice");
+  const unknown = opts.journeys.filter((j) => !ids.includes(j));
+  if (unknown.length) throw new Error(`the plan has no journey ${unknown.join(", ")} (${ids.join(", ")})`);
+  if (opts.phase === "red" && opts.journeys.length > 1) {
+    throw new Error(
+      "a red is per journey: a run of several can fail on one and pass another, so record each from its own"
+    );
+  }
   if (opts.phase === "red" && opts.exit === 0) {
     throw new Error("red needs a non-zero exit: the test passed without the code, so it proves nothing yet");
   }
   if (opts.phase === "green" && opts.exit !== 0) {
     throw new Error(`green needs exit 0, got ${opts.exit}: the journey still fails`);
   }
-  const record = { journey: opts.journey, phase: opts.phase, exit: opts.exit, tree: await treeHash(opts.root) };
+  const tree = await treeHash(opts.root);
+  const records = opts.journeys.map((journey) => ({ journey, phase: opts.phase, exit: opts.exit, tree }));
   const file = path7.join(opts.dir, "progress.md");
   const progress = await readIfExists(file) ?? "";
   const sep3 = progress === "" || progress.endsWith("\n") ? "" : "\n";
-  await fs4.appendFile(file, `${sep3}${[proofLine(record), ...tail(opts.output ?? "")].join("\n")}
+  await fs4.appendFile(file, `${sep3}${[...records.map(proofLine), ...tail(opts.output ?? "")].join("\n")}
 `);
-  return record;
+  return records;
 }
 
 // src/cli/state.ts
@@ -8384,16 +8460,27 @@ var NEXT = {
   qa: (s) => `post the QA comment and settle any manual verdict (if the plan has uncovered scenarios); then \`solodev check ${s} --for done\`, mark the PR ready and log \`- pr <url> \xB7 ready\``,
   done: () => "the user reviews and merges the PR"
 };
-async function featureStatus(state, slug) {
+async function featureStatus(state, slug, root) {
   const dir = featureDir(state, slug);
   const notes = [];
   const progress = await readIfExists(path9.join(dir, "progress.md")) ?? "";
   const tools = parseTools(progress);
+  let base;
+  if (root) {
+    try {
+      const b = await featureBase(root, dir);
+      if (b) base = `${b.ref} @ ${b.sha.slice(0, 7)}`;
+      else notes.push("can't find the base branch \u2014 log `- base <ref>` in progress.md");
+    } catch (err) {
+      notes.push(err.message);
+    }
+  }
   const done = (stage, extra = {}) => ({
     slug,
     stage,
     next: NEXT[stage](slug),
     ...tools ? { tools } : {},
+    ...base ? { base } : {},
     notes,
     ...extra
   });
@@ -8458,6 +8545,7 @@ function formatStatus(s) {
   const lines = [`${s.slug}: ${s.stage}`];
   if (s.approved) lines.push(`  approved: ${s.approved}`);
   if (s.pr) lines.push(`  pr: ${s.pr.url}${s.pr.state === "draft" ? " (draft)" : ""}`);
+  if (s.base) lines.push(`  base: ${s.base}`);
   if (s.tools) lines.push(`  tools: ${s.tools}`);
   for (const n of s.notes) lines.push(`  note: ${n}`);
   lines.push(`  next: ${s.next}`);
@@ -8573,7 +8661,9 @@ async function main(argv) {
     case "status": {
       const slug = positional(args)[0] ?? await branchFeature(root, state);
       if (slug) {
-        const status = await featureStatus(state, await requireFeature(state, slug));
+        const feature = await requireFeature(state, slug);
+        const onBranch = await currentBranch(root) === `feat/${feature}`;
+        const status = await featureStatus(state, feature, onBranch ? root : void 0);
         console.log(json ? JSON.stringify(status, null, 2) : formatStatus(status));
         return 0;
       }
@@ -8609,14 +8699,18 @@ ${formatResults(results)}`);
       return results.some((r) => r.status === "fail") ? 1 : 0;
     }
     case "proof": {
-      const [slugArg, journey, phase] = positional(args);
+      const [slugArg, journeyArg, phase] = positional(args);
       const slug = await requireFeature(state, slugArg);
-      if (!journey || phase !== "red" && phase !== "green") throw new UsageError(`usage: ${HELP.proof.usage}`);
+      if (!journeyArg || phase !== "red" && phase !== "green") throw new UsageError(`usage: ${HELP.proof.usage}`);
+      const journeys = journeyArg.split(",");
+      if (journeys.some((j) => !j) || new Set(journeys).size !== journeys.length) {
+        throw new UsageError(`journeys are a comma list with no empty or repeated id, as J1,J2 \u2014 got ${journeyArg}`);
+      }
       const exit = flag(args, "--exit");
       if (exit === void 0 || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code");
       const output = process.stdin.isTTY ? "" : await text(process.stdin);
-      const record = await proof({ root, dir: featureDir(state, slug), journey, phase, exit: Number(exit), output });
-      console.log(`recorded ${slug} ${journey} ${phase} at tree ${record.tree}`);
+      const records = await proof({ root, dir: featureDir(state, slug), journeys, phase, exit: Number(exit), output });
+      console.log(`recorded ${slug} ${journeys.join(", ")} ${phase} at tree ${records[0].tree}`);
       return 0;
     }
     case "install":

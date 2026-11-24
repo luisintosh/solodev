@@ -33,8 +33,9 @@ Your reply carries the table; the commander writes it as `review.md`'s `## QA` a
 | S5       | pass    | `/tmp/qa-csv-export/s5.png`: the download link shows after export | Accounts → Export → open the link |
 ```
 
-One row per scenario in your brief, verdict `pass`, `fail` or `manual`; `repro` is one line a person can follow to see
-it. `waived` is the user's decision, written by the commander. Run by a user on its own, show the table in chat.
+One row per scenario in your brief, verdict `pass`, `fail` or `manual`, `repro` one line a person can follow to see it;
+`waived` is the user's, written by the commander. A verdict judged against a source (the spec's wording, a design, a
+doc) quotes the line it rests on in its evidence and a failure's `detail`. Run on its own, show the table in chat.
 
 ## Reply
 

@@ -11,7 +11,8 @@ review. Both only read, so one fix round can answer both.
 - **Verdicts.** The verifier replies with its table and changes no file. Once the reviewers are done, write the table as
   the `## QA` section at the end of `review.md`, leaving the findings as they are; on a later cycle, update its rows in
   place.
-- **A failure in code** joins step 6's fix round, the scenario id as its finding id. Beside each re-review, a fresh
+- **A failure in code** joins step 6's fix round, the scenario id as its finding id, once the line it quotes holds
+  against `spec.md` and the source it names; one they don't back goes to the user. Beside each re-review, a fresh
   verifier rechecks the `uncovered` scenarios that failed and those the fix diff could change; none of either → no
   verifier. A spec gap goes to the user. Three cycles spent → the user.
 - **PR comment (step 8).** Once the draft PR is open, post the table, its `repro` column included, as one comment.

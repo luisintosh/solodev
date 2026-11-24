@@ -10,8 +10,10 @@ names as a file, and settles it in one round. The user starts every round.
 ## Steps
 
 1. **Sync.** Check out the branch, fetch it and fast-forward. Diverged (rebased or force-pushed on the forge) → ask the
-   user. Log `- review <n> at <sha> · external pr through <newest comment's time>`, or `· external written`, with the
-   sha after the fast-forward: the round's re-review starts there, so a merge from the default branch stays out of it.
+   user. Rebased on purpose, say onto the default branch once the PR it built on merged → reset to the forge's branch,
+   log `- base <the new base>`, and point the PR at it if it still targets the old one. Log `- review <n> at <sha> ·
+   external pr through <newest comment's time>`, or `· external written`, with the sha after the fast-forward: the
+   round's re-review starts there, so a merge from the default branch stays out of it.
 2. **Intake.** Read the review comments, threads and review summaries
    newer than the last round's `through` time and new comments on threads that already have a row; or read the written
    review. Skip what this run posted (the QA comment, the `- reply` URLs) and threads with nothing new. Check each claim
@@ -30,13 +32,14 @@ names as a file, and settles it in one round. The user starts every round.
    rebut, defer, drop, answer or spec gap), with the exact text of every reply that isn't a fix. Propose fixing what you
    confirmed and is actionable from a person, the user's own account included; from a bot, by its account type on the
    forge, only confirmed blockers and majors, dropping its other minors. A claim you couldn't confirm is a proposed
-   rebuttal. The user replies `go` or edits the card; on `go`, write `rebutted`, `deferred` or `dropped` into the rows
-   it says.
+   rebuttal. The card ends on the replies it takes: `go` accepts it as shown; `majors` accepts it with each minor it
+   proposed to fix turned into `deferred`, posting the reply the card shows for that (kept for a follow-up); or the user
+   edits it. Write `rebutted`, `deferred` or `dropped` into the rows the reply says, before the fix round starts.
 4. **Fix.** Send the rows to fix as a fix round, each with the reviewer's words verbatim; then the implement check, a
    commit, and the re-review when the round held a blocker or major, as swarm.md says, with the verifier as
    [qa.md](qa.md) says. The coder rebuts a row the card said to fix → ask the user before anything about it is posted.
    A reviewer pushing back a second time on the same rebuttal goes to the user, not the coder.
-5. **Close.** When the fast-forward changed the tree and no coder ran, run the journeys and record their green. Pass
+5. **Close.** When the sync changed the tree and no coder ran, run the journeys and record their green. Pass
    `solodev check <slug> --for pr` (`--for done` once the PR is ready), push, reply in each PR thread taken in, log each
    reply as `- reply <url>`, and update `## Follow-ups` as [pr.md](pr.md) says. Leave resolving threads to the
    reviewer. End on a round card: what was fixed, rebutted, deferred and dropped, the replies posted, what's still open.
