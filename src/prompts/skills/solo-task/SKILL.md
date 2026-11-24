@@ -109,14 +109,15 @@ numbers that matter (files changed, journeys passing, findings by severity). Sta
 `spec ✓ · gate ✓ · **implement (attempt 1/2)** · review · pr · qa · done`. Explain journey, scenario, budget and gate in
 a few words the first time you use them.
 
-Ask the user only at: a request too small for a run; an edited coder shadow on init; a slug that already has a folder (resume
-or start over); conflicting tools or commands at the start; no tool for the forge or tracker; questions while writing
-the spec; the gate; findings the fix-round budget leaves open; a weakened-test finding; a spec gap from review or QA; a
-subagent's `question` or `blocked` reply; a browser tool that's missing, gone or out of the verifier's reach; three QA
-cycles spent; the pauses a feedback round names; a `manual` QA verdict; stuck after two attempts (retry fresh, a second
-opinion from another tool, or take over); a coder on another tool that fails (write on the home tool, or wait); a
-required lens that failed twice; the ready PR. Between those, keep going. A spent budget (two implement attempts,
-three fix rounds, three QA cycles) means asking the user, not resetting the tree.
+Ask the user only at: a request too small for a run; an edited coder shadow on init; a slug that already has a folder
+(resume or start over); conflicting tools or commands at the start; no tool for the forge or tracker; questions while
+writing the spec; the gate; findings the fix-round budget leaves open; a weakened-test finding; a spec gap from review
+or QA, or a QA failure its source doesn't back; a subagent's `question` or `blocked` reply; a browser tool that's
+missing, gone or out of the verifier's reach; three QA cycles spent; the pauses a feedback round names; a `manual` QA
+verdict; stuck after two attempts (retry fresh, a second opinion from another tool, or take over); a coder on another
+tool that fails (write on the home tool, or wait); a required lens that failed twice; the ready PR. Between those, keep
+going. A spent budget (two implement attempts, three fix rounds, three QA cycles) means asking the user, not resetting
+the tree.
 
 ## Done when
 

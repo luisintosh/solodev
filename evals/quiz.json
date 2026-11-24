@@ -398,9 +398,15 @@
     },
     {
       "id": "qa-fail-with-findings",
-      "situation": "Review 1 left an open major R2, and the verifier started beside it returned `S5: fail`, cause code.",
+      "situation": "Review 1 left an open major R2, and the verifier started beside it returned `S5: fail`, cause code, its detail quoting the spec line S5 rests on, which spec.md does say.",
       "ask": "How many fix rounds, and what runs after?",
       "expect": "One fix round with the same coder covering both R2 and S5 (the scenario id as its finding id). Then a re-review by a single reviewer, with a fresh verifier beside it."
+    },
+    {
+      "id": "qa-fail-unbacked",
+      "situation": "The verifier returned `S6: fail`, cause code, its detail quoting the design doc: \"the date column uses DD/MM/YYYY\". The design doc the spec names says ISO 8601 dates, and nothing in it says DD/MM/YYYY.",
+      "ask": "Does S6 go to the coder in a fix round?",
+      "expect": "No: its quote doesn't hold against the source it names, so it goes to the user instead of a fix round."
     },
     {
       "id": "qa-recheck-scope",
@@ -719,6 +725,12 @@
       "situation": "You are shadow-coder in a fix round. You believe finding R2 is wrong.",
       "ask": "What do you do?",
       "expect": "Rebuts it in the reply with a one-line reason citing file:line (result: rebutted); doesn't edit review.md."
+    },
+    {
+      "id": "fix-round-same-cause",
+      "situation": "You are shadow-coder in a fix round. R7: the invoice total in src/invoices/view.ts ignores the new `discounts` table the feature added as the source of discounts. src/invoices/pdf.ts computes the same total the same old way, and no finding names it.",
+      "ask": "What does your fix cover?",
+      "expect": "Both view.ts and pdf.ts in this round, since the cause is the same; its R7 `reason` names both places."
     },
     {
       "id": "coder-unrelated-lint",
