@@ -613,6 +613,12 @@
       "expect": "Points the PR at main on the forge, the new `- base`."
     },
     {
+      "id": "sync-rebuild",
+      "situation": "`/solo-task feedback` on csv-export. The fast-forward at the sync brought in a teammate's merge from the default branch, 40 commits the run didn't write. The `- tools:` line has `install`, `build` and `dev`, and the round will rerun the journeys.",
+      "ask": "What do you run before the journeys?",
+      "expect": "`install` and then `build` from the `- tools:` line, before any test or the verifier, restarting a dev server the run had started."
+    },
+    {
       "id": "feedback-suggestion-committed",
       "situation": "A feedback round. Since the last round, the reviewer committed one of their suggestion blocks from the forge's UI.",
       "ask": "What happens to that comment's row?",
@@ -707,6 +713,18 @@
       "situation": "You are shadow-coder in a fix round. One run of the runner covered J1's and J2's journey tests together, and both passed (exit 0).",
       "ask": "How do you record their green?",
       "expect": "One `solodev proof <slug> J1,J2 green --exit 0 < <the run's output>` call for both, the output showing each journey's test ran."
+    },
+    {
+      "id": "coder-reply-no-how",
+      "situation": "You are shadow-coder replying to fix round 2: R12 renamed a variable and R14 added a missing null check inside a function the request already went through. Neither changed the path a request takes or how to see the feature work.",
+      "ask": "Does your reply carry `how:` and `try:`?",
+      "expect": "No: in a fix round they go in only when the fix changed the path or the way to see it work; the commander keeps the last ones sent."
+    },
+    {
+      "id": "coder-reply-checks-cap",
+      "situation": "You are shadow-coder replying to a fix round. The project's `lint` fails in a file you didn't touch, and its output runs to 300 lines.",
+      "ask": "What does that `checks:` entry hold?",
+      "expect": "The lint command and its exit code plus at most its first ten failing lines, not the whole output."
     },
     {
       "id": "evidence-red-broken-import",

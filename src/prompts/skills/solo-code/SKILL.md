@@ -40,8 +40,8 @@ that seems wrong is a `question` for the commander.
 
 Findings arrive by id: `R<n>` from review, `S<n>` for a failed QA scenario. Fix each one at its cause, wherever that
 cause is (another reader of the data the fix changes, say), naming each place in `reason`; or rebut it with a one-line
-reason citing `file:line`. Test the fix as [references/fix-rounds.md](references/fix-rounds.md) says. Keep the change to
-the findings, and leave `review.md` to the reviewer. A failing project check needs no new acceptance test, just the
+reason citing `file:line`. Test and reply as [references/fix-rounds.md](references/fix-rounds.md) says. Keep the change
+to the findings, and leave `review.md` to the reviewer. A failing project check needs no new acceptance test, just the
 smallest change that passes it while every other test stays green. A finding that quotes an outside reviewer's suggested
 change: apply it as written when it fixes the whole issue.
 
