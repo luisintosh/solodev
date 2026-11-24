@@ -32,8 +32,9 @@ names as a file, and settles it in one round. The user starts every round.
    rebut, defer, drop, answer or spec gap), with the exact text of every reply that isn't a fix. Propose fixing what you
    confirmed and is actionable from a person, the user's own account included; from a bot, by its account type on the
    forge, only confirmed blockers and majors, dropping its other minors. A claim you couldn't confirm is a proposed
-   rebuttal. The user replies `go` or edits the card; on `go`, write `rebutted`, `deferred` or `dropped` into the rows
-   it says.
+   rebuttal. The card ends on the replies it takes: `go` accepts it as shown; `majors` accepts it with each minor it
+   proposed to fix turned into `deferred`, posting the reply the card shows for that (kept for a follow-up); or the user
+   edits it. Write `rebutted`, `deferred` or `dropped` into the rows the reply says, before the fix round starts.
 4. **Fix.** Send the rows to fix as a fix round, each with the reviewer's words verbatim; then the implement check, a
    commit, and the re-review when the round held a blocker or major, as swarm.md says, with the verifier as
    [qa.md](qa.md) says. The coder rebuts a row the card said to fix → ask the user before anything about it is posted.

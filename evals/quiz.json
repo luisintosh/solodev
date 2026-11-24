@@ -280,7 +280,7 @@
       "id": "rereview-security-row",
       "situation": "Re-review. review.md has open row R1 with lens `security`. The fix diff touches only src/users.test.js.",
       "ask": "How many reviewers run, and what does each get?",
-      "expect": "Two, started in the same turn: a `lens: security` reviewer rechecks R1, and a `lens: single` reviewer takes the rest, running the journey commands at HEAD and judging the coder's `checks:` instead of rerunning the project checks."
+      "expect": "Two, started in the same turn: a `lens: security` reviewer rechecks R1, and a `lens: single` reviewer takes the rest, running the journey commands at HEAD and judging the coder's `checks:` from their output rather than rerunning the project checks (a full `test` only if no fix round ran one)."
     },
     {
       "id": "rereview-new-minor",
@@ -646,13 +646,25 @@
       "id": "feedback-pause",
       "situation": "`/solo-task feedback` on csv-export took in four PR comments as rows.",
       "ask": "What happens before the coder gets anything?",
-      "expect": "The triage card: a proposed action per comment and the exact text of every reply that isn't a fix, then the user's `go` or edits. Nothing goes to the coder and nothing is posted before that."
+      "expect": "The triage card: a proposed action per comment and the exact text of every reply that isn't a fix, then the user's `go`, `majors` or edits. Nothing goes to the coder and nothing is posted before that."
     },
     {
       "id": "feedback-bot-minor",
       "situation": "A feedback round. A bot's comment points out a confirmed minor naming issue, and a teammate's comment points out another confirmed minor.",
       "ask": "What does the triage card propose for each?",
       "expect": "Fix the teammate's minor and drop the bot's: from a bot, only confirmed blockers and majors are proposed for a fix."
+    },
+    {
+      "id": "feedback-triage-majors",
+      "situation": "A feedback round's triage card proposes fixing R40 (major), R41 (minor) and R42 (minor), all from people. The user replies `majors`.",
+      "ask": "Which rows go to the coder in the fix round?",
+      "expect": "Only R40, the major; R41 and R42 don't go to the coder."
+    },
+    {
+      "id": "feedback-triage-majors-deferred",
+      "situation": "A feedback round. The user replied `majors` to a triage card that proposed fixing the minors R41 and R42; the fix round hasn't started yet.",
+      "ask": "What happens to R41's and R42's rows and threads?",
+      "expect": "Both rows are written `deferred` before the fix round starts, and each thread gets the deferral reply the card showed for `majors` (kept for a follow-up)."
     },
     {
       "id": "feedback-unconfirmed",
@@ -773,6 +785,12 @@
       "situation": "You are writing a spec with solo-plan. Exploring the code left eight open decisions, two of which depend on others.",
       "ask": "How does your first round look?",
       "expect": "Opens with a briefing (The ask, Today, Gaps); asks at most five numbered decisions whose prerequisites are settled, each with a recommended answer, plus an assumptions list to veto by number; the dependent questions wait for a later round."
+    },
+    {
+      "id": "plan-overlapping-pr",
+      "situation": "You are writing the spec for \"let admins export the audit log as CSV\". No ticket is linked. Exploring the code, you find an open PR from another developer, unlinked to anything, that adds a CSV writer to src/audit/, the module this feature will change.",
+      "ask": "When does the user hear about that PR?",
+      "expect": "In round one's briefing, before any spec is written, under Gaps or Today, naming the PR and who owns it."
     },
     {
       "id": "plan-skip-interview",
