@@ -132,9 +132,9 @@ describe("approve", () => {
 describe("checks", () => {
   test("a run that follows the workflow passes every implement and pr check but review", async () => {
     await gate()
-    await proof({ root, dir, journey: "J1", phase: "red", exit: 1 })
+    await proof({ root, dir, journeys: ["J1"], phase: "red", exit: 1 })
     implement()
-    await proof({ root, dir, journey: "J1", phase: "green", exit: 0 })
+    await proof({ root, dir, journeys: ["J1"], phase: "green", exit: 0 })
     const results = await runChecks({ root, dir, set: "pr" })
     const byId = Object.fromEntries(results.map((r) => [r.id, r.status]))
     expect(byId).toEqual({ C1: "pass", C2: "pass", C3: "pass", C4: "fail", C6: "pass" })
@@ -302,7 +302,7 @@ describe("checks", () => {
 
 describe("proof", () => {
   const record = (phase: "red" | "green", exit: number, output = "") =>
-    proof({ root, dir, journey: "J1", phase, exit, output })
+    proof({ root, dir, journeys: ["J1"], phase, exit, output })
   const progress = () => fs.readFileSync(path.join(dir, "progress.md"), "utf8")
 
   test("C6 passes once a journey was seen red, then green on the tree as it stands", async () => {
@@ -344,7 +344,43 @@ describe("proof", () => {
     await gate()
     await expect(record("red", 0)).rejects.toThrow(/red needs a non-zero exit/)
     await expect(record("green", 2)).rejects.toThrow(/green needs exit 0, got 2/)
-    await expect(proof({ root, dir, journey: "J9", phase: "red", exit: 1 })).rejects.toThrow(/no journey J9 \(J1\)/)
+    await expect(proof({ root, dir, journeys: ["J9"], phase: "red", exit: 1 })).rejects.toThrow(/no journey J9 \(J1\)/)
+  })
+
+  /** The plan split in two journeys over the same test file: J1 proves S1, J2 proves S2. */
+  const twoJourneys = () =>
+    plan()
+      .replace("scenarios: [S1, S2]", "scenarios: [S1]")
+      .replace(
+        "    command: node test/hello.test.js\n",
+        "    command: node test/hello.test.js\n  - id: J2\n    scenarios: [S2]\n    test: test/hello.test.js\n    command: node test/hello.test.js\n",
+      )
+
+  test("records several journeys' green from one run, each line on the same tree, the output's tail once", async () => {
+    await gate(twoJourneys())
+    write("test/hello.test.js", TEST)
+    await proof({ root, dir, journeys: ["J1"], phase: "red", exit: 1 })
+    await proof({ root, dir, journeys: ["J2"], phase: "red", exit: 1 })
+    write("src/hello.js", IMPL)
+    const both = await proof({ root, dir, journeys: ["J1", "J2"], phase: "green", exit: 0, output: "2 passed" })
+    expect(both.map((p) => p.journey)).toEqual(["J1", "J2"])
+    expect(both[0]!.tree).toBe(both[1]!.tree)
+    expect(progress().match(/^ {2}> 2 passed$/gm)).toHaveLength(1)
+    expect(progress().trimEnd().split("\n").slice(-3)[0]).toMatch(/^- proof J1 green/)
+    expect(await check("C6")).toMatchObject({ status: "pass", summary: "2 journeys seen red, then green on this tree" })
+  })
+
+  test("refuses a red of several journeys, and an empty, repeated or unknown one, writing nothing", async () => {
+    await gate(twoJourneys())
+    const before = progress()
+    const run = (journeys: string[], phase: "red" | "green", exit: number) =>
+      proof({ root, dir, journeys, phase, exit })
+    await expect(run(["J1", "J2"], "red", 1)).rejects.toThrow(/a red is per journey/)
+    await expect(run(["J1", "J1"], "green", 0)).rejects.toThrow(/named twice/)
+    await expect(run(["J1", ""], "green", 0)).rejects.toThrow(/at least one journey/)
+    await expect(run([], "green", 0)).rejects.toThrow(/at least one journey/)
+    await expect(run(["J1", "J9"], "green", 0)).rejects.toThrow(/no journey J9 \(J1, J2\)/)
+    expect(progress()).toBe(before)
   })
 
   test("keeps the output's last lines where no other progress.md line can be read from them", async () => {

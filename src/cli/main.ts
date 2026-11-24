@@ -181,14 +181,18 @@ async function main(argv: string[]): Promise<number> {
       return results.some((r) => r.status === "fail") ? 1 : 0
     }
     case "proof": {
-      const [slugArg, journey, phase] = positional(args)
+      const [slugArg, journeyArg, phase] = positional(args)
       const slug = await requireFeature(state, slugArg)
-      if (!journey || (phase !== "red" && phase !== "green")) throw new UsageError(`usage: ${HELP.proof!.usage}`)
+      if (!journeyArg || (phase !== "red" && phase !== "green")) throw new UsageError(`usage: ${HELP.proof!.usage}`)
+      const journeys = journeyArg.split(",")
+      if (journeys.some((j) => !j) || new Set(journeys).size !== journeys.length) {
+        throw new UsageError(`journeys are a comma list with no empty or repeated id, as J1,J2 — got ${journeyArg}`)
+      }
       const exit = flag(args, "--exit")
       if (exit === undefined || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code")
       const output = process.stdin.isTTY ? "" : await text(process.stdin)
-      const record = await proof({ root, dir: featureDir(state, slug), journey, phase, exit: Number(exit), output })
-      console.log(`recorded ${slug} ${journey} ${phase} at tree ${record.tree}`)
+      const records = await proof({ root, dir: featureDir(state, slug), journeys, phase, exit: Number(exit), output })
+      console.log(`recorded ${slug} ${journeys.join(", ")} ${phase} at tree ${records[0]!.tree}`)
       return 0
     }
     case "install":

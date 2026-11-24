@@ -210,6 +210,11 @@ set +e
 usage_rc=$?
 set -e
 assert_eq "$usage_rc" "2" "solodev exits 2 on a usage error"
+set +e
+(cd "$TARGET" && "$SOLODEV" proof hello J1,,J1 green --exit 0 </dev/null >/dev/null 2>&1)
+usage_rc=$?
+set -e
+assert_eq "$usage_rc" "2" "solodev proof refuses an empty or repeated journey in its list"
 
 # 5. a global install: skills under $HOME, init writes the shadows there
 FAKE_HOME="${WORK}/fake-home"

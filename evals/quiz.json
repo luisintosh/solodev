@@ -295,6 +295,12 @@
       "expect": "One, with `lens: single`: a re-review doesn't go parallel for size. Only an open security row adds a second reviewer."
     },
     {
+      "id": "rereview-full-test",
+      "situation": "Re-review after fix round 2, by one `lens: single` reviewer. The coder's `checks:` in both fix rounds show only scoped runs: `test_file` on the changed tests and the journeys' commands. Only the implement round ran the full `test`.",
+      "ask": "Which commands does the reviewer run itself?",
+      "expect": "The journey commands at HEAD, and the project's full `test`, since no fix round's `checks:` shows one; the rest of `checks:` it judges from their output."
+    },
+    {
       "id": "rereview-single-row",
       "situation": "Re-review. Row R1 (lens `security`) and row R5 (lens `correctness`, an unhandled empty input) are open, so two reviewers run.",
       "ask": "Which reviewer gets R5?",
@@ -677,6 +683,24 @@
       "situation": "You are shadow-coder. J1's command passed and you recorded its green with `solodev proof`. Then lint flagged an unused import in a file you changed and you removed it.",
       "ask": "What do you do before replying `done`?",
       "expect": "Runs J1's command again and records its green again, since the edit after the record made it stale; then `solodev check <slug> --for implement`."
+    },
+    {
+      "id": "fix-round-test-scope",
+      "situation": "You are shadow-coder in a fix round. R4 asks for a null check in src/export/rows.ts, a module only this feature uses. The `- tools:` line has `test`, which runs the whole suite in about four minutes, and `test_file`. The plan has journeys J1 and J2.",
+      "ask": "Which tests do you run before replying?",
+      "expect": "`test_file` on the tests for src/export/rows.ts, plus J1's and J2's commands; not the full `test`, since nothing outside the feature uses the changed code. Its `checks:` say a scoped run is what ran."
+    },
+    {
+      "id": "fix-round-batch-run",
+      "situation": "You are shadow-coder in a fix round. J1's and J2's journey tests are two files run by the same test runner, and starting that runner takes most of a run's time.",
+      "ask": "How do you run the two journeys' tests?",
+      "expect": "In one run of the runner that names both test files (or both tests), not one run each."
+    },
+    {
+      "id": "fix-round-batch-proof",
+      "situation": "You are shadow-coder in a fix round. One run of the runner covered J1's and J2's journey tests together, and both passed (exit 0).",
+      "ask": "How do you record their green?",
+      "expect": "One `solodev proof <slug> J1,J2 green --exit 0 < <the run's output>` call for both, the output showing each journey's test ran."
     },
     {
       "id": "evidence-red-broken-import",
