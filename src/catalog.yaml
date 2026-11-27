@@ -49,7 +49,7 @@ skills:
       design decisions or have unclear requirements, or to resume one. Not for one-line fixes or simple, well-defined
       changes (suggest /plan), or roadmaps (/solo-epic).
   solo-plan:
-    budget: 109
+    budget: 112
     description: >-
       Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys)
       for the spec gate. Used by /solo-task, or on its own to spec a feature without running it.

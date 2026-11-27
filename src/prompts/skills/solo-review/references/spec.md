@@ -7,7 +7,9 @@ subagents.
 
 - Requirements are testable as written; an adjective with no number or named behavior is a finding.
 - Each happy path has its counterparts: empty or missing input, permission denied, duplicate or concurrent actions, an
-  upstream failure, a limit reached. Specs with only happy paths are the most common failure.
+  upstream failure, a limit reached. A write whose target can change before it saves has a scenario for that, saving
+  with the version or id the client first read, or a `Decided:` assumption that the last write wins. Specs with only
+  happy paths are the most common failure.
 - Claims about how the system behaves today hold up; check the load-bearing ones in the code.
 - Every requirement traces to a scenario and back. Scenario ids are unique; a gap left by a removed scenario is fine.
 - Assumptions state a default and what breaks if it's wrong; one that would change scope belongs in open questions.
@@ -16,7 +18,9 @@ subagents.
 **Plan**
 
 - Each journey tests through the public boundary with the cheapest test that can fail its Then. A unit test of an
-  internal helper as the acceptance bar is a blocker; so is an e2e test where a cheaper one could assert the Then.
+  internal helper as the acceptance bar is a blocker; so is an e2e test where a cheaper one could assert the Then. A
+  Then about what the client holds or sends, proven only by a journey below the UI, is a major: it needs a component or
+  UI test, or `uncovered`.
 - Each command runs with the repo's own runner (AGENTS.md, or the repo's manifests when it doesn't list one); a wrong
   runner or path is a blocker.
 - More than one journey has a one-line reason; more than three is a finding. A new test dependency is named.

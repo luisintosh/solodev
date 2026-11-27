@@ -91,6 +91,12 @@
       "expect": "Yes: a migration always counts, even an additive one, so a fresh spec reviewer, a generic subagent briefed with solo-review, reviews the spec before the gate."
     },
     {
+      "id": "spec-review-client-state",
+      "situation": "You are the spec reviewer. @S6's Then is that the edit form sends the version it read when it opened. The plan proves @S6 only through J1, an API integration test, and doesn't list it as uncovered.",
+      "ask": "Is that a finding, and how severe?",
+      "expect": "A `major`: a Then about what the client holds or sends, proven only below the UI, needs a component or UI test, or `uncovered`."
+    },
+    {
       "id": "reviewer-single-next-id",
       "situation": "You are a reviewer subagent with `lens: single` on a first review after a reopened gate. review.md already has rows R1 to R4. You find one new major issue.",
       "ask": "What id and status does its row get?",
@@ -839,6 +845,18 @@
       "situation": "Spec for a CSV export with @S1-@S3 tested through the API and @S4 'the download button shows a spinner', which no test can reasonably reach.",
       "ask": "What does the plan's journeys block in spec.md look like?",
       "expect": "A fenced YAML block starting `journeys:` with one journey (the default) whose test goes through the public boundary covering S1-S3, with test path and command, and `uncovered: [S4]`."
+    },
+    {
+      "id": "plan-write-target-change",
+      "situation": "You are writing a spec for editing a resident's attending doctor from a form. The server already refuses a save carrying a stale version. Two staff can have the form open at once, and a readmission can move the resident to a new stay while the form is open.",
+      "ask": "Which scenario does the spec need beyond the server refusing a stale version?",
+      "expect": "Scenarios where the target changes while the form is open (another user's save, the readmission), saving with the version or id the client read when the form opened, unless the user decides the last write wins."
+    },
+    {
+      "id": "plan-client-state-journey",
+      "situation": "Your plan has one journey, J1, an integration test calling the API. @S4 says: given the form opened before another user saved, when the user saves, then the form sends the version it opened with and shows the conflict. The repo has a component test suite.",
+      "ask": "Does J1 cover @S4?",
+      "expect": "No: a test below the UI can't fail a Then about what the client holds or sends, so @S4 goes in a component test journey (the repo has a suite), not the API journey."
     },
     {
       "id": "plan-scenario-ids",

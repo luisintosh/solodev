@@ -51,8 +51,10 @@ questions keep multiplying, suggest splitting the feature with `/solo-epic`.
   as a blockquote.
 
 Give each happy path its counterparts where they apply: empty or missing input, permission denied, a duplicate or
-concurrent action, an upstream failure, a limit reached. Write scenarios that are observable from outside the system,
-through an API, a CLI or the UI, so a test or the verifier can check them.
+concurrent action, an upstream failure, a limit reached. A write whose target can change before it saves (another user
+or tab, a job, a change to its parent record) gets a scenario for that, saving with the version or id the client first
+read, unless the user decides the last write wins. Write scenarios that are observable from outside the system, through
+an API, a CLI or the UI, so a test or the verifier can check them.
 
 ## The plan
 
@@ -78,9 +80,11 @@ uncovered: [S5]
 
 A journey is one test file that proves a group of scenarios through the public boundary: an exported API, a CLI, an HTTP
 handler, a golden file, or an integration or e2e suite already in the repo. Pick the cheapest of those that can fail the
-scenario's Then; a unit test of an internal helper doesn't count. One journey is the default and three the most; justify
-each extra one in a line. `command` runs that one file, built from the `test_file` command in `progress.md`'s `- tools:`
-line. A new test dependency, such as Playwright, is named in the plan, and approving the gate approves it.
+scenario's Then; a unit test of an internal helper doesn't count. A Then about what the client holds or sends fails only
+in a component or UI test, the repo's or one the plan adds; without one it's `uncovered`. One journey is the default and
+three the most; justify each extra one in a line. `command` runs that one file, built from the `test_file` command in
+`progress.md`'s `- tools:` line. A new test dependency, such as Playwright, is named in the plan, and approving the gate
+approves it.
 
 `uncovered` lists scenarios no test can reasonably reach, often a UI path; the verifier checks them beside the code
 review. The journeys block parses and claims every scenario, by a journey or as uncovered (`solodev approve` refuses
