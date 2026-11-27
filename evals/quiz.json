@@ -184,7 +184,13 @@
       "id": "implement-budget-spent",
       "situation": "The implement check failed after the coder's first reply, you sent it back, and it failed again after the second.",
       "ask": "What do you do?",
-      "expect": "The two-attempt budget is spent: asks the user (retry fresh, a second opinion from another tool, or take over). Does not reset the tree or keep looping on its own."
+      "expect": "The two-attempt budget is spent: asks the user (retry fresh, a stronger `<model>/<effort>` for the coder, a second opinion from another tool, or take over). Does not reset the tree or keep looping on its own."
+    },
+    {
+      "id": "coder-stronger-start",
+      "situation": "The implement budget is spent. You asked the user, and they replied: retry with opus/high for the coder. The coder you've been continuing runs on sonnet/high.",
+      "ask": "How does the retry start?",
+      "expect": "A new coder on opus/high, briefed as on continue (from spec.md, the `- brief` and `- sketch` lines and what's left), with the new coder logged in progress.md; not a message to the sonnet coder, and not a change to `solodev coder`."
     },
     {
       "id": "review-small",
@@ -335,6 +341,12 @@
       "situation": "Major R2 went through fix rounds 1 and 2, and the second re-review still marks it open. Nothing else is open, and one round of the budget is left.",
       "ask": "Do you run round 3 for R2?",
       "expect": "No: a row still open after two rounds goes to the user, even with a round left."
+    },
+    {
+      "id": "review-row-stronger-model",
+      "situation": "Major R2 is still open after fix rounds 1 and 2. You take it to the user.",
+      "ask": "What options do you offer for R2?",
+      "expect": "Another fix round, which can run on a stronger model for the coder, or `deferred` or `dropped`, written into review.md."
     },
     {
       "id": "review-after-reopened-gate",

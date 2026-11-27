@@ -11,7 +11,7 @@ Only when the writer isn't the home tool. Reviewers and the verifier stay native
 - Reply: take it from what the carrier returns (the agent's final message, an orchestrator worker's done message, the
   CLI's output). Ask for a reply file, in a temp folder outside the repo and the feature folder, only when the carrier
   returns none. It's done when the carrier says so.
-- One coder for the whole feature: answers and fix rounds go to the same session when the carrier can resume it,
-  otherwise to a new one with the earlier brief and reply.
+- One coder at a time: answers and fix rounds go to the same session when the carrier can resume it, otherwise, or when
+  the user picks another model, to a new one with the earlier brief and reply.
 - Answer its questions from `spec.md`; ask the user when they can't.
 - If it can't start, stalls or ends without a reply, ask the user: write on the home tool, or wait.

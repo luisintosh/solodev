@@ -95,8 +95,8 @@ step 7 on. Log in `progress.md` attempts, skipped stages, the user's calls, and 
 Put each brief in the spawn call, never in a file: the role skill's absolute `SKILL.md` path, the slug, the feature
 folder, the `- tools:` line, the `solodev` path and what to do now; the reply is the subagent's final message.
 
-- **Coder:** `shadow-coder`, with the writer's `coder` model and effort set on the spawn call itself, or none when
-  it's `session`. One coder serves the whole feature: continue it for fix rounds.
+- **Coder:** `shadow-coder`, with the writer's `coder` model and effort set on the spawn call itself, or none when it's
+  `session`. One coder at a time: continue it, or on a model the user picks, start a new one as on continue and log it.
 - **Reviewers and the verifier:** a fresh generic subagent each, not a fork, with no model or effort set, so it runs on
   the session's; start lens reviewers together, one spawn call each in the same turn.
 - **A coder on another coding tool:** read [references/dispatch.md](references/dispatch.md).
@@ -114,10 +114,10 @@ Ask the user only at: a request too small for a run; an edited coder shadow on i
 writing the spec; the gate; findings the fix-round budget leaves open; a weakened-test finding; a spec gap from review
 or QA, or a QA failure its source doesn't back; a subagent's `question` or `blocked` reply; a browser tool that's
 missing, gone or out of the verifier's reach; three QA cycles spent; the pauses a feedback round names; a `manual` QA
-verdict; stuck after two attempts (retry fresh, a second opinion from another tool, or take over); a coder on another
-tool that fails (write on the home tool, or wait); a required lens that failed twice; the ready PR. Between those, keep
-going. A spent budget (two implement attempts, three fix rounds, three QA cycles) means asking the user, not resetting
-the tree.
+verdict; stuck after two attempts (retry fresh, a stronger `<model>/<effort>` for the coder, a second opinion from
+another tool, or take over); a coder on another tool that fails (write on the home tool, or wait); a required lens that
+failed twice; the ready PR. Between those, keep going. A spent budget (two implement attempts, three fix rounds, three
+QA cycles) means asking the user, not resetting the tree.
 
 ## Done when
 

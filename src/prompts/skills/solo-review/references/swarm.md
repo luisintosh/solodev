@@ -59,6 +59,6 @@ at the findings.
   one. Write security's results into `review.md` once both have replied.
 - **Budget:** up to three rounds, each with its re-review, while a blocker, major or QA failure is open. A row still
   open after two rounds goes to the user, and so does whatever is open after the third re-review: another fix round,
-  `deferred` or `dropped`, written into `review.md`.
+  which can run on a stronger model for the coder, `deferred` or `dropped`, written into `review.md`.
 - **A change after a reopened gate** is reviewed as a first review, on the diff since the last review, its lenses
   picked as above, with the budget starting over.
