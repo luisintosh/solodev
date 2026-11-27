@@ -746,9 +746,21 @@
     },
     {
       "id": "coder-reply-checks-cap",
-      "situation": "You are shadow-coder replying to a fix round. The project's `lint` fails in a file you didn't touch, and its output runs to 300 lines.",
+      "situation": "You are shadow-coder replying `done` after implementing. The project's `lint` fails in a file you didn't touch, and its output runs to 300 lines.",
       "ask": "What does that `checks:` entry hold?",
       "expect": "The lint command and its exit code plus at most its first ten failing lines, not the whole output."
+    },
+    {
+      "id": "coder-done-reply-length",
+      "situation": "You are shadow-coder replying `done` on a feature with 20 scenarios. Your notes on how to try each one run to eight or ten lines per scenario.",
+      "ask": "What goes in `try:`?",
+      "expect": "Each scenario's command or steps, data and what shows, in three lines at most, so the whole reply arrives."
+    },
+    {
+      "id": "coder-edit-tools",
+      "situation": "You are shadow-coder. The same import path has to change in six files you're editing.",
+      "ask": "How do you make the change?",
+      "expect": "With its file-editing tool, file by file, not a heredoc, python or sed script run through the shell, so the user's permission rules can allow it."
     },
     {
       "id": "evidence-red-broken-import",

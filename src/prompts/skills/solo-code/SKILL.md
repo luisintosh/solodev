@@ -11,8 +11,7 @@ journey's test path and command. {{include:fragments/commands.md}}
 ## The bar
 
 Each journey is one test at its `test` path that exercises its scenarios through the boundary the plan names, built from
-the brief's sketch on the repo's existing fixtures; a sketch that doesn't fit the code is yours to correct. A journey is
-done when:
+the brief's sketch on the repo's fixtures; a sketch that doesn't fit the code is yours to fix. A journey is done when:
 
 - its `command` fails because the behavior is missing, then passes, each run as its own command and recorded right
   after with `solodev proof <slug> <journey> red|green --exit <its exit code> --why "<the output line that shows it>"`;
@@ -20,9 +19,10 @@ done when:
   its `@S<n>` tag in its name or a comment beside it.
 
 Write the tests and the code together. For a journey's red, set aside the changes that aren't tests, run its command,
-record it and restore them; a test that still passes doesn't pin its scenarios yet, so fix it first. Write to the
-lists in [references/practices.md](references/practices.md) as you go; the reviewer checks your diff against them.
-Every changed line traces to a scenario in your brief or to a finding you were sent. Leave unrelated code alone.
+record it and restore them; a test that still passes doesn't pin its scenarios yet, so fix it first. Write to the lists
+in [references/practices.md](references/practices.md) as you go; the reviewer checks your diff against them. Every
+changed line traces to a scenario in your brief or to a finding you were sent. Leave unrelated code alone. Edit files
+with your editing tools and run commands one at a time, with no heredoc or `$(…)`, so permissions allow them.
 
 ## Docs
 
@@ -53,16 +53,16 @@ file it shows; only mention one it didn't cause. Each project command's last run
 
 ## Reply
 
-Your final message, or the file the brief names for it:
+Your final message, or the file the brief names for it, each field within its comment's cap so it arrives whole:
 
 ```yaml
 status: done | question | blocked
 journeys: [J1, J2] # passing now
 files_changed: [...]
-checks: [] # typecheck, lint, test: `<command>: exit <code>`, plus the failing lines when it isn't 0
+checks: [] # typecheck, lint, test: `<command>: exit <code>`, plus at most ten failing lines when it isn't 0
 decisions: [] # one line per choice the spec and plan left open that no scenario observes; observable → question
-how: [] # done only: the path one request takes through your change, in order, as `file:symbol: its part`
-try: {} # done only, per scenario: the command or steps and data you used to see it work, and what shows
+how: [] # done only, eight lines at most: the path one request takes through your change, as `file:symbol: its part`
+try: {} # done only, per scenario in three lines at most: the command or steps and data you used, and what shows
 findings: # fix rounds only
   - id: R1
     result: fixed | rebutted
