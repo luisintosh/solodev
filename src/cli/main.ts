@@ -74,8 +74,19 @@ const SET_FOR_STAGE: Partial<Record<Stage, CheckSet>> = {
   done: "done",
 }
 
+/**
+ * Takes `--why <text>` out of proof's args before any flag is read: the text is an output line, and one such as Go's
+ * `--- FAIL: TestX` or `--help` is not a solodev flag.
+ */
+function takeWhy(args: string[]): { args: string[]; why?: string } {
+  const i = args.indexOf("--why")
+  if (i === -1) return { args }
+  return { args: [...args.slice(0, i), ...args.slice(i + 2)], why: args[i + 1] }
+}
+
 async function main(argv: string[]): Promise<number> {
-  const [command, ...args] = argv
+  const [command, ...rawArgs] = argv
+  const { args, why } = command === "proof" ? takeWhy(rawArgs) : { args: rawArgs, why: undefined }
   if (!command || command === "help" || command === "--help" || command === "-h") {
     console.log(helpText(command === "help" ? args[0] : undefined))
     return 0
@@ -194,7 +205,6 @@ async function main(argv: string[]): Promise<number> {
       }
       const exit = flag(args, "--exit")
       if (exit === undefined || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code")
-      const why = flag(args, "--why")
       if (!why?.trim()) {
         throw new UsageError(
           "--why needs the output line that shows the result: the failure for a red, the pass count for a green",

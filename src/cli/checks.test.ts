@@ -383,7 +383,7 @@ describe("proof", () => {
     expect(progress()).toBe(before)
   })
 
-  test("keeps the output's last lines where no other progress.md line can be read from them", async () => {
+  test("keeps the --why text where no other progress.md line can be read from them", async () => {
     const approval = await gate()
     const noise = Array.from({ length: 20 }, (_, i) => `line ${i}`).join("\n")
     await record(

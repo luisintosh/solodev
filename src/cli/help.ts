@@ -54,7 +54,7 @@ export const HELP: Record<string, CommandHelp> = {
     example: "solodev check csv-export --for implement",
   },
   proof: {
-    usage: 'solodev proof <slug> <journey>[,<journey>…] red|green --exit <code> --why "<output line>"',
+    usage: "solodev proof <slug> <journey>[,<journey>…] red|green --exit <code> --why '<output line>'",
     summary: "Record a run of a journey's command, or several journeys' tests run together, in progress.md.",
     detail: [
       "Runs nothing: run the command as its own call, so your tool's permission rules and hooks see it, then record",
@@ -64,9 +64,10 @@ export const HELP: Record<string, CommandHelp> = {
       "written yet), so it needs a non-zero exit; green needs 0. Any change to the tree after a green makes it stale",
       "for C6: run the command and record it again. A red counts only on another tree than the green. A green may",
       "name several journeys (J1,J2) whose tests ran in one run: one line each, on one tree, the --why line once. A",
-      "red names one, since a run of several can fail on one alone.",
+      "red names one, since a run of several can fail on one alone. Put the --why line in single quotes, dropping any",
+      "' in it, so the shell expands nothing in it; it is taken as written, even when it starts with --.",
     ],
-    example: "solodev proof csv-export J1 red --exit 1 --why \"AssertionError: expected 'a,b' got undefined\"",
+    example: "solodev proof csv-export J1 red --exit 1 --why 'AssertionError: expected a,b got undefined'",
   },
   init: {
     usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",

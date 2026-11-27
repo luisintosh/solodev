@@ -7,9 +7,9 @@ subagents.
 
 - Requirements are testable as written; an adjective with no number or named behavior is a finding.
 - Each happy path has its counterparts: empty or missing input, permission denied, duplicate or concurrent actions, an
-  upstream failure, a limit reached. A write whose target can change before it saves has a scenario for that, saving
-  with the version or id the client first read, or a `Decided:` assumption that the last write wins. Specs with only
-  happy paths are the most common failure.
+  upstream failure, a limit reached. A write whose target can change before it saves has a scenario where it changes
+  before the save, which carries the version or id the client first read, or a `Decided:` assumption that the last write
+  wins. Specs with only happy paths are the most common failure.
 - Claims about how the system behaves today hold up; check the load-bearing ones in the code.
 - Every requirement traces to a scenario and back. Scenario ids are unique; a gap left by a removed scenario is fine.
 - Assumptions state a default and what breaks if it's wrong; one that would change scope belongs in open questions.

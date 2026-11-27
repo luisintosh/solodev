@@ -64,7 +64,7 @@ export type Proof = { journey: string; phase: Phase; exit: number; tree: string 
 
 const PROOF = /^- proof (\S+) (red|green) · exit (\d+) · tree ([0-9a-f]+)\s*$/gm
 
-/** The line `solodev proof` appends to progress.md; the output's last lines follow it, each behind `  > `. */
+/** The line `solodev proof` appends to progress.md; the --why text follows it, each behind `  > `. */
 export function proofLine(p: Proof): string {
   return `- proof ${p.journey} ${p.phase} · exit ${p.exit} · tree ${p.tree}`
 }

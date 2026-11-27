@@ -13,8 +13,8 @@ journey's test path and command. {{include:fragments/commands.md}}
 Each journey is one test at its `test` path that exercises its scenarios through the boundary the plan names, built from
 the brief's sketch on the repo's fixtures; a sketch that doesn't fit the code is yours to fix. A journey is done when:
 
-- its `command` fails because the behavior is missing, then passes, each run as its own command and recorded right
-  after with `solodev proof <slug> <journey> red|green --exit <its exit code> --why "<the output line that shows it>"`;
+- its `command` fails because the behavior is missing, then passes, each run on its own and recorded with
+  `solodev proof <slug> <journey> red|green --exit <code> --why '<its failure or pass count>'`, minus any `'`;
 - each scenario's Given/When/Then holds, not only the test being green, and the test or assertion that proves it carries
   its `@S<n>` tag in its name or a comment beside it.
 

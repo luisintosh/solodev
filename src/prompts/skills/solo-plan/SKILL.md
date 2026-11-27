@@ -52,9 +52,9 @@ questions keep multiplying, suggest splitting the feature with `/solo-epic`.
 
 Give each happy path its counterparts where they apply: empty or missing input, permission denied, a duplicate or
 concurrent action, an upstream failure, a limit reached. A write whose target can change before it saves (another user
-or tab, a job, a change to its parent record) gets a scenario for that, saving with the version or id the client first
-read, unless the user decides the last write wins. Write scenarios that are observable from outside the system, through
-an API, a CLI or the UI, so a test or the verifier can check them.
+or tab, a job, a change to its parent record) gets a scenario where it changes before the save, which carries the
+version or id the client first read, unless the user decides the last write wins. Write scenarios that are observable
+from outside the system, through an API, a CLI or the UI, so a test or the verifier can check them.
 
 ## The plan
 

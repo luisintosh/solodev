@@ -277,7 +277,9 @@ async function c6(ctx: CheckContext): Promise<CheckResult> {
     const own = proofs.filter((p) => p.journey === j.id)
     const green = own.findLastIndex((p) => p.phase === "green")
     if (green === -1) {
-      details.push(`${j.id} has no green record — run its command, then \`solodev proof <slug> ${j.id} green\``)
+      details.push(
+        `${j.id} has no green record — run its command, then \`solodev proof <slug> ${j.id} green --exit 0 --why '<the pass line>'\``,
+      )
     } else if (own[green]!.tree !== tree) {
       details.push(`${j.id}'s green is stale: the code changed since — run its command and record green again`)
     }

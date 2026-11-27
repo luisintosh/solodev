@@ -73,9 +73,9 @@ the code, tests and docs. Every brief names the folder's absolute path.
    An attempt is one coder reply after which that check fails.
 6. **Code review.** Run it as solo-review's `references/swarm.md` says, the base being the one `solodev status` prints.
    With `uncovered` scenarios in the plan, start the verifier in the same turn, as [references/qa.md](references/qa.md)
-   says; with none, the journey tests are the QA and no verifier starts. Then fix rounds with the same coder, as
-   swarm.md's last section says: the implement check runs again, then a re-review whose brief carries the `- fix` line
-   and the sha of the last `- review` line.
+   says; with none, the journey tests are the QA and no verifier starts. Then fix rounds with the coder, as swarm.md's
+   last section says: the implement check runs again, then a re-review whose brief carries the `- fix` line and the sha
+   of the last `- review` line.
 7. **PR.** `solodev check <slug> --for pr`, push, open a draft PR ([pr.md](references/pr.md)), log `- pr <url> · draft`.
 8. **QA.** With `uncovered` scenarios, post the QA comment and settle any `manual` verdict, as qa.md says.
 9. **Finish.** Run `solodev check <slug> --for done`, mark the PR ready, log `- pr <url> · ready`, and show the finish

@@ -22,7 +22,7 @@ const ANSI = /\u001b\[[0-9;?]*[ -/]*[@-~]/g
 const CONTROL = /[\u0000-\u0008\u000b-\u001f\u007f]/g
 
 /**
- * The output's last lines, each behind `  > ` so nothing in them reads as a progress.md log line. Splits wherever a
+ * The --why text's last lines, each behind `  > ` so nothing in them reads as a progress.md log line. Splits wherever a
  * multiline regex sees a line start, a lone carriage return included.
  */
 export function tail(output: string): string[] {
