@@ -1004,14 +1004,14 @@ var require_foldFlowLines = __commonJS({
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
     var FOLD_QUOTED = "quoted";
-    function foldFlowLines(text2, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+    function foldFlowLines(text, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
       if (!lineWidth || lineWidth < 0)
-        return text2;
+        return text;
       if (lineWidth < minContentWidth)
         minContentWidth = 0;
       const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
-      if (text2.length <= endStep)
-        return text2;
+      if (text.length <= endStep)
+        return text;
       const folds = [];
       const escapedFolds = {};
       let end = lineWidth - indent.length;
@@ -1028,14 +1028,14 @@ var require_foldFlowLines = __commonJS({
       let escStart = -1;
       let escEnd = -1;
       if (mode === FOLD_BLOCK) {
-        i = consumeMoreIndentedLines(text2, i, indent.length);
+        i = consumeMoreIndentedLines(text, i, indent.length);
         if (i !== -1)
           end = i + endStep;
       }
-      for (let ch; ch = text2[i += 1]; ) {
+      for (let ch; ch = text[i += 1]; ) {
         if (mode === FOLD_QUOTED && ch === "\\") {
           escStart = i;
-          switch (text2[i + 1]) {
+          switch (text[i + 1]) {
             case "x":
               i += 3;
               break;
@@ -1052,12 +1052,12 @@ var require_foldFlowLines = __commonJS({
         }
         if (ch === "\n") {
           if (mode === FOLD_BLOCK)
-            i = consumeMoreIndentedLines(text2, i, indent.length);
+            i = consumeMoreIndentedLines(text, i, indent.length);
           end = i + indent.length + endStep;
           split = void 0;
         } else {
           if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
-            const next = text2[i + 1];
+            const next = text[i + 1];
             if (next && next !== " " && next !== "\n" && next !== "	")
               split = i;
           }
@@ -1069,12 +1069,12 @@ var require_foldFlowLines = __commonJS({
             } else if (mode === FOLD_QUOTED) {
               while (prev === " " || prev === "	") {
                 prev = ch;
-                ch = text2[i += 1];
+                ch = text[i += 1];
                 overflow = true;
               }
               const j = i > escEnd + 1 ? i - 2 : escStart - 1;
               if (escapedFolds[j])
-                return text2;
+                return text;
               folds.push(j);
               escapedFolds[j] = true;
               end = j + endStep;
@@ -1089,39 +1089,39 @@ var require_foldFlowLines = __commonJS({
       if (overflow && onOverflow)
         onOverflow();
       if (folds.length === 0)
-        return text2;
+        return text;
       if (onFold)
         onFold();
-      let res = text2.slice(0, folds[0]);
+      let res = text.slice(0, folds[0]);
       for (let i2 = 0; i2 < folds.length; ++i2) {
         const fold = folds[i2];
-        const end2 = folds[i2 + 1] || text2.length;
+        const end2 = folds[i2 + 1] || text.length;
         if (fold === 0)
           res = `
-${indent}${text2.slice(0, end2)}`;
+${indent}${text.slice(0, end2)}`;
         else {
           if (mode === FOLD_QUOTED && escapedFolds[fold])
-            res += `${text2[fold]}\\`;
+            res += `${text[fold]}\\`;
           res += `
-${indent}${text2.slice(fold + 1, end2)}`;
+${indent}${text.slice(fold + 1, end2)}`;
         }
       }
       return res;
     }
-    function consumeMoreIndentedLines(text2, i, indent) {
+    function consumeMoreIndentedLines(text, i, indent) {
       let end = i;
       let start = i + 1;
-      let ch = text2[start];
+      let ch = text[start];
       while (ch === " " || ch === "	") {
         if (i < start + indent) {
-          ch = text2[++i];
+          ch = text[++i];
         } else {
           do {
-            ch = text2[++i];
+            ch = text[++i];
           } while (ch && ch !== "\n");
           end = i;
           start = i + 1;
-          ch = text2[start];
+          ch = text[start];
         }
       }
       return end;
@@ -7371,11 +7371,10 @@ var require_dist = __commonJS({
 import * as fs6 from "node:fs/promises";
 import * as os2 from "node:os";
 import * as path10 from "node:path";
-import { text } from "node:stream/consumers";
 import { fileURLToPath } from "node:url";
 
 // src/catalog.yaml
-var catalog_default = { hosts: { claude: { coder: "sonnet/high" }, codex: { coder: "sol/high" }, cursor: { coder: "grok/high" } }, shadows: { "shadow-coder": { skills: ["solo-code"], description: "Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } } }, skills: { "solo-task": { budget: 135, argument_hint: '<request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | feedback [<slug> | <PR url> | <file> | "<review>"] | init [<tool>] | coder [<tool>] [<model>/<effort> | session | default]', description: "Takes one feature from a request or ticket to a reviewed, tested pull request you merge: a spec you approve, one coder writing tests and code, each test seen failing without the code, a fresh-context review and QA, and a walkthrough of how it works and how to try it. Usage: /solo-task <request, or ticket URL or id> [--writer claude|codex|cursor]; /solo-task continue; /solo-task explain [<slug>]; /solo-task feedback [<slug>, PR URL, file or review text] for a round of PR or written review; /solo-task init [claude|codex|cursor]; /solo-task coder [<tool>] [<model>/<effort>] to show or set the coder's model. Use for features that touch several files, need design decisions or have unclear requirements, or to resume one. Not for one-line fixes or simple, well-defined changes (suggest /plan), or roadmaps (/solo-epic)." }, "solo-plan": { budget: 109, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solo-task, or on its own to spec a feature without running it." }, "solo-code": { budget: 84, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solo-task run." }, "solo-review": { budget: 76, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch." }, "solo-verify": { budget: 54, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by the verifier subagent for a /solo-task run." }, "solo-epic": { budget: 150, argument_hint: "<idea> | <epic ticket or URL>", description: "Plans an epic for a product owner or manager: turns an idea into a measurable goal, the chosen approach, a data model and a roadmap of features in waves, then files it in your tracker (GitHub, GitLab, Jira, Linear) as an epic with one ready-to-assign ticket per feature, or keeps drafts outside the repo without one. Usage: /solo-epic <idea>; /solo-epic <epic ticket or URL> to revise it. Plans only: developers build each ticket with whatever workflow they use." }, "gen-docs": { budget: 50, user_only: true, description: "Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /solo-task runs don't rediscover it. Optional; run by the user as /gen-docs." } } };
+var catalog_default = { hosts: { claude: { coder: "sonnet/high" }, codex: { coder: "sol/high" }, cursor: { coder: "grok/high" } }, shadows: { "shadow-coder": { skills: ["solo-code"], description: "Writes a feature's tests, code and the docs that live beside them (solo-code). Started by the /solo-task commander; the only agent that edits source.", permission: { edit: { "~/.agents/solodev/**": "deny" } }, claude: { cache_ttl: "1h" } } }, skills: { "solo-task": { budget: 135, argument_hint: '<request or ticket> [--writer claude|codex|cursor] | continue | explain [<slug>] | feedback [<slug> | <PR url> | <file> | "<review>"] | init [<tool>] | coder [<tool>] [<model>/<effort> | session | default]', description: "Takes one feature from a request or ticket to a reviewed, tested pull request you merge: a spec you approve, one coder writing tests and code, each test seen failing without the code, a fresh-context review and QA, and a walkthrough of how it works and how to try it. Usage: /solo-task <request, or ticket URL or id> [--writer claude|codex|cursor]; /solo-task continue; /solo-task explain [<slug>]; /solo-task feedback [<slug>, PR URL, file or review text] for a round of PR or written review; /solo-task init [claude|codex|cursor]; /solo-task coder [<tool>] [<model>/<effort>] to show or set the coder's model. Use for features that touch several files, need design decisions or have unclear requirements, or to resume one. Not for one-line fixes or simple, well-defined changes (suggest /plan), or roadmaps (/solo-epic)." }, "solo-plan": { budget: 112, description: "Writes a feature's spec.md (requirements, @S<n> acceptance scenarios, and a plan with the approach and journeys) for the spec gate. Used by /solo-task, or on its own to spec a feature without running it." }, "solo-code": { budget: 84, description: "Implements an approved plan: makes each journey's test prove its scenarios, failing before the change and passing after it. Loaded by shadow-coder for a /solo-task run." }, "solo-review": { budget: 76, description: "Independent review of a spec and plan, or of a feature diff against its scenarios: one reviewer for a small change, parallel reviewers each on one lens (evidence, correctness, security, design, UI) for a large or sensitive one, findings merged in review.md. Used by /solo-task in a fresh context, or by the user on any branch." }, "solo-verify": { budget: 54, description: "Checks the acceptance scenarios no journey test covers, from outside the system, and replies with a verdict per scenario. Loaded by the verifier subagent for a /solo-task run." }, "solo-epic": { budget: 150, argument_hint: "<idea> | <epic ticket or URL>", description: "Plans an epic for a product owner or manager: turns an idea into a measurable goal, the chosen approach, a data model and a roadmap of features in waves, then files it in your tracker (GitHub, GitLab, Jira, Linear) as an epic with one ready-to-assign ticket per feature, or keeps drafts outside the repo without one. Usage: /solo-epic <idea>; /solo-epic <epic ticket or URL> to revise it. Plans only: developers build each ticket with whatever workflow they use." }, "gen-docs": { budget: 50, user_only: true, description: "Writes a minimal AGENTS.md (the commands list, plus constraints the code doesn't show) and docs/ARCHITECTURE.md, mapping the repo once so agents and /solo-task runs don't rediscover it. Optional; run by the user as /gen-docs." } } };
 
 // src/cli/approve.ts
 import * as fs3 from "node:fs/promises";
@@ -7846,7 +7845,9 @@ async function c6(ctx) {
     const own = proofs.filter((p) => p.journey === j.id);
     const green = own.findLastIndex((p) => p.phase === "green");
     if (green === -1) {
-      details.push(`${j.id} has no green record \u2014 run its command, then \`solodev proof <slug> ${j.id} green\``);
+      details.push(
+        `${j.id} has no green record \u2014 run its command, then \`solodev proof <slug> ${j.id} green --exit 0 --why '<the pass line>'\``
+      );
     } else if (own[green].tree !== tree) {
       details.push(`${j.id}'s green is stale: the code changed since \u2014 run its command and record green again`);
     }
@@ -8040,18 +8041,20 @@ var HELP = {
     example: "solodev check csv-export --for implement"
   },
   proof: {
-    usage: "solodev proof <slug> <journey>[,<journey>\u2026] red|green --exit <code> [< output]",
+    usage: "solodev proof <slug> <journey>[,<journey>\u2026] red|green --exit <code> --why '<output line>'",
     summary: "Record a run of a journey's command, or several journeys' tests run together, in progress.md.",
     detail: [
-      "Runs nothing. Appends `- proof <journey> red|green \xB7 exit <code> \xB7 tree <hash>` with the hash of the working",
-      "tree as it stands (tracked and untracked files) and the last lines of the output given on stdin. red is the",
-      "journey test failing without the code (set aside, or not written yet), so it needs a non-zero exit; green",
-      "needs 0. Any change to the tree after a green makes it stale for C6: run the command and record it again.",
-      "Keep the output file outside the repo: a file written inside it changes the tree. A red counts only on",
-      "another tree than the green. A green may name several journeys (J1,J2) whose tests ran in one run: one line",
-      "each, on one tree, the output's lines once. A red names one, since a run of several can fail on one alone."
+      "Runs nothing: run the command as its own call, so your tool's permission rules and hooks see it, then record",
+      "it. Appends `- proof <journey> red|green \xB7 exit <code> \xB7 tree <hash>` with the hash of the working tree as it",
+      "stands (tracked and untracked files) and the --why line: the output line that shows the result, the failure",
+      "for a red and the pass count for a green. red is the journey test failing without the code (set aside, or not",
+      "written yet), so it needs a non-zero exit; green needs 0. Any change to the tree after a green makes it stale",
+      "for C6: run the command and record it again. A red counts only on another tree than the green. A green may",
+      "name several journeys (J1,J2) whose tests ran in one run: one line each, on one tree, the --why line once. A",
+      "red names one, since a run of several can fail on one alone. Put the --why line in single quotes, dropping any",
+      "' in it, so the shell expands nothing in it; it is taken as written, even when it starts with --."
     ],
-    example: 'out="$(mktemp)"; npm test -- export > "$out" 2>&1; solodev proof csv-export J1 green --exit $? < "$out"'
+    example: "solodev proof csv-export J1 red --exit 1 --why 'AssertionError: expected a,b got undefined'"
   },
   init: {
     usage: "solodev init [claude|codex|cursor] [--global|--project] [--force] [--dry-run] [--json]",
@@ -8109,8 +8112,8 @@ import { createHash as createHash2 } from "node:crypto";
 import * as path5 from "node:path";
 var RETIRED_SHADOWS = ["shadow-spec-reviewer", "shadow-reviewer", "shadow-verifier"];
 var MARK = /\n(?:<!-- solodev-hash: ([0-9a-f]{16}) -->|# solodev-hash: ([0-9a-f]{16}))\n?$/;
-function sha256(text2) {
-  return createHash2("sha256").update(text2).digest("hex");
+function sha256(text) {
+  return createHash2("sha256").update(text).digest("hex");
 }
 function withHash(file, content) {
   const hash = sha256(content).slice(0, 16);
@@ -8594,8 +8597,14 @@ var SET_FOR_STAGE = {
   qa: "done",
   done: "done"
 };
+function takeWhy(args) {
+  const i = args.indexOf("--why");
+  if (i === -1) return { args };
+  return { args: [...args.slice(0, i), ...args.slice(i + 2)], why: args[i + 1] };
+}
 async function main(argv) {
-  const [command, ...args] = argv;
+  const [command, ...rawArgs] = argv;
+  const { args, why } = command === "proof" ? takeWhy(rawArgs) : { args: rawArgs, why: void 0 };
   if (!command || command === "help" || command === "--help" || command === "-h") {
     console.log(helpText(command === "help" ? args[0] : void 0));
     return 0;
@@ -8699,6 +8708,11 @@ ${formatResults(results)}`);
       return results.some((r) => r.status === "fail") ? 1 : 0;
     }
     case "proof": {
+      if (args.includes("--")) {
+        throw new UsageError(
+          `proof runs nothing: run the journey's command yourself, then record it: ${HELP.proof.usage}`
+        );
+      }
       const [slugArg, journeyArg, phase] = positional(args);
       const slug = await requireFeature(state, slugArg);
       if (!journeyArg || phase !== "red" && phase !== "green") throw new UsageError(`usage: ${HELP.proof.usage}`);
@@ -8708,8 +8722,19 @@ ${formatResults(results)}`);
       }
       const exit = flag(args, "--exit");
       if (exit === void 0 || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code");
-      const output = process.stdin.isTTY ? "" : await text(process.stdin);
-      const records = await proof({ root, dir: featureDir(state, slug), journeys, phase, exit: Number(exit), output });
+      if (!why?.trim()) {
+        throw new UsageError(
+          "--why needs the output line that shows the result: the failure for a red, the pass count for a green"
+        );
+      }
+      const records = await proof({
+        root,
+        dir: featureDir(state, slug),
+        journeys,
+        phase,
+        exit: Number(exit),
+        output: why
+      });
       console.log(`recorded ${slug} ${journeys.join(", ")} ${phase} at tree ${records[0].tree}`);
       return 0;
     }

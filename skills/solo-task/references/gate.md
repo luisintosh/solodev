@@ -28,8 +28,9 @@ Approve this spec and its plan, and choose who writes the code:
   an earlier run never approves the gate, even when it says "approved".
 - Approved → `solodev approve <slug>`, post the ticket comment, log the coder in `progress.md`
   (`<tool>/<model>/<effort> via <native|carrier>`, then the model and effort it ran on once it starts, which can differ
-  when the spawn call can't carry them), the browser when one was settled (`- browser <tool|none>`) and the comment's
-  URL (`ticket comment: <url>`), then step 5, or on a later approval the fix round step 4 names.
+  when the spawn call can't carry them, and again for a new coder on a model the user picks later), the browser when one
+  was settled (`- browser <tool|none>`) and the comment's URL (`ticket comment: <url>`), then step 5, or on a later
+  approval the fix round step 4 names.
 - Edits, or a vetoed assumption → revise `spec.md` and show the card again.
 - Nobody there to answer → the run waits here; nothing approves it for the user.
 
