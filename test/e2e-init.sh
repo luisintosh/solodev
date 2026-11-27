@@ -181,12 +181,13 @@ assert_eq "$(cd "$TARGET" && git status --porcelain)" "" "solodev approve leaves
 mkdir -p "${TARGET}/test" "${TARGET}/src"
 printf 'import assert from "node:assert"\nimport { hello } from "../src/hello.mjs"\nassert.strictEqual(hello(), "hello") // @S1\n' \
   >"${TARGET}/test/hello.test.mjs"
-(cd "$TARGET" && printf 'ERR_MODULE_NOT_FOUND\n' | "$SOLODEV" proof hello J1 red --exit 1 >/dev/null)
+(cd "$TARGET" && "$SOLODEV" proof hello J1 red --exit 1 --why "Error [ERR_MODULE_NOT_FOUND]: hello.mjs" >/dev/null)
+assert_grep '^  > Error \[ERR_MODULE_NOT_FOUND\]: hello.mjs$' "$(cat "${FEATURE}/progress.md")" \
+  "solodev proof keeps the --why line under the record"
 printf 'export const hello = () => "hello"\n' >"${TARGET}/src/hello.mjs"
-(cd "$TARGET" && "$SOLODEV" proof hello J1 green --exit 0 </dev/null >/dev/null)
+(cd "$TARGET" && "$SOLODEV" proof hello J1 green --exit 0 --why "ok" >/dev/null)
 assert_grep '^- proof J1 green · exit 0 · tree [0-9a-f]*$' "$(cat "${FEATURE}/progress.md")" \
   "solodev proof records a journey's run in progress.md"
-assert_grep '^  > ERR_MODULE_NOT_FOUND$' "$(cat "${FEATURE}/progress.md")" "solodev proof keeps the output's last lines"
 (cd "$TARGET" && git add test src && git commit -q -m "feat: add hello")
 set +e
 printf -- '- base main\n' >>"${FEATURE}/progress.md"
@@ -211,10 +212,21 @@ usage_rc=$?
 set -e
 assert_eq "$usage_rc" "2" "solodev exits 2 on a usage error"
 set +e
-(cd "$TARGET" && "$SOLODEV" proof hello J1,,J1 green --exit 0 </dev/null >/dev/null 2>&1)
+(cd "$TARGET" && "$SOLODEV" proof hello J1,,J1 green --exit 0 --why ok >/dev/null 2>&1)
 usage_rc=$?
 set -e
 assert_eq "$usage_rc" "2" "solodev proof refuses an empty or repeated journey in its list"
+set +e
+(cd "$TARGET" && "$SOLODEV" proof hello J1 green --exit 0 >/dev/null 2>&1)
+usage_rc=$?
+set -e
+assert_eq "$usage_rc" "2" "solodev proof needs the --why line"
+set +e
+(cd "$TARGET" && "$SOLODEV" proof hello J1 green --exit 0 --why ok -- touch proof-ran-this >/dev/null 2>&1)
+usage_rc=$?
+set -e
+assert_eq "$usage_rc" "2" "solodev proof takes no command to run"
+assert_file_absent "${TARGET}/proof-ran-this" "solodev proof runs nothing"
 
 # 5. a global install: skills under $HOME, init writes the shadows there
 FAKE_HOME="${WORK}/fake-home"

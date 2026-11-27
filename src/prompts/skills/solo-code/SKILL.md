@@ -14,8 +14,8 @@ Each journey is one test at its `test` path that exercises its scenarios through
 the brief's sketch on the repo's existing fixtures; a sketch that doesn't fit the code is yours to correct. A journey is
 done when:
 
-- its `command` fails because the behavior is missing, then passes, and you recorded each run as it happened:
-  `solodev proof <slug> <journey> red|green --exit <its exit code> < <its output, in a temp file outside the repo>`;
+- its `command` fails because the behavior is missing, then passes, each run as its own command and recorded right
+  after with `solodev proof <slug> <journey> red|green --exit <its exit code> --why "<the output line that shows it>"`;
 - each scenario's Given/When/Then holds, not only the test being green, and the test or assertion that proves it carries
   its `@S<n>` tag in its name or a comment beside it.
 

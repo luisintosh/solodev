@@ -2,7 +2,6 @@
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
-import { text } from "node:stream/consumers"
 import { fileURLToPath } from "node:url"
 import catalog from "../catalog.yaml"
 import { approve } from "./approve.ts"
@@ -181,6 +180,11 @@ async function main(argv: string[]): Promise<number> {
       return results.some((r) => r.status === "fail") ? 1 : 0
     }
     case "proof": {
+      if (args.includes("--")) {
+        throw new UsageError(
+          `proof runs nothing: run the journey's command yourself, then record it: ${HELP.proof!.usage}`,
+        )
+      }
       const [slugArg, journeyArg, phase] = positional(args)
       const slug = await requireFeature(state, slugArg)
       if (!journeyArg || (phase !== "red" && phase !== "green")) throw new UsageError(`usage: ${HELP.proof!.usage}`)
@@ -190,8 +194,20 @@ async function main(argv: string[]): Promise<number> {
       }
       const exit = flag(args, "--exit")
       if (exit === undefined || !/^\d+$/.test(exit)) throw new UsageError("--exit needs the command's exit code")
-      const output = process.stdin.isTTY ? "" : await text(process.stdin)
-      const records = await proof({ root, dir: featureDir(state, slug), journeys, phase, exit: Number(exit), output })
+      const why = flag(args, "--why")
+      if (!why?.trim()) {
+        throw new UsageError(
+          "--why needs the output line that shows the result: the failure for a red, the pass count for a green",
+        )
+      }
+      const records = await proof({
+        root,
+        dir: featureDir(state, slug),
+        journeys,
+        phase,
+        exit: Number(exit),
+        output: why,
+      })
       console.log(`recorded ${slug} ${journeys.join(", ")} ${phase} at tree ${records[0]!.tree}`)
       return 0
     }

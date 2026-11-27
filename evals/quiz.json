@@ -619,6 +619,12 @@
       "expect": "`install` and then `build` from the `- tools:` line, before any test or the verifier, restarting a dev server the run had started."
     },
     {
+      "id": "feedback-sync-green",
+      "situation": "`/solo-task feedback` on csv-export. The sync changed the tree, every row was deferred or rebutted, so no coder ran this round. J1's `command` is `npm test -- export`.",
+      "ask": "How do you record J1's green before the pr check?",
+      "expect": "Runs `npm test -- export` as its own command, then records it with `solodev proof csv-export J1 green --exit 0 --why \"<the pass line>\"`."
+    },
+    {
       "id": "feedback-suggestion-committed",
       "situation": "A feedback round. Since the last round, the reviewer committed one of their suggestion blocks from the forge's UI.",
       "ask": "What happens to that comment's row?",
@@ -709,6 +715,12 @@
       "expect": "Runs J1's command again and records its green again, since the edit after the record made it stale; then `solodev check <slug> --for implement`."
     },
     {
+      "id": "coder-proof-runner",
+      "situation": "You are shadow-coder. You set aside the code for J1, whose `command` is `pnpm vitest run src/export.test.ts`, and are about to see it fail.",
+      "ask": "How do you run it and record the red?",
+      "expect": "Runs `pnpm vitest run src/export.test.ts` as its own command, then records it with one plain call, `solodev proof <slug> J1 red --exit <its exit code> --why \"<the failing line>\"`: no pipe, temp file, `$?` or command substitution."
+    },
+    {
       "id": "fix-round-test-scope",
       "situation": "You are shadow-coder in a fix round. R4 asks for a null check in src/export/rows.ts, a module only this feature uses. The `- tools:` line has `test`, which runs the whole suite in about four minutes, and `test_file`. The plan has journeys J1 and J2.",
       "ask": "Which tests do you run before replying?",
@@ -724,7 +736,7 @@
       "id": "fix-round-batch-proof",
       "situation": "You are shadow-coder in a fix round. One run of the runner covered J1's and J2's journey tests together, and both passed (exit 0).",
       "ask": "How do you record their green?",
-      "expect": "One `solodev proof <slug> J1,J2 green --exit 0 < <the run's output>` call for both, the output showing each journey's test ran."
+      "expect": "One `solodev proof <slug> J1,J2 green --exit 0 --why \"<the line showing both tests ran>\"` call for both."
     },
     {
       "id": "coder-reply-no-how",
@@ -743,6 +755,12 @@
       "situation": "You are a reviewer with `lens: evidence`. progress.md's `- proof J1 red` record ends with a syntax error in a test helper unrelated to the feature, and J1's green record is fine.",
       "ask": "Is that a finding, and how severe?",
       "expect": "A `blocker`: the red failed for a reason other than the missing behavior, so it proves nothing."
+    },
+    {
+      "id": "evidence-green-shows-failure",
+      "situation": "You are a reviewer with `lens: evidence`. J1's green record in progress.md reads `exit 0`, and the line quoted under it is `Tests  2 failed | 10 passed (12)`.",
+      "ask": "Is that a finding, and how severe?",
+      "expect": "A `blocker`: the green's own line shows failures, so it proves nothing, whatever exit code was recorded."
     },
     {
       "id": "coder-test-seems-wrong",

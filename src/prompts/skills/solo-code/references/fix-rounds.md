@@ -8,8 +8,8 @@ journey's command. Run the full `test` as well when the fix changes code that ot
 
 Where several of those tests share a runner, run them in one invocation that names each test file or test, rather than
 one run each, since starting the runner can cost more than the tests. A run that covers several journeys' tests records
-their green together, `solodev proof <slug> J1,J2 green --exit <its exit code> < <its output>`, and its output shows
-each journey's test ran. A red stays one journey per run.
+their green together, `solodev proof <slug> J1,J2 green --exit 0 --why "<the line showing each one's test ran>"`. A red
+stays one journey per run.
 
 ## Replying
 

@@ -12,6 +12,7 @@ import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
 import { z } from "zod"
+import { proof } from "../src/cli/proof.ts"
 import {
   CLAUDE_ALLOWED,
   CLI,
@@ -142,8 +143,9 @@ async function setup(stage: Stage): Promise<{ ws: string; state: string; base: s
     const spec = await fs.readFile(path.join(repoState(ws, state), stage.slug, "spec.md"), "utf8").catch(() => "")
     for (const [, journey] of spec.matchAll(/^\s*- id: (\S+)/gm)) {
       for (const phase of phases) {
-        const r = solodev(ws, state, ["proof", stage.slug, journey!, phase, "--exit", phase === "red" ? "1" : "0"])
-        if (r.code !== 0) throw new Error(`${stage.id}: solodev proof failed: ${r.stdout}${r.stderr}`)
+        // The records a coder's runs would leave, without running the stage's tests.
+        const feature = path.join(repoState(ws, state), stage.slug)
+        await proof({ root: ws, dir: feature, journeys: [journey!], phase, exit: phase === "red" ? 1 : 0 })
       }
     }
   }
